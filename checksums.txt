@@ -1,0 +1,7 @@
+d26eefd0efa5b63be0fa28638028c458fd134f724eaa54986fc645993aebf4c0  ./LAES-MIG.md
+3e36757d51857e2a26fc5a1f2efa82145ec3ec8ec992e24674afdf70b3276619  ./dashboard/primewebs-dashboard.html
+694622423c7e20b80ece9604c13fba7f061234afe31c3ab8e398c94fd9117e9e  ./dashboard/src/app.js
+ab3287f5b34782366c74b4c9ad4bea0752c1635b790d267f6833b25c7af5707c  ./dashboard/src/index.html
+ba083237982747b3b094def8c60f3e8badbf855cb5e273efdb9999bc9cd17db6  ./dashboard/src/styles.css
+e450e0c7ca943768936226907039500e348f5a41688dc1d36fc9e16c98acadbf  ./docs/PRIME-WEBS-AI-projektnoter.md
+d40448af548fc9cc704caa7c5270425d06ddc6c2cd18aabd341578558093647b  ./website/primewebs.html
