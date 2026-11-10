@@ -21,7 +21,7 @@ const Projects={all:()=>Storage.get('pw.projects',[]),save:l=>Storage.set('pw.pr
 const Customers={all:()=>Storage.get('pw.customers',[]),save:l=>Storage.set('pw.customers',l)};
 const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',theme:'auto'},get(){return{...this.d,...Storage.get('pw.settings',{})}},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
-/* ===== Lag 2: AI (testgenerator nu, Claude API via server senere) ===== */
+/* ===== Lag 2: rigtig AI via sikker serverfunktion ===== */
 const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'}};
 const COLORS={blå:'#2540D9',grøn:'#1E8E5A',rød:'#D12C3F',lilla:'#7B3FD1',orange:'#E8730C',sort:'#111111'};
 const mk={
@@ -32,34 +32,16 @@ const mk={
     {t:'Personlig service',d:'Du taler direkte med dem, der løser opgaven.'}]}),
   about:(n,d)=>({id:uid(),type:'about',title:'Om '+n,text:d||'Vi er et lokalt team, der brænder for at gøre en forskel for vores kunder.'}),
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
-const AI={mode:'test',
-  async generate({name,description,style}){await wait(900);
-    return{v:1,meta:{title:name,theme:{...(STYLES[style]||STYLES.Moderne)}},
-      blocks:[mk.hero(name,description),mk.features(),mk.about(name,description),mk.contact()]}},
-  async edit(site,msg){await wait(500);
-    const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
-    const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
-    const col=Object.keys(COLORS).find(k=>m.includes(k));
-    if(col&&!q&&/farve|knap|skift|gør|ændr/.test(m)){th.accent=COLORS[col];out.push('Farven er skiftet til '+col)}
-    if(/mørk/.test(m)){th.mode='dark';out.push('Siden er nu mørk')}
-    else if(/\blys\b|lyst/.test(m)){th.mode='light';out.push('Siden er nu lys')}
-    if(/serif|elegant|klassisk/.test(m)){th.font='serif';out.push('Skriften er nu serif')}
-    else if(/sans|moderne/.test(m)){th.font='sans';out.push('Skriften er nu sans-serif')}
-    if(hero){
-      if(/overskrift/.test(m)){
-        if(q){hero.title=q;out.push('Overskriften er ændret')}
-        else if(/personlig/.test(m)){hero.title='Hos '+name+' er du i gode hænder';out.push('Overskriften er gjort mere personlig')}
-        else if(/kort/.test(m)){hero.title=name;out.push('Overskriften er gjort kortere')}
-      }else if(q&&/tekst|beskrivelse/.test(m)){hero.text=q;out.push('Teksten er ændret')}
-      if(q&&/knap/.test(m)){hero.cta=q;out.push('Knappen hedder nu '+q)}
-    }
-    const T={'kontakt':'contact','fordele':'features','om os':'about'};
-    for(const [k,t] of Object.entries(T)){if(!m.includes(k))continue;const has=s.blocks.some(b=>b.type===t);
-      if(/tilføj/.test(m)&&!has){const nb=mk[t](name,''),ci=s.blocks.findIndex(b=>b.type==='contact');
-        (t!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);out.push(k+' er tilføjet')}
-      else if(/fjern|slet/.test(m)&&has){s.blocks=s.blocks.filter(b=>b.type!==t);out.push(k+' er fjernet')}}
-    if(!out.length)return{site:null,reply:'Det forstod testgeneratoren ikke endnu. Prøv fx: skift farve til grøn, gør siden mørk, tilføj Om os, eller skift overskrift til “…”. Intet er trukket fra dine credits.'};
-    return{site:s,reply:out.join('. ')+'.'}}};
+const AI={mode:'api',
+  async request(action,payload){
+    const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+    const data=await response.json().catch(()=>({error:'Serveren returnerede et ugyldigt svar.'}));
+    if(!response.ok)throw new Error(data.error||'AI-forbindelsen fejlede ('+response.status+').');
+    return data;
+  },
+  async generate(input){return this.request('generate',input)},
+  async edit(site,message){return this.request('edit',{site,message})}
+};
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
@@ -126,7 +108,7 @@ function vStats(){const l=Projects.all(),mx=Math.max(1,...l.map(nEdits)),t=(n,x)
   return `<h1>Statistik og analyser</h1><p class="mu">Oversigt over arbejdet på platformen. Besøgstal for udgivne hjemmesider kommer, når publicering er tilsluttet.</p><div class="grid" style="margin-bottom:1rem">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(l.reduce((n,p)=>n+nEdits(p),0),'Chat-ændringer')}</div>`+(l.length?`<table><tr><th>Hjemmeside</th><th>Chat-ændringer</th><th>Blokke</th></tr>${l.map(p=>`<tr><td>${esc(p.name)}</td><td><div class="bar2" style="width:${nEdits(p)/mx*100}%"></div>${nEdits(p)}</td><td>${p.site.blocks.length}</td></tr>`).join('')}</table>`:'')}
 
 function vSet(){const s=Settings.get(),u=Session.user(),f=(k,t)=>`<label>${t}<input data-s="${k}" value="${esc(s[k])}"></label>`;
-  return `<h1>Indstillinger</h1><div class="card form"><h3>Virksomhed</h3><p class="mu">Bruges som standard i nye hjemmesiders kontaktsektion.</p>${f('company','Virksomhedsnavn')}${f('email','E-mail')}${f('phone','Telefon')}${f('web','Hjemmeside')}<label>Udseende<select data-s="theme">${[['auto','Følg enheden'],['light','Lyst'],['dark','Mørkt']].map(([v,t])=>`<option value="${v}" ${s.theme===v?'selected':''}>${t}</option>`).join('')}</select></label></div><div class="card form" style="margin-top:1rem"><h3>Konto</h3><p>${esc(u.name)} <span class="badge">${u.role.toUpperCase()}</span></p><h3>Tilslutninger</h3><p class="mu">Claude API: ikke tilsluttet (testgenerator bruges)<br>Betalingssystem: ikke tilsluttet<br>Database og login: ikke tilsluttet, data gemmes i denne browser</p></div>`}
+  return `<h1>Indstillinger</h1><div class="card form"><h3>Virksomhed</h3><p class="mu">Bruges som standard i nye hjemmesiders kontaktsektion.</p>${f('company','Virksomhedsnavn')}${f('email','E-mail')}${f('phone','Telefon')}${f('web','Hjemmeside')}<label>Udseende<select data-s="theme">${[['auto','Følg enheden'],['light','Lyst'],['dark','Mørkt']].map(([v,t])=>`<option value="${v}" ${s.theme===v?'selected':''}>${t}</option>`).join('')}</select></label></div><div class="card form" style="margin-top:1rem"><h3>Konto</h3><p>${esc(u.name)} <span class="badge">${u.role.toUpperCase()}</span></p><h3>Tilslutninger</h3><p class="mu">AI-generator: serverforbindelse oprettet i koden (kræver ANTHROPIC_API_KEY i Vercel)<br>Betalingssystem: ikke tilsluttet<br>Database og login: ikke tilsluttet, data gemmes i denne browser</p></div>`}
 
 function vAdmin(){if(!Session.can())return '<h1>Admin Panel</h1><p>Du har ikke adgang.</p>';
   return `<h1>Admin Panel</h1><div class="grid" style="margin-bottom:1rem"><div class="card"><div class="mu">Roller</div><p><span class="badge">OWNER</span> og <span class="badge">ADMIN</span>: fuld adgang og ubegrænsede credits.<br><span class="badge">KUNDE</span>: egne hjemmesider og credits (kommer med login).</p></div><div class="card"><div class="mu">Data i denne browser</div><p>${Projects.all().length} hjemmesider, ${Customers.all().length} kunder</p></div></div><div class="card stack"><h3>Sikkerhedskopi</h3><p class="mu">Kopiér al data (hjemmesider, kunder, indstillinger) og gem teksten i en fil på din computer.</p><button class="btn" data-act="bk">Lav sikkerhedskopi</button>${S.out&&S.outId==='bk'?`<textarea class="code" readonly>${esc(S.out)}</textarea>`:''}<h3>Gendan</h3><textarea class="code" id="rs" placeholder="Indsæt sikkerhedskopi her">${esc(S.rv)}</textarea><button class="btn ghost" data-act="rs">${S.rc?'Bekræft: overskriv al data':'Gendan fra kopi'}</button>${S.msg?`<p class="${S.msg.startsWith('Fejl')?'err':''}">${esc(S.msg)}</p>`:''}</div>`}
@@ -156,7 +138,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 function render(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>`<div class="grp">${g}</div>${it.filter(([k])=>k!=='admin'||Session.can()).map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join('')}`).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='test'?'testgenerator':'Claude'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>`<div class="grp">${g}</div>${it.filter(([k])=>k!=='admin'||Session.can()).map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join('')}`).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'testgenerator'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
