@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PRIME WEBS – hjemmesider der er klar hurtigt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --ink:#101828; --muted:#4B5565; --line:#D5DBE6;
+  --accent:#2540D9; --accent-ink:#FFFFFF; --soft:#DDE4FF;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1320; --surface:#171E30; --ink:#E8ECF5; --muted:#9AA6BD; --line:#2A3350;
+    --accent:#8DA0FF; --accent-ink:#0E1320; --soft:#222C52; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1320; --surface:#171E30; --ink:#E8ECF5; --muted:#9AA6BD; --line:#2A3350;
+  --accent:#8DA0FF; --accent-ink:#0E1320; --soft:#222C52; color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1.05rem;line-height:1.6}
+h1,h2,h3{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 1.25rem}
+header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem 0}
+.logo{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:.02em;font-size:1.25rem;color:var(--ink);text-decoration:none}
+header a.call{font-weight:600;text-decoration:none}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:3rem;align-items:center;padding:3.5rem 0 4.5rem}
+.hero h1{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:800;letter-spacing:-.02em}
+.hero p{color:var(--muted);max-width:34rem;margin:1.25rem 0 2rem;font-size:1.15rem}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:.85rem 1.5rem;border-radius:10px;text-decoration:none;border:0;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.mock{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.mock-bar{display:flex;gap:.4rem;padding:.7rem .9rem;border-bottom:1px solid var(--line)}
+.mock-bar i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.mock-body{padding:1.1rem}
+.sk{height:14px;border-radius:6px;background:var(--soft);margin-bottom:.6rem}
+.sk.big{height:30px;width:70%;background:var(--accent);opacity:.9;margin-bottom:.9rem}
+.sk.w60{width:60%}.sk.w85{width:85%}
+.chat{margin-top:1.1rem;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:.75rem .9rem;font-size:.95rem}
+.chat b{color:var(--accent)}
+section.block{padding:3.5rem 0;border-top:1px solid var(--line)}
+section.block h2{font-size:clamp(1.7rem,4vw,2.4rem);margin-bottom:1.75rem;font-weight:800}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+.cols h3{font-size:1.2rem;margin-bottom:.5rem}
+.cols p{margin:0;color:var(--muted)}
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:3rem}
+.contact dl{margin:0}
+.contact dt{font-weight:600;margin-top:1rem}
+.contact dd{margin:0;color:var(--muted)}
+label{display:block;font-weight:600;margin-bottom:1rem}
+input,textarea{display:block;width:100%;margin-top:.35rem;padding:.75rem .9rem;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px}
+textarea{min-height:120px;resize:vertical}
+footer{padding:2rem 0 3rem;color:var(--muted);font-size:.95rem;border-top:1px solid var(--line)}
+@media (max-width:760px){
+  .hero,.contact{grid-template-columns:1fr;gap:2rem}
+  .cols{grid-template-columns:1fr;gap:1.5rem}
+  .hero{padding:2rem 0 3rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="#top">PRIME WEBS</a>
+    <a class="call" href="tel:+4530950593">+45 30 95 05 93</a>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <h1>Din hjemmeside, klar på dage i stedet for uger.</h1>
+        <p>Vi bygger moderne hjemmesider til små og mellemstore virksomheder. Fortæl os, hvad du laver, så får du et forslag, du kan rette til, indtil det passer.</p>
+        <a class="btn" href="#kontakt">Kontakt os</a>
+      </div>
+      <div class="mock" aria-hidden="true">
+        <div class="mock-bar"><i></i><i></i><i></i></div>
+        <div class="mock-body">
+          <div class="sk big"></div>
+          <div class="sk w85"></div>
+          <div class="sk w60"></div>
+          <div class="chat"><b>Dig:</b> Gør overskriften mere personlig.</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="block" id="om">
+      <h2>Sådan arbejder vi</h2>
+      <div class="cols">
+        <div><h3>Du beskriver</h3><p>Du fortæller kort om din virksomhed, dine kunder og hvad siden skal opnå.</p></div>
+        <div><h3>Vi bygger</h3><p>Du får et færdigt udkast hurtigt, med tekst, billeder og struktur på plads.</p></div>
+        <div><h3>Vi retter til</h3><p>Du siger, hvad der skal ændres, og vi justerer, indtil du er tilfreds.</p></div>
+      </div>
+    </section>
+
+    <section class="block" id="kontakt">
+      <h2>Kontakt</h2>
+      <div class="contact">
+        <dl>
+          <dt>Telefon</dt><dd><a href="tel:+4530950593">+45 30 95 05 93</a></dd>
+          <dt>E-mail</dt><dd><a href="mailto:primewebssupport@gmail.com">primewebssupport@gmail.com</a></dd>
+          <dt>Web</dt><dd><a href="https://primewebs.space">primewebs.space</a></dd>
+        </dl>
+        <div id="mailform">
+          <label>Dit navn
+            <input type="text" id="navn" autocomplete="name">
+          </label>
+          <label>Din besked
+            <textarea id="besked"></textarea>
+          </label>
+          <button class="btn" type="button" id="send">Send besked</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© PRIME WEBS</footer>
+</div>
+<script>
+document.getElementById('send').addEventListener('click', function(){
+  var navn = document.getElementById('navn').value.trim();
+  var besked = document.getElementById('besked').value.trim();
+  var emne = encodeURIComponent('Henvendelse fra hjemmesiden' + (navn ? ' – ' + navn : ''));
+  var tekst = encodeURIComponent(besked + (navn ? '\n\nMvh. ' + navn : ''));
+  window.location.href = 'mailto:primewebssupport@gmail.com?subject=' + emne + '&body=' + tekst;
+});
+</script>
+</body>
+</html>
