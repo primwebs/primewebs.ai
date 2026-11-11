@@ -76,3 +76,6 @@ textarea.code{min-height:200px;font-family:ui-monospace,Consolas,monospace;font-
 .nv.par{font-weight:600}
 .nv.kid{padding-left:2.5rem;font-size:.95rem}
 .gp .ms{margin:.3rem 0 .4rem}
+
+.nv.kid[aria-current="page"]{background:var(--so);font-weight:600;box-shadow:inset 3px 0 0 var(--gc,var(--ac))}
+.nv.kid span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

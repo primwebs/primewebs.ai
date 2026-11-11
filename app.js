@@ -10,7 +10,7 @@ const Storage={mem:{},
   get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return k in this.mem?this.mem[k]:d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
 // Session: én lokal bruger nu, rigtigt login senere
-const Session={user:()=>({id:'local',name:'Ejer',role:'owner'}),can:()=>['owner','admin'].includes(Session.user().role)};
+const Session={user:()=>({id:'local',name:'Ejer',role:'owner',email:Settings.get().ownerEmail}),can:()=>['owner','admin'].includes(Session.user().role)};
 // Credits: lokal tæller nu, regnskab + Stripe senere
 const Credits={cost:{generate:10,edit:1},
   unlimited:()=>Session.can(),
@@ -19,7 +19,7 @@ const Credits={cost:{generate:10,edit:1},
 // Projects: repository, samme interface mod database senere
 const Projects={all:()=>Storage.get('pw.projects',[]),save:l=>Storage.set('pw.projects',l)};
 const Customers={all:()=>Storage.get('pw.customers',[]),save:l=>Storage.set('pw.customers',l)};
-const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',theme:'auto'},get(){return{...this.d,...Storage.get('pw.settings',{})}},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
+const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',ownerEmail:'primewebssupport@gmail.com',theme:'auto'},get(){return{...this.d,...Storage.get('pw.settings',{})}},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
 /* ===== Lag 2: rigtig AI via sikker serverfunktion ===== */
 const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'},Natur:{accent:'#3F7D4E',font:'sans',mode:'light'},Hav:{accent:'#0E7C86',font:'sans',mode:'light'},Solnedgang:{accent:'#E8730C',font:'sans',mode:'light'},Rosa:{accent:'#D6457F',font:'sans',mode:'light'},Lavendel:{accent:'#7B3FD1',font:'sans',mode:'light'},Premium:{accent:'#C9A24B',font:'serif',mode:'dark'}};
@@ -138,7 +138,7 @@ const NAV=[
  ['System',[['setp','Indstillinger',[['settings','Virksomhed og konto'],['colors','Udseende og farver']]],['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]]]
 ];
 const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
-const PLANS=[['Gratis',50],['Starter',500],['Pro',2000]];
+const PLANS=[['Gratis',50,0],['Starter',500,25],['Pro',1200,50],['Business',3000,100]];
 const TPL=[{n:'Restaurant',s:'Elegant',d:'Hyggelig restaurant med lokale råvarer og sæsonens menu.'},{n:'Håndværker',s:'Moderne',d:'Pålidelig håndværker til nybyg, renovering og service.'},{n:'Frisør',s:'Frisk',d:'Frisørsalon med fokus på klip, farve og personlig rådgivning.'},{n:'Konsulent',s:'Mørk',d:'Selvstændig konsulent, der hjælper virksomheder med strategi og vækst.'}];
 const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'Live preview og chat-redigering'],[1,'Bygger med direkte redigering af blokke'],[1,'Ejer/admin med ubegrænsede credits'],[1,'Kunder med egne credits (manuelt)'],[1,'Sikkerhedskopi og gendannelse'],[1,'Adgangskode, begrænsning og validering på AI-serveren'],[1,'Demo-tilstand, hvis AI-serveren ikke er sat op'],[0,'Login og database'],[0,'Rigtig publicering og egne domæner'],[0,'Betaling og abonnementer (kræver din godkendelse)']];
 const nEdits=p=>p.chat.filter(m=>m.r==='u').length;
@@ -339,10 +339,6 @@ function smartSite(i){
   const cta=mk.cta(n);if(i.tone==='Venlig')cta.cta='Skriv til os';if(i.tone==='Energisk')cta.cta='Kom i gang nu';
   const ct=mk.contact();ct.email=i.email||(desc.match(RX_MAIL)||[])[0]||Settings.get().email;ct.phone=i.phone||(desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone;
   return{v:1,meta:{title:n,theme:th},blocks:[hero,mk.features(),svc,mk.about(n,clean),mk.steps(),faq,cta,ct]}}
-function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang:'Dansk',phone:'',email:'',...S.form};
-  const inp=(k,t,x='')=>`<label>${t}<input data-f="${k}" value="${esc(f[k])}" ${x}></label>`;
-  const sel=(k,t,arr)=>`<label>${t}<select data-f="${k}">${arr.map(o=>`<option value="${esc(o)}" ${f[k]===o?'selected':''}>${esc(o||'Find selv')}</option>`).join('')}</select></label>`;
-  return `<h1>Opret ny hjemmeside</h1><p class="mu">Jo mere du skriver, jo bedre bliver resultatet. Kun navnet er påkrævet.</p><div class="card form">${inp('name','Virksomhedens navn','id="nn"')}<label>Beskriv virksomheden med dine egne ord<textarea data-f="desc" id="nd" style="min-height:140px" placeholder="Fx: Vi er en frisørsalon i Aarhus med fokus på klip og farve. Vi vil have en rolig, lys hjemmeside i grønne farver. Ring på 12 34 56 78.">${esc(f.desc)}</textarea></label>${sel('ind','Branche',INDS)}${inp('city','By eller område')}${inp('svc','Ydelser (adskil med komma)')}${sel('tone','Tone',TONES)}${sel('style','Stil',Object.keys(STYLES))}${sel('lang','Sprog',['Dansk','English'])}<div style="margin-bottom:1rem"><strong>Farve</strong><div class="sw" style="margin-top:.4rem"><button type="button" class="btn ${f.color?'ghost':''}" data-x="fcol" data-c="">Lad AI vælge</button>${Object.entries(PAL).map(([n,h])=>`<button type="button" class="swb" data-x="fcol" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${f.color===h}" style="background:${h}"></button>`).join('')}</div></div>${inp('phone','Telefon på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().phone)+'"')}${inp('email','E-mail på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().email)+'"')}${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="gen" ${S.busy?'disabled':''}>${S.busy?'Genererer…':'Generér hjemmeside (10 credits)'}</button></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x="fcol"]');if(b){S.form={...S.form,color:b.dataset.c};render()}});
 /* ===== Farver: hjemmesidens design og dashboardets accentfarve ===== */
 const swatch=(x,n,h,on)=>`<button type="button" class="swb" data-x="${x}" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${on}" style="background:${h}"></button>`;
@@ -368,7 +364,7 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
   const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" data-act="go" data-v="${k}"><span>${t}</span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
-      if(!ch)return(!q||t.toLowerCase().includes(q))?btn(k,t):'';
+      if(!ch)return((!q||t.toLowerCase().includes(q))?btn(k,t):'')+(k==='list'?projBtns(q):'');
       const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';
       const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view):v===1);
       return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span>${t}</span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
@@ -391,5 +387,19 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act="sub"]
   if(d.act==='sub'){const n=Storage.get('pw.nav',{}),it=NAV.flatMap(g=>g[1]).find(x=>x[0]===d.k),v=n['s:'+d.k],open=v===undefined?it[2].some(c=>c[0]===S.view):v===1;n['s:'+d.k]=open?0:1;Storage.set('pw.nav',n);render()}
   else{upd(S.id,q=>{const sn=q.history[+d.i];if(!sn)return;q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=structuredClone(sn)});render()}});
 document.addEventListener('change',e=>{if(e.target.dataset.proj!==undefined){S.id=e.target.value||null;render()}});
+/* ===== Prompt-først oprettelse, gemte hjemmesider i menuen og priser ===== */
+const PB=['edit','builder','customize','preview','history'];
+const EXAMPLES=['Frisørsalon i Aarhus med grønne farver','Tømrerfirma i Odense, der laver tilbygninger','Café i København med frokost og kage','Konsulent, der hjælper små virksomheder med regnskab'];
+function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang:'Dansk',phone:'',email:'',...S.form};
+  const inp=(k,t,x='')=>`<label>${t}<input data-f="${k}" value="${esc(f[k])}" ${x}></label>`;
+  const sel=(k,t,arr)=>`<label>${t}<select data-f="${k}">${arr.map(o=>`<option value="${esc(o)}" ${f[k]===o?'selected':''}>${esc(o||'Find selv')}</option>`).join('')}</select></label>`;
+  return `<h1>Opret ny hjemmeside</h1><div class="card form" style="max-width:720px"><label>Hvad skal hjemmesiden handle om?<textarea data-f="desc" id="nd" style="min-height:150px;font-size:1.05rem" placeholder="Beskriv virksomheden med dine egne ord. Fx: Vi er en frisørsalon i Aarhus med fokus på klip og farve. Vi vil gerne have en rolig, lys hjemmeside i grønne farver. Ring på 12 34 56 78.">${esc(f.desc)}</textarea></label><div class="row" style="margin:-.4rem 0 1rem">${EXAMPLES.map(x=>`<button type="button" class="chip" data-x="ex" data-t="${esc(x)}">${esc(x)}</button>`).join('')}</div>${inp('name','Virksomhedens navn','id="nn"')}<details data-more ${S.more?'open':''} style="margin-bottom:1rem"><summary style="cursor:pointer;font-weight:600;margin-bottom:.8rem">Flere indstillinger (valgfrit)</summary>${sel('ind','Branche',INDS)}${inp('city','By eller område')}${inp('svc','Ydelser (adskil med komma)')}${sel('tone','Tone',TONES)}${sel('style','Stil',Object.keys(STYLES))}${sel('lang','Sprog',['Dansk','English'])}<div style="margin-bottom:1rem"><strong>Farve</strong><div class="sw" style="margin-top:.4rem"><button type="button" class="btn ${f.color?'ghost':''}" data-x="fcol" data-c="">Lad AI vælge</button>${Object.entries(PAL).map(([n,h])=>`<button type="button" class="swb" data-x="fcol" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${f.color===h}" style="background:${h}"></button>`).join('')}</div></div>${inp('phone','Telefon på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().phone)+'"')}${inp('email','E-mail på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().email)+'"')}</details>${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="gen" ${S.busy?'disabled':''}>${S.busy?'Genererer…':'Generér hjemmeside'}</button><p class="mu" style="margin-top:.8rem">Hjemmesiden gemmes automatisk under Mine hjemmesider i menuen.</p></div>`}
+function projBtns(q){const all=Projects.all().filter(p=>!q||p.name.toLowerCase().includes(q)),sh=all.slice(0,12);
+  return sh.map(p=>`<button class="nv kid" data-x="proj" data-id="${p.id}" title="Åbn ${esc(p.name)}" ${p.id===S.id&&PB.includes(S.view)?'aria-current="page"':''}><span>▪ ${esc(p.name)}</span></button>`).join('')+(all.length>12?`<button class="nv kid" data-act="go" data-v="list"><span>Se alle (${all.length})</span></button>`:'')}
+V.credits=()=>{const own=Settings.get().ownerEmail,paid=PLANS.filter(p=>p[2]);
+  return `<h1>Credits og abonnementer</h1><div class="card" style="margin-bottom:1.5rem;max-width:720px"><span class="badge">OWNER / ADMIN</span><h3 style="margin-top:.6rem">Gratis adgang: kun ejerens e-mail</h3><label>Ejerens e-mail<input data-s="ownerEmail" value="${esc(own)}"></label><p class="mu">Kontoen med denne e-mail har ubegrænsede credits og betaler aldrig. Der er endnu ikke noget login, så indtil videre får alle, der åbner dette dashboard, ejeradgang. Når login kommer, gælder gratis adgang kun for denne e-mail.</p></div><h3>Priser for kunder</h3><div class="grid" style="margin-bottom:1rem">${paid.map(([n,c,pr])=>`<div class="card"><h3>${n}</h3><h1>${pr} €<small class="mu"> / måned</small></h1><p>${c.toLocaleString('da-DK')} credits pr. måned</p><p class="mu">Svarer til cirka ${Math.floor(c/Credits.cost.generate)} nye hjemmesider eller ${c.toLocaleString('da-DK')} chat-ændringer.</p><a class="btn" href="mailto:${esc(own)}?subject=${encodeURIComponent('Bestilling af plan '+n)}">Kontakt for at bestille</a></div>`).join('')}</div><h3>Credit-forbrug</h3><table><tr><th>Handling</th><th>Credits</th></tr><tr><td>Generér hjemmeside</td><td>${Credits.cost.generate}</td></tr><tr><td>Chat-ændring</td><td>${Credits.cost.edit}</td></tr></table><p class="mu">Priserne vises kun. Der er ikke tilsluttet betaling endnu, og det sker først, når du godkender det.</p>`};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x="proj"],[data-x="ex"]');if(!b)return;const d=b.dataset;
+  if(d.x==='proj'){S.id=d.id;if(!PB.includes(S.view))S.view='edit';S.err=''}else S.form={...S.form,desc:d.t};render()});
+document.addEventListener('toggle',e=>{if(e.target.dataset&&e.target.dataset.more!==undefined)S.more=e.target.open},true);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatin')send(e.target.value)});
 render();
