@@ -133,7 +133,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 <div class="ed"><section class="chat"><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="chips">${chips.map(t=>`<button class="chip" data-act="chip" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="row"><input id="chatin" placeholder="Skriv en ændring…" ${S.busy?'disabled':''}><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
 
 /* ===== Nye sider ===== */
-const NAV=[['Arbejde',[['dash','Dashboard'],['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['builder','AI Website Builder'],['edit','AI Chat Editor'],['templates','Skabeloner']]],['Drift',[['domains','Domæner og publicering'],['credits','Credits og abonnementer'],['customers','Kunder og projekter'],['stats','Statistik og analyser']]],['System',[['settings','Indstillinger'],['admin','Admin Panel']]]];
+const NAV=[['Overblik',[['dash','Dashboard']]],['Hjemmesider',[['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['builder','AI Website Builder'],['edit','AI Chat Editor'],['templates','Skabeloner']]],['Udgivelse',[['domains','Domæner og publicering']]],['Forretning',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['finance','Finance'],['stats','Statistik og analyser']]],['System',[['settings','Indstillinger'],['admin','Admin Panel']]]];
 const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50],['Starter',500],['Pro',2000]];
 const TPL=[{n:'Restaurant',s:'Elegant',d:'Hyggelig restaurant med lokale råvarer og sæsonens menu.'},{n:'Håndværker',s:'Moderne',d:'Pålidelig håndværker til nybyg, renovering og service.'},{n:'Frisør',s:'Frisk',d:'Frisørsalon med fokus på klip, farve og personlig rådgivning.'},{n:'Konsulent',s:'Mørk',d:'Selvstændig konsulent, der hjælper virksomheder med strategi og vækst.'}];
@@ -194,10 +194,14 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
     try{const x=JSON.parse(S.rv||'');if(x.app!=='primewebs'||!Array.isArray(x.projects))throw 0;Projects.save(x.projects);Customers.save(x.customers||[]);Storage.set('pw.settings',{...(x.settings||{}),aiCode:Settings.get().aiCode});if(x.credits!=null)Storage.set('pw.credits',x.credits);S.rv='';S.msg='Gendannet: '+x.projects.length+' hjemmesider.'}catch(e){S.msg='Fejl: kopien kunne ikke læses.'}return 1}
 }
 
+function ext2(a,b){const d=b.dataset;
+  if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
+  /*FIN*/return 0}
+
 function render(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>`<div class="grp">${g}</div>${it.filter(([k])=>k!=='admin'||Session.can()).map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join('')}`).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>{const its=it.filter(([k])=>k!=='admin'||Session.can()),open=Storage.get('pw.nav',{})[g]!==0;return `<div class="gp"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span>${g}</span><span>${open?'▾':'▸'}</span></button>${open?its.map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join(''):''}</div>`}).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
@@ -235,7 +239,7 @@ function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='u
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
-  if(ext(a,b))return render();
+  if(ext2(a,b)||ext(a,b))return render();
   if(a==='gen')return generate();
   if(a==='send')return send($('#chatin').value);
   if(a==='chip')return send(b.dataset.t);
