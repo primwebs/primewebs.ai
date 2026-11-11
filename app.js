@@ -242,10 +242,11 @@ function render(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>{const its=it.filter(([k])=>k!=='admin'||Session.can()),open=Storage.get('pw.nav',{})[g]!==0;return `<div class="gp"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span>${g}</span><span>${open?'▾':'▸'}</span></button>${open?its.map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join(''):''}</div>`}).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${NAV.map(([g,it])=>{const q=(S.q||'').toLowerCase().trim(),its=it.filter(([k])=>k!=='admin'||Session.can()).filter(([k,t])=>!q||t.toLowerCase().includes(q)),open=q?true:Storage.get('pw.nav',{})[g]!==0;if(!its.length)return '';return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span><i class="dot"></i>${g}</span><span>${open?'▾':'▸'}</span></button>${open?its.map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}"><span>${t}</span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`).join(''):''}</div>`}).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
+  const mq=$('[data-q]');if(S.q&&mq&&!i){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
 }
 
 async function generate(){
@@ -349,5 +350,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   else if(d.x==='acc'){setTheme('accent',d.c);render()}
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
+/* ===== Menu: farvegrupper, tællere og søgning ===== */
+const GC={Overblik:'#2540D9',Hjemmesider:'#1E8E5A',Udgivelse:'#7B3FD1',Forretning:'#E8730C',System:'#6B7280'};
+const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
+document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv');if(f){S.q='';f.click()}}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatin')send(e.target.value)});
 render();

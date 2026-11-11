@@ -65,3 +65,10 @@ textarea.code{min-height:200px;font-family:ui-monospace,Consolas,monospace;font-
 .swb{width:30px;height:30px;border-radius:50%;border:2px solid var(--ln);cursor:pointer;padding:0}
 .swb[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
 .sw input[type=color]{width:34px;height:34px;padding:0;border:0;background:none;margin:0;display:inline-block;cursor:pointer}
+
+.side{position:sticky;top:0;height:100vh;overflow-y:auto}
+.ms{margin:0 0 .6rem;padding:.6rem .8rem}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--gc);margin-right:.5rem}
+.nv.on{box-shadow:inset 3px 0 0 var(--gc,var(--ac))}
+.ct{background:var(--bg);border:1px solid var(--ln);border-radius:99px;font-size:.75rem;padding:0 .5rem;font-weight:600}
+@media(max-width:820px){.side{position:static;height:auto}}
