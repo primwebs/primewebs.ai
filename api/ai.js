@@ -111,6 +111,10 @@ module.exports = async (req, res) => {
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "For mange forespørgsler. Vent et minut, og prøv igen." });
   }
+  const auth = require("./_auth");
+  if (auth.enabled() && !auth.session(req)) {
+    return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
+  }
   if (!process.env.ACCESS_CODE) {
     return res.status(503).json({ error: "AI-generatoren er låst, indtil ACCESS_CODE er sat under Vercel → Settings → Environment Variables." });
   }

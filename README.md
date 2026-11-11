@@ -30,3 +30,13 @@ Uden nøgle eller adgangskode kører dashboardet i **demo-tilstand** med testgen
 - `dashboard/` og `primewebs-dashboard.html`: ældre kopier, bevaret som arkiv og ikke opdateret
 - `website/primewebs.html`, `primewebs.html`: salgssiden
 - `docs/`: projektnoter
+
+## Login: kun én e-mail har adgang (valgfrit)
+Uden login kan alle, der kender adressen, åbne dashboardet. Sådan begrænser du adgangen til én e-mail:
+
+1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App. Homepage URL: din Vercel-adresse. Callback URL: `<din Vercel-adresse>/api/auth/callback`. Kopiér Client ID, og opret en Client secret.
+2. Vercel → Settings → Environment Variables, tilføj `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SESSION_SECRET` (en tilfældig tekst på mindst 32 tegn), `ALLOWED_EMAIL` (den e-mail, der må logge ind, og som er bekræftet på din GitHub-konto) og helst `PUBLIC_URL`. Deploy igen.
+3. Når alle fire er sat, kræver både dashboardet og AI-generatoren login. Kun en GitHub-konto med den bekræftede e-mail slipper ind.
+4. Kommer du til at låse dig ude: slet en af variablerne i Vercel, og deploy igen. Så er login slået fra.
+
+E-mailen ligger kun i Vercel og står ikke i koden. Koden i dette repository er offentlig, så login beskytter brugen af siden og AI-generatoren, ikke selve kildekoden.
