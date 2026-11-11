@@ -1,0 +1,6 @@
+{
+  "name": "primewebs-ai",
+  "private": true,
+  "description": "PRIME WEBS AI – AI website builder",
+  "engines": { "node": ">=18" }
+}
