@@ -25,17 +25,34 @@ const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:
 const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'}};
 const COLORS={blå:'#2540D9',grøn:'#1E8E5A',rød:'#D12C3F',lilla:'#7B3FD1',orange:'#E8730C',sort:'#111111'};
 const mk={
-  hero:(n,d)=>({id:uid(),type:'hero',title:'Velkommen til '+n,text:d||'Vi hjælper dig godt i gang, hurtigt og enkelt.',cta:'Kontakt os'}),
+  hero:(n,d)=>({id:uid(),type:'hero',title:'Velkommen til '+n,text:(d?d+' ':'')+'Vi hjælper dig godt i gang med en løsning, der passer til dine behov. Kontakt os i dag for en uforpligtende samtale.',cta:'Kontakt os'}),
   features:()=>({id:uid(),type:'features',title:'Hvorfor vælge os',items:[
     {t:'Erfaring',d:'Vi kender branchen og leverer arbejde, du kan regne med.'},
     {t:'Hurtig levering',d:'Du får svar og løsning hurtigt, uden unødige omveje.'},
-    {t:'Personlig service',d:'Du taler direkte med dem, der løser opgaven.'}]}),
-  about:(n,d)=>({id:uid(),type:'about',title:'Om '+n,text:d||'Vi er et lokalt team, der brænder for at gøre en forskel for vores kunder.'}),
+    {t:'Personlig service',d:'Du taler direkte med dem, der løser opgaven.'},
+    {t:'Klar pris',d:'Du ved, hvad det koster, før vi går i gang.'}]}),
+  about:(n,d)=>({id:uid(),type:'about',title:'Om '+n,text:(d?d+'\n\n':'')+'Vi er et lokalt team, der brænder for at gøre en forskel for vores kunder. Vi lytter først og leverer derefter løsninger, der er tænkt igennem.\n\nVores mål er, at du føler dig godt hjulpet fra første henvendelse, til opgaven er løst.'}),
+  services:()=>({id:uid(),type:'services',title:'Vores ydelser',items:[
+    {t:'Rådgivning',d:'Vi starter med en uforpligtende samtale, hvor vi lytter til dine behov og finder den bedste løsning sammen med dig.'},
+    {t:'Løsning og udførelse',d:'Vi udfører opgaven grundigt og med fokus på kvalitet, så resultatet holder længe.'},
+    {t:'Opfølgning',d:'Efter levering følger vi op, så du er tryg ved resultatet, og vi kan justere, hvis noget skal være anderledes.'},
+    {t:'Løbende support',d:'Har du spørgsmål undervejs eller bagefter, er du altid velkommen til at kontakte os.'}]}),
+  steps:()=>({id:uid(),type:'steps',title:'Sådan foregår det',items:[
+    {t:'Du kontakter os',d:'Fortæl kort, hvad du har brug for, enten på telefon eller via mail.'},
+    {t:'Vi aftaler detaljerne',d:'Vi gennemgår opgaven, tidsplan og pris, så der ikke er nogen overraskelser.'},
+    {t:'Vi leverer',d:'Vi udfører arbejdet og holder dig opdateret undervejs.'},
+    {t:'Du er tilfreds',d:'Vi følger op og sikrer, at resultatet lever op til dine forventninger.'}]}),
+  faq:()=>({id:uid(),type:'faq',title:'Ofte stillede spørgsmål',items:[
+    {t:'Hvordan kommer jeg i gang?',d:'Kontakt os på telefon eller mail, så aftaler vi en uforpligtende samtale.'},
+    {t:'Hvor hurtigt kan I hjælpe?',d:'Det afhænger af opgaven, men du får altid et realistisk tidsestimat fra start.'},
+    {t:'Hvad koster det?',d:'Prisen afhænger af opgavens omfang. Du får et tilbud, før vi går i gang.'},
+    {t:'Kan jeg få rettet noget bagefter?',d:'Ja, sig til, hvis noget skal justeres, så kigger vi på det sammen.'}]}),
+  cta:n=>({id:uid(),type:'cta',title:'Klar til at komme i gang?',text:'Kontakt '+n+' i dag, og hør, hvordan vi kan hjælpe dig. Samtalen er uforpligtende.',cta:'Kontakt os nu'}),
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
   async generate({name,description,style}){await wait(900);
     return{v:1,meta:{title:name,theme:{...(STYLES[style]||STYLES.Moderne)}},
-      blocks:[mk.hero(name,description),mk.features(),mk.about(name,description),mk.contact()]}},
+      blocks:[mk.hero(name,description),mk.features(),mk.services(),mk.about(name,description),mk.steps(),mk.faq(),mk.cta(name),mk.contact()]}},
   async edit(site,msg){await wait(500);
     const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
     const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
@@ -53,7 +70,7 @@ const DemoAI={mode:'test',
       }else if(q&&/tekst|beskrivelse/.test(m)){hero.text=q;out.push('Teksten er ændret')}
       if(q&&/knap/.test(m)){hero.cta=q;out.push('Knappen hedder nu '+q)}
     }
-    const T={'kontakt':'contact','fordele':'features','om os':'about'};
+    const T={'kontakt':'contact','fordele':'features','om os':'about','ydelser':'services','sådan foregår':'steps','faq':'faq','opfordring':'cta'};
     for(const [k,t] of Object.entries(T)){if(!m.includes(k))continue;const has=s.blocks.some(b=>b.type===t);
       if(/tilføj/.test(m)&&!has){const nb=mk[t](name,''),ci=s.blocks.findIndex(b=>b.type==='contact');
         (t!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);out.push(k+' er tilføjet')}
@@ -85,7 +102,11 @@ const AI={mode:'api',
 const B={
   hero:b=>`<section><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></section>`,
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
-  about:b=>`<section><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p></section>`,
+  about:b=>`<section><h2>${esc(b.title)}</h2>${String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('')}</section>`,
+  services:b=>B.features(b),
+  steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
+  faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
+  cta:b=>`<section style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></section>`,
   contact:b=>`<section id="kontakt"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><p><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></p></section>`};
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
 const Renderer={html(p){
@@ -113,7 +134,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 
 /* ===== Nye sider ===== */
 const NAV=[['Arbejde',[['dash','Dashboard'],['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['builder','AI Website Builder'],['edit','AI Chat Editor'],['templates','Skabeloner']]],['Drift',[['domains','Domæner og publicering'],['credits','Credits og abonnementer'],['customers','Kunder og projekter'],['stats','Statistik og analyser']]],['System',[['settings','Indstillinger'],['admin','Admin Panel']]]];
-const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
+const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50],['Starter',500],['Pro',2000]];
 const TPL=[{n:'Restaurant',s:'Elegant',d:'Hyggelig restaurant med lokale råvarer og sæsonens menu.'},{n:'Håndværker',s:'Moderne',d:'Pålidelig håndværker til nybyg, renovering og service.'},{n:'Frisør',s:'Frisk',d:'Frisørsalon med fokus på klip, farve og personlig rådgivning.'},{n:'Konsulent',s:'Mørk',d:'Selvstændig konsulent, der hjælper virksomheder med strategi og vækst.'}];
 const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'Live preview og chat-redigering'],[1,'Bygger med direkte redigering af blokke'],[1,'Ejer/admin med ubegrænsede credits'],[1,'Kunder med egne credits (manuelt)'],[1,'Sikkerhedskopi og gendannelse'],[1,'Adgangskode, begrænsning og validering på AI-serveren'],[1,'Demo-tilstand, hvis AI-serveren ikke er sat op'],[0,'Login og database'],[0,'Rigtig publicering og egne domæner'],[0,'Betaling og abonnementer (kræver din godkendelse)']];
@@ -127,7 +148,7 @@ function vDash(){const l=Projects.all(),u=Session.user(),t=(n,x)=>`<div class="c
   return `<h1>Dashboard</h1><p class="mu">Velkommen, ${esc(u.name)}. Rolle: ${u.role.toUpperCase()}.</p><div class="grid">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(Credits.unlimited()?'Ubegrænset':Credits.balance(),'Dine credits')}${t(l.reduce((n,p)=>n+nEdits(p),0),'Chat-ændringer i alt')}</div><div class="row" style="margin:1rem 0"><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button><button class="btn ghost" data-act="go" data-v="templates">Se skabeloner</button></div><h3>Seneste hjemmesider</h3>${l.length?`<div class="grid">${l.slice(0,3).map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="open" data-id="${p.id}">Åbn</button></div>`).join('')}</div>`:'<p class="mu">Ingen endnu.</p>'}<h3 style="margin-top:1.5rem">Platformens status</h3>${CK.map(([o,x])=>`<div class="ck"><span class="${o?'ok':''}">${o?'✓':'○'}</span>${x}</div>`).join('')}`}
 
 function vBuilder(){const p=getP();if(!p)return vPick('builder');const bl=p.site.blocks;
-  const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}"></label>`;
+  const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}${(k==='text'||k==='d')?`<textarea data-b="${bi}" data-k="${k}" ${x}>${esc(v)}</textarea>`:`<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}">`}</label>`;
   const card=(b,bi)=>`<div class="card" style="margin-bottom:.8rem"><div class="row"><strong>${BT[b.type]||b.type}</strong><span class="sp"></span><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="-1" ${bi?'':'disabled'}>↑</button><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="1" ${bi<bl.length-1?'':'disabled'}>↓</button>${b.type==='hero'?'':`<button class="btn ghost" data-act="brem" data-i="${bi}">Fjern</button>`}</div>${Object.keys(b).filter(k=>k!=='id'&&k!=='type').map(k=>Array.isArray(b[k])?b[k].map((it,ii)=>fl(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)+fl(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)).join(''):fl(bi,k,b[k])).join('')}</div>`;
   const adds=Object.keys(BT).filter(t=>!bl.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">+ ${BT[t]}</button>`).join('');
   return `<div class="bar"><strong>AI Website Builder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="unpick">Vælg anden</button><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto"><p class="mu">Ret felterne direkte. Ændringer gemmes med det samme, og preview opdateres.</p>${bl.map(card).join('')}<div class="row">${adds}</div></section><section class="pv">${frame(p)}</section></div>`}

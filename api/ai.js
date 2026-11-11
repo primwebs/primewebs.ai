@@ -12,9 +12,13 @@ hero: {id,type:"hero",title,text,cta}
 features: {id,type:"features",title,items:[{t,d},{t,d},{t,d}]}
 about: {id,type:"about",title,text}
 contact: {id,type:"contact",title,text,email,phone}
+services: {id,type:"services",title,items:[{t,d},...]} (4-6 concrete services)
+steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
+faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
+cta: {id,type:"cta",title,text,cta}
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
-For generate, create a complete coherent first version with all four block types.
+For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
 For edit, preserve the existing site structure and content unless the user asks to change it. Apply the requested change to the site JSON. Keep existing block IDs where possible and add IDs to new blocks.
 Theme accent must be a valid hex color; font must be "sans" or "serif"; mode must be "light" or "dark".`;
 
@@ -49,7 +53,7 @@ function codeOk(given) {
   return crypto.timingSafeEqual(a, b);
 }
 
-const TEXT_FIELDS = { hero: ["title", "text", "cta"], about: ["title", "text"], contact: ["title", "text", "email", "phone"] };
+const TEXT_FIELDS = { hero: ["title", "text", "cta"], about: ["title", "text"], cta: ["title", "text", "cta"], contact: ["title", "text", "email", "phone"] };
 const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 
 // Sikrer, at AI'ens svar kun indeholder kendte blokke og gyldige værdier.
@@ -71,9 +75,9 @@ function sanitizeSite(site) {
   for (const b of site.blocks.slice(0, 12)) {
     if (!b || typeof b !== "object") continue;
     const id = str(b.id, 40) || Math.random().toString(36).slice(2, 9);
-    if (b.type === "features") {
-      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 6).map(i => ({ t: str(i && i.t, 120), d: str(i && i.d, 400) }));
-      out.blocks.push({ id, type: "features", title: str(b.title, 160), items });
+    if (["features", "services", "steps", "faq"].includes(b.type)) {
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
+      out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
     } else if (TEXT_FIELDS[b.type]) {
       const o = { id, type: b.type };
       TEXT_FIELDS[b.type].forEach(k => { o[k] = str(b[k], k === "text" ? 1200 : 160); });
@@ -131,7 +135,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 7000,
+        max_tokens: 9000,
         system: SYSTEM,
         messages: [{ role: "user", content: task }]
       })
