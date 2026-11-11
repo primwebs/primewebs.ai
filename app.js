@@ -22,8 +22,8 @@ const Customers={all:()=>Storage.get('pw.customers',[]),save:l=>Storage.set('pw.
 const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',theme:'auto'},get(){return{...this.d,...Storage.get('pw.settings',{})}},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
 /* ===== Lag 2: rigtig AI via sikker serverfunktion ===== */
-const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'}};
-const COLORS={blå:'#2540D9',grøn:'#1E8E5A',rød:'#D12C3F',lilla:'#7B3FD1',orange:'#E8730C',sort:'#111111'};
+const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'},Natur:{accent:'#3F7D4E',font:'sans',mode:'light'},Hav:{accent:'#0E7C86',font:'sans',mode:'light'},Solnedgang:{accent:'#E8730C',font:'sans',mode:'light'},Rosa:{accent:'#D6457F',font:'sans',mode:'light'},Lavendel:{accent:'#7B3FD1',font:'sans',mode:'light'},Premium:{accent:'#C9A24B',font:'serif',mode:'dark'}};
+const COLORS={blå:'#2540D9',grøn:'#1E8E5A',rød:'#D12C3F',lilla:'#7B3FD1',orange:'#E8730C',sort:'#111111',gul:'#E3B505',turkis:'#0E9AA7',pink:'#D6457F',lyserød:'#E58BB0',brun:'#8A5A3B',grå:'#6B7280',navy:'#1E3A8A',marineblå:'#1E3A8A',guld:'#C9A24B',mint:'#2BB48D',bordeaux:'#7A1F3D',himmelblå:'#38A3F1'};
 const mk={
   hero:(n,d)=>({id:uid(),type:'hero',title:'Velkommen til '+n,text:(d?d+' ':'')+'Vi hjælper dig godt i gang med en løsning, der passer til dine behov. Kontakt os i dag for en uforpligtende samtale.',cta:'Kontakt os'}),
   features:()=>({id:uid(),type:'features',title:'Hvorfor vælge os',items:[
@@ -54,7 +54,7 @@ const DemoAI={mode:'test',
   async edit(site,msg){await wait(500);
     const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
     const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
-    const col=Object.keys(COLORS).find(k=>m.includes(k));
+    const tk=m.split(/[^a-zæøå]+/),col=Object.keys(COLORS).find(k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'));
     if(col&&!q&&/farve|knap|skift|gør|ændr/.test(m)){th.accent=COLORS[col];out.push('Farven er skiftet til '+col)}
     if(/mørk/.test(m)){th.mode='dark';out.push('Siden er nu mørk')}
     else if(/\blys\b|lyst/.test(m)){th.mode='light';out.push('Siden er nu lys')}
@@ -147,7 +147,7 @@ function vBuilder(){const p=getP();if(!p)return vPick('builder');const bl=p.site
   const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}${(k==='text'||k==='d')?`<textarea data-b="${bi}" data-k="${k}" ${x}>${esc(v)}</textarea>`:`<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}">`}</label>`;
   const card=(b,bi)=>`<div class="card" style="margin-bottom:.8rem"><div class="row"><strong>${BT[b.type]||b.type}</strong><span class="sp"></span><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="-1" ${bi?'':'disabled'}>↑</button><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="1" ${bi<bl.length-1?'':'disabled'}>↓</button>${b.type==='hero'?'':`<button class="btn ghost" data-act="brem" data-i="${bi}">Fjern</button>`}</div>${Object.keys(b).filter(k=>k!=='id'&&k!=='type').map(k=>Array.isArray(b[k])?b[k].map((it,ii)=>fl(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)+fl(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)).join(''):fl(bi,k,b[k])).join('')}</div>`;
   const adds=Object.keys(BT).filter(t=>!bl.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">+ ${BT[t]}</button>`).join('');
-  return `<div class="bar"><strong>AI Website Builder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="unpick">Vælg anden</button><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto"><p class="mu">Ret felterne direkte. Ændringer gemmes med det samme, og preview opdateres.</p>${bl.map(card).join('')}<div class="row">${adds}</div></section><section class="pv">${frame(p)}</section></div>`}
+  return `<div class="bar"><strong>AI Website Builder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="unpick">Vælg anden</button><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto"><p class="mu">Ret felterne direkte. Ændringer gemmes med det samme, og preview opdateres.</p>${designCard(p)}${bl.map(card).join('')}<div class="row">${adds}</div></section><section class="pv">${frame(p)}</section></div>`}
 
 function vTpl(){return `<h1>Skabeloner</h1><p class="mu">Start fra en skabelon, og tilpas den bagefter.</p><div class="grid">${TPL.map((t,i)=>`<div class="card"><h3>${t.n}</h3><p class="mu">${t.d}</p><p class="mu">Stil: ${t.s}</p><button class="btn" data-act="tpl" data-i="${i}">Brug skabelon</button></div>`).join('')}</div>`}
 
@@ -240,6 +240,7 @@ function ext2(a,b){const d=b.dataset;
 
 function render(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
+  {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
   const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div>${NAV.map(([g,it])=>{const its=it.filter(([k])=>k!=='admin'||Session.can()),open=Storage.get('pw.nav',{})[g]!==0;return `<div class="gp"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span>${g}</span><span>${open?'▾':'▸'}</span></button>${open?its.map(([k,t])=>`<button class="nv ${S.view===k?'on':''}" data-act="go" data-v="${k}">${t}</button>`).join(''):''}</div>`}).join('')}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
@@ -335,5 +336,18 @@ function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang
   const sel=(k,t,arr)=>`<label>${t}<select data-f="${k}">${arr.map(o=>`<option value="${esc(o)}" ${f[k]===o?'selected':''}>${esc(o||'Find selv')}</option>`).join('')}</select></label>`;
   return `<h1>Opret ny hjemmeside</h1><p class="mu">Jo mere du skriver, jo bedre bliver resultatet. Kun navnet er påkrævet.</p><div class="card form">${inp('name','Virksomhedens navn','id="nn"')}<label>Beskriv virksomheden med dine egne ord<textarea data-f="desc" id="nd" style="min-height:140px" placeholder="Fx: Vi er en frisørsalon i Aarhus med fokus på klip og farve. Vi vil have en rolig, lys hjemmeside i grønne farver. Ring på 12 34 56 78.">${esc(f.desc)}</textarea></label>${sel('ind','Branche',INDS)}${inp('city','By eller område')}${inp('svc','Ydelser (adskil med komma)')}${sel('tone','Tone',TONES)}${sel('style','Stil',Object.keys(STYLES))}${sel('lang','Sprog',['Dansk','English'])}<div style="margin-bottom:1rem"><strong>Farve</strong><div class="sw" style="margin-top:.4rem"><button type="button" class="btn ${f.color?'ghost':''}" data-x="fcol" data-c="">Lad AI vælge</button>${Object.entries(PAL).map(([n,h])=>`<button type="button" class="swb" data-x="fcol" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${f.color===h}" style="background:${h}"></button>`).join('')}</div></div>${inp('phone','Telefon på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().phone)+'"')}${inp('email','E-mail på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().email)+'"')}${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="gen" ${S.busy?'disabled':''}>${S.busy?'Genererer…':'Generér hjemmeside (10 credits)'}</button></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x="fcol"]');if(b){S.form={...S.form,color:b.dataset.c};render()}});
+/* ===== Farver: hjemmesidens design og dashboardets accentfarve ===== */
+const swatch=(x,n,h,on)=>`<button type="button" class="swb" data-x="${x}" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${on}" style="background:${h}"></button>`;
+function designCard(p){const t=p.site.meta.theme,ac=String(t.accent).toLowerCase();
+  return `<div class="card" style="margin-bottom:.8rem"><strong>Design</strong><div class="sw" style="margin:.6rem 0">${Object.entries(PAL).map(([n,h])=>swatch('acc',n,h,ac===h.toLowerCase())).join('')}<input type="color" data-th="accent" value="${esc(t.accent)}" title="Egen farve" aria-label="Egen farve"></div><div class="row"><button class="btn ${t.mode==='light'?'':'ghost'}" data-x="mode" data-v="light">Lys</button><button class="btn ${t.mode==='dark'?'':'ghost'}" data-x="mode" data-v="dark">Mørk</button><button class="btn ${t.font==='sans'?'':'ghost'}" data-x="font" data-v="sans">Sans</button><button class="btn ${t.font==='serif'?'':'ghost'}" data-x="font" data-v="serif">Serif</button></div></div>`}
+function setTheme(k,v){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];q.site.meta.theme[k]=v})}
+const _vSet=vSet;
+V.settings=()=>_vSet()+`<div class="card form" style="margin-top:1rem"><h3>Farver i dashboardet</h3><p class="mu">Vælg en accentfarve til knapper og menu.</p><div class="sw">${Object.entries(PAL).map(([n,h])=>swatch('uiacc',n,h,(Settings.get().accent||'').toLowerCase()===h.toLowerCase())).join('')}</div><button class="btn ghost" data-x="uireset" style="margin-top:.8rem">Nulstil farve</button></div>`;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;const d=b.dataset;
+  if(d.x==='uiacc'){Settings.set('accent',d.c);render()}
+  else if(d.x==='uireset'){Settings.set('accent','');render()}
+  else if(d.x==='acc'){setTheme('accent',d.c);render()}
+  else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
+document.addEventListener('change',e=>{const d=e.target.dataset;if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatin')send(e.target.value)});
 render();
