@@ -88,6 +88,20 @@ function sanitizeSite(site) {
   return out;
 }
 
+function extra(b) {
+  const t = (k, n) => String(b[k] || "").trim().slice(0, n);
+  const parts = [];
+  if (t("industry", 60)) parts.push("Industry: " + t("industry", 60));
+  if (t("city", 80)) parts.push("City or area: " + t("city", 80));
+  if (t("services", 400)) parts.push("Services to feature (use exactly these as the services block): " + t("services", 400));
+  if (t("tone", 40)) parts.push("Tone of voice: " + t("tone", 40));
+  parts.push("Language of all copy: " + (t("language", 20) || "Danish"));
+  if (/^#[0-9a-fA-F]{6}$/.test(t("color", 7))) parts.push("Use exactly this accent color in theme.accent: " + t("color", 7));
+  const em = t("email", 120), ph = t("phone", 40);
+  parts.push("Contact block: " + (em || ph ? "use exactly this email '" + em + "' and phone '" + ph + "' and do not invent any other contact details" : "do not invent contact details; leave email and phone as empty strings"));
+  return "\n" + parts.join("\n");
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") {
@@ -121,7 +135,7 @@ module.exports = async (req, res) => {
   const task = action === "generate"
     ? "Create a new website for this business. Return the complete site JSON.\nBusiness: " + String(body.name).slice(0, 160) +
       "\nDescription: " + String(body.description || "").slice(0, 5000) +
-      "\nStyle preference: " + String(body.style || "Moderne")
+      "\nStyle preference: " + String(body.style || "Moderne").slice(0, 40) + extra(body)
     : "Edit this existing website according to the user's request. Return the complete updated site JSON.\nCurrent site: " +
       JSON.stringify(body.site).slice(0, 24000) + "\nUser request: " + String(body.message).slice(0, 3000);
 
