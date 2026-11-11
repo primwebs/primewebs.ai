@@ -145,7 +145,7 @@ const frame=p=>`<iframe title="Live preview" sandbox srcdoc="${esc(Renderer.html
 function vPick(t){const l=Projects.all();return `<h1>${t==='edit'?'AI Chat Editor':'AI Website Builder'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
 
 function vDash(){const l=Projects.all(),u=Session.user(),t=(n,x)=>`<div class="card"><div class="mu">${x}</div><h1>${n}</h1></div>`;
-  return `<h1>Dashboard</h1><p class="mu">Velkommen, ${esc(u.name)}. Rolle: ${u.role.toUpperCase()}.</p><div class="grid">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(Credits.unlimited()?'Ubegrænset':Credits.balance(),'Dine credits')}${t(l.reduce((n,p)=>n+nEdits(p),0),'Chat-ændringer i alt')}</div><div class="row" style="margin:1rem 0"><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button><button class="btn ghost" data-act="go" data-v="templates">Se skabeloner</button></div><h3>Seneste hjemmesider</h3>${l.length?`<div class="grid">${l.slice(0,3).map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="open" data-id="${p.id}">Åbn</button></div>`).join('')}</div>`:'<p class="mu">Ingen endnu.</p>'}<h3 style="margin-top:1.5rem">Platformens status</h3>${CK.map(([o,x])=>`<div class="ck"><span class="${o?'ok':''}">${o?'✓':'○'}</span>${x}</div>`).join('')}`}
+  return `<h1>Dashboard</h1><p class="mu">Velkommen, ${esc(u.name)}. Rolle: ${u.role.toUpperCase()}.</p><div class="grid">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(fmt(finSum('income',monthKey())-finSum('expense',monthKey())),'Resultat denne måned')}${t(Credits.unlimited()?'Ubegrænset':Credits.balance(),'Dine credits')}${t(l.reduce((n,p)=>n+nEdits(p),0),'Chat-ændringer i alt')}</div><div class="row" style="margin:1rem 0"><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button><button class="btn ghost" data-act="go" data-v="templates">Se skabeloner</button></div><h3>Seneste hjemmesider</h3>${l.length?`<div class="grid">${l.slice(0,3).map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="open" data-id="${p.id}">Åbn</button></div>`).join('')}</div>`:'<p class="mu">Ingen endnu.</p>'}<h3 style="margin-top:1.5rem">Platformens status</h3>${CK.map(([o,x])=>`<div class="ck"><span class="${o?'ok':''}">${o?'✓':'○'}</span>${x}</div>`).join('')}`}
 
 function vBuilder(){const p=getP();if(!p)return vPick('builder');const bl=p.site.blocks;
   const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}${(k==='text'||k==='d')?`<textarea data-b="${bi}" data-k="${k}" ${x}>${esc(v)}</textarea>`:`<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}">`}</label>`;
@@ -172,7 +172,45 @@ function vSet(){const s=Settings.get(),u=Session.user(),f=(k,t)=>`<label>${t}<in
 function vAdmin(){if(!Session.can())return '<h1>Admin Panel</h1><p>Du har ikke adgang.</p>';
   return `<h1>Admin Panel</h1><div class="grid" style="margin-bottom:1rem"><div class="card"><div class="mu">Roller</div><p><span class="badge">OWNER</span> og <span class="badge">ADMIN</span>: fuld adgang og ubegrænsede credits.<br><span class="badge">KUNDE</span>: egne hjemmesider og credits (kommer med login).</p></div><div class="card"><div class="mu">Data i denne browser</div><p>${Projects.all().length} hjemmesider, ${Customers.all().length} kunder</p></div></div><div class="card stack"><h3>Sikkerhedskopi</h3><p class="mu">Kopiér al data (hjemmesider, kunder, indstillinger) og gem teksten i en fil på din computer.</p><button class="btn" data-act="bk">Lav sikkerhedskopi</button>${S.out&&S.outId==='bk'?`<textarea class="code" readonly>${esc(S.out)}</textarea>`:''}<h3>Gendan</h3><textarea class="code" id="rs" placeholder="Indsæt sikkerhedskopi her">${esc(S.rv)}</textarea><button class="btn ghost" data-act="rs">${S.rc?'Bekræft: overskriv al data':'Gendan fra kopi'}</button>${S.msg?`<p class="${S.msg.startsWith('Fejl')?'err':''}">${esc(S.msg)}</p>`:''}</div>`}
 
-const V={dash:vDash,list:vList,new:vNew,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,settings:vSet,admin:vAdmin};
+/* ===== Finance (manuel registrering, ingen betalingssystem tilsluttet) ===== */
+const Fin={all:()=>Storage.get('pw.finance',[]),save:l=>Storage.set('pw.finance',l)};
+const fmt=n=>new Intl.NumberFormat('da-DK',{style:'currency',currency:'DKK',maximumFractionDigits:0}).format(n||0);
+const monthKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+const today=()=>{const d=new Date();return monthKey(d)+'-'+String(d.getDate()).padStart(2,'0')};
+const FCAT={income:['Hjemmeside','Abonnement','Vedligeholdelse','Andet'],expense:['Software','Hosting og domæner','Markedsføring','Løn og freelancere','Andet']};
+const FPER=[['m','Denne måned'],['q','Seneste 3 måneder'],['y','I år'],['a','Alt']];
+const inPer=(e,p)=>{const d=e.date||'',n=new Date();if(p==='a')return true;if(p==='y')return d.slice(0,4)===String(n.getFullYear());if(p==='m')return d.slice(0,7)===monthKey(n);return d>=monthKey(new Date(n.getFullYear(),n.getMonth()-2,1))+'-01'};
+const finSum=(t,pre)=>Fin.all().filter(e=>e.type===t&&(e.date||'').startsWith(pre)).reduce((n,e)=>n+e.amount,0);
+S.ff={type:'income',amount:'',date:today(),cat:'Hjemmeside',cust:'',note:''};S.fp='m';S.fdel=null;
+
+function vFin(){const p=S.fp||'m',f=S.ff,cs=Customers.all();
+  const L=Fin.all().filter(e=>inPer(e,p)).sort((a,b)=>b.date.localeCompare(a.date));
+  const sm=t=>L.filter(e=>e.type===t).reduce((n,e)=>n+e.amount,0),inc=sm('income'),exp=sm('expense'),res=inc-exp;
+  const payers=new Set(L.filter(e=>e.type==='income'&&e.cust).map(e=>e.cust)).size;
+  const tile=(n,x,st='')=>`<div class="card"><div class="mu">${x}</div><h1 style="${st}">${n}</h1></div>`;
+  const md=[...Array(6)].map((_,i)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-5+i);const k=monthKey(d);return[k,finSum('income',k),finSum('expense',k)]});
+  const mx=Math.max(1,...md.flatMap(x=>[x[1],x[2]]));
+  const cn=id=>id?(cs.find(c=>c.id===id)||{name:'Slettet kunde'}).name:'Uden kunde';
+  const byC={};L.filter(e=>e.type==='income').forEach(e=>{byC[e.cust||'']=(byC[e.cust||'']||0)+e.amount});
+  const opt=(arr,v)=>arr.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
+  return `<h1>Finance</h1><p class="mu">Oversigt over indtægter og udgifter. Tallene er dem, du selv registrerer. Der er ikke tilsluttet noget betalingssystem eller nogen bank.</p>
+<div class="row" style="margin-bottom:1rem">${FPER.map(([k,t])=>`<button class="btn ${p===k?'':'ghost'}" data-act="fp" data-p="${k}">${t}</button>`).join('')}</div>
+<div class="grid" style="margin-bottom:1rem">${tile(fmt(inc),'Indtægter')}${tile(fmt(exp),'Udgifter')}${tile(fmt(res),'Resultat',res<0?'color:#C0263A':'')}${tile(payers,'Betalende kunder')}${tile(payers?fmt(inc/payers):'–','Gns. indtægt pr. kunde')}</div>
+<div class="card" style="margin-bottom:1rem"><h3>Seneste 6 måneder</h3><p class="mu">Øverste bjælke: indtægter. Nederste bjælke (rød): udgifter.</p>${md.map(([k,i,e])=>`<div style="display:grid;grid-template-columns:70px 1fr;gap:.6rem;margin:.5rem 0"><div>${new Date(k+'-01T12:00:00').toLocaleDateString('da-DK',{month:'short',year:'2-digit'})}</div><div><div class="bar2" style="width:${i/mx*100}%"></div><div class="bar2" style="width:${e/mx*100}%;background:#C0263A"></div><small class="mu">${fmt(i)} ind / ${fmt(e)} ud</small></div></div>`).join('')}</div>
+<div class="card form" style="margin-bottom:1rem"><h3>Ny postering</h3>
+<label>Type<select data-ff="type"><option value="income" ${f.type==='income'?'selected':''}>Indtægt</option><option value="expense" ${f.type==='expense'?'selected':''}>Udgift</option></select></label>
+<label>Beløb (kr.)<input data-ff="amount" inputmode="decimal" value="${esc(f.amount)}"></label>
+<label>Dato<input type="date" data-ff="date" value="${esc(f.date)}"></label>
+<label>Kategori<select data-ff="cat">${opt(FCAT[f.type],f.cat)}</select></label>
+<label>Kunde (valgfri)<select data-ff="cust"><option value="">Ingen</option>${cs.map(c=>`<option value="${c.id}" ${f.cust===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
+<label>Note<input data-ff="note" value="${esc(f.note)}"></label>
+${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="fadd">Tilføj</button></div>
+<h3>Indtægt pr. kunde</h3>${Object.keys(byC).length?`<table><tr><th>Kunde</th><th>Indtægt</th></tr>${Object.entries(byC).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(cn(k))}</td><td>${fmt(v)}</td></tr>`).join('')}</table>`:'<p class="mu">Ingen indtægter i perioden.</p>'}
+<h3 style="margin-top:1.5rem">Posteringer</h3>${L.length?`<div style="overflow-x:auto"><table><tr><th>Dato</th><th>Type</th><th>Kategori</th><th>Kunde</th><th>Beløb</th><th></th></tr>${L.slice(0,30).map(e=>`<tr><td>${esc(e.date)}</td><td>${e.type==='income'?'Indtægt':'Udgift'}</td><td>${esc(e.cat)}${e.note?`<div class="mu" style="margin:0">${esc(e.note)}</div>`:''}</td><td>${esc(cn(e.cust))}</td><td>${e.type==='income'?'+':'−'}${fmt(e.amount)}</td><td><button class="btn ghost" data-act="fdel" data-id="${e.id}">${S.fdel===e.id?'Bekræft':'Slet'}</button></td></tr>`).join('')}</table></div>`:'<p class="mu">Ingen posteringer i perioden.</p>'}`}
+
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
+
+const V={dash:vDash,list:vList,new:vNew,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='go'){S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
@@ -196,7 +234,13 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 
 function ext2(a,b){const d=b.dataset;
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
-  /*FIN*/return 0}
+  if(a==='fp'){S.fp=d.p;return 1}
+  if(a==='fadd'){const f=S.ff,amt=parseFloat(String(f.amount).replace(',','.'));
+    if(!(amt>0)){S.err='Skriv et beløb større end 0.';return 1}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(f.date)){S.err='Vælg en dato.';return 1}
+    Fin.save([{id:uid(),type:f.type,amount:Math.round(amt*100)/100,date:f.date,cat:f.cat,cust:f.cust||null,note:f.note.trim().slice(0,200)},...Fin.all()]);S.ff={...f,amount:'',note:''};S.err='';return 1}
+  if(a==='fdel'){if(S.fdel===d.id){Fin.save(Fin.all().filter(e=>e.id!==d.id));S.fdel=null}else S.fdel=d.id;return 1}
+  return 0}
 
 function render(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
