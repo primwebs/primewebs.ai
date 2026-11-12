@@ -133,8 +133,8 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
- ['Kunder og vækst',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['stats','Statistik og analyser']]],
- ['Finance',[['finance','Finance']]],
+ ['Planer',[['credits','Din plan og credits'],['customers','Kunder']]],
+ ['Finance',[['finance','Finance'],['stats','Statistik']]],
  ['System',[
   ['settings','Indstillinger'],
   ['colors','Udseende og farver'],
@@ -406,10 +406,12 @@ const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
 V.finance=()=>vFin();V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
 function vMini(){
-  const tabs=[['list','Mini hjemmesider'],['templates','Skabeloner'],['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['media','Billeder'],['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']];
+  const tabs=[['list','Alle hjemmesider','Websites'],['templates','Skabeloner','Websites'],['builder','AI Website Builder','Byg'],['edit','AI Chat Editor','Byg'],['customize','Tilpas design','Design'],['media','Billeder','Design'],['preview','Forhåndsvisning','Gennemgå'],['history','Versionshistorik','Gennemgå'],['domains','Domæner og publicering','Udgiv'],['export','Eksportér','Udgiv']];
   const tab=tabs.some(([k])=>k===S.miniTab)?S.miniTab:'list';
-  const current=V[tab]||vList;
-  return `<h1>Mini Websites</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p><div class="row" style="flex-wrap:wrap;gap:.45rem;margin:0 0 1rem">${tabs.map(([k,n])=>`<button class="btn ${tab===k?'':'ghost'}" data-act="miniTab" data-tab="${k}">${n}</button>`).join('')}</div>${PB.includes(tab)?`<div style="max-width:320px;margin-bottom:1rem">${projPick()}</div>`:''}${current()}`;
+  const current=V[tab]||vList,groups=['Websites','Byg','Design','Gennemgå','Udgiv'];
+  return `<div class="editor-heading"><div><span class="dash-section-kicker">WEBSITE WORKSPACE</span><h1>Website-værktøjer</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p></div></div>
+  <div class="editor-layout"><nav class="editor-nav" aria-label="Website-værktøjer">${groups.map(g=>{const items=tabs.filter(x=>x[2]===g);return `<div class="editor-nav-group"><span class="editor-nav-label">${g}</span>${items.map(([k,n])=>`<button class="editor-nav-item ${tab===k?'active':''}" data-act="miniTab" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${n}</button>`).join('')}</div>`}).join('')}</nav>
+  <section class="editor-content">${PB.includes(tab)?`<div class="editor-project-picker">${projPick()}</div>`:''}${current()}</section></div>`;
 }
 const _vAdm=vAdmin;
 V.admin=()=>_vAdm().split('<!--BK-->')[0].replace('<h1>Admin Panel</h1>','<h1>Admin Panel: Roller og adgang</h1>');
