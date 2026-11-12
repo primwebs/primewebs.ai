@@ -114,7 +114,7 @@ const Renderer={html(p){
   return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}</style></head><body><header>${esc(s.meta.title)}</header>${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
 
 /* ===== Lag 4: UI ===== */
-let S={view:'dash',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
+let S={view:'dash',miniTab:'list',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
 const getP=()=>Projects.all().find(p=>p.id===S.id);
 const upd=(id,fn)=>{const l=Projects.all(),i=l.findIndex(p=>p.id===id);if(i<0)return;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l)};
 
@@ -131,11 +131,15 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 /* ===== Nye sider ===== */
 const NAV=[
  ['Overblik',[['dash','Dashboard']]],
- ['Hjemmesider',[['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['templates','Skabeloner']]],
- ['Redigering',[['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['preview','Forhåndsvisning'],['history','Versionshistorik']]],
- ['Udgivelse',[['domains','Domæner og publicering'],['export','Eksportér']]],
- ['Forretning',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['finp','Finance',[['finance','Overblik'],['finlist','Posteringer'],['fincust','Pr. kunde']]],['stats','Statistik og analyser']]],
- ['System',[['setp','Indstillinger',[['settings','Virksomhed og konto'],['colors','Udseende og farver']]],['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]]]
+ ['Mini Websites',[
+  ['new','Opret ny hjemmeside'],['mini','Mini hjemmesider']
+ ]],
+ ['Kunder og vækst',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['stats','Statistik og analyser']]],
+ ['Finance',[['finance','Finance']]],
+ ['System',[
+  ['settings','Indstillinger'],
+  ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
+ ]]
 ];
 const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50,0],['Starter',200,25],['Pro',400,50],['Business',1000,100]];
@@ -213,13 +217,13 @@ ${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="fadd
 
 document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 
-const V={dash:vDash,list:vList,new:vNew,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
+const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
-  if(a==='go'){S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
-  if(a==='pick'){S.view=d.t;S.id=id;return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
-  if(a==='build'){S.view='builder';S.id=id;return 1}
+  if(a==='build'){S.view='mini';S.miniTab='builder';S.id=id;return 1}
   if(a==='tpl'){const t=TPL[+d.i];S.form={name:'',desc:t.d,style:t.s};S.view='new';S.err='';return 1}
   if(a==='bmove'||a==='brem'||a==='badd'){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks,i=+d.i;
     if(a==='badd'){const ci=bl.findIndex(x=>x.type==='contact'),nb=mk[d.t](q.site.meta.title,'');(d.t!=='contact'&&ci>-1)?bl.splice(ci,0,nb):bl.push(nb)}
@@ -237,6 +241,8 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 
 function ext2(a,b){const d=b.dataset;
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
+  if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
+  if(a==='sub'){const n=Storage.get('pw.nav',{});n['s:'+d.k]=n['s:'+d.k]===1?0:1;Storage.set('pw.nav',n);return 1}
   if(a==='fp'){S.fp=d.p;return 1}
   if(a==='fadd'){const f=S.ff,amt=parseFloat(String(f.amount).replace(',','.'));
     if(!(amt>0)){S.err='Skriv et beløb større end 0.';return 1}
@@ -246,6 +252,7 @@ function ext2(a,b){const d=b.dataset;
   return 0}
 
 function render(){
+  const searchWasFocused=!!document.querySelector('[data-q]:focus');
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
@@ -253,7 +260,7 @@ function render(){
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
-  const mq=$('[data-q]');if(S.q&&mq&&!i){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
+  const mq=$('[data-q]');if(searchWasFocused&&mq){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
 }
 
 async function generate(){
@@ -269,7 +276,7 @@ async function generate(){
   const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
-  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='edit';S.id=p.id;render();
+  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='mini';S.miniTab='edit';S.id=p.id;render();
 }
 async function send(t){
   t=(t||'').trim();if(!t||S.busy)return;const p=getP();
@@ -292,9 +299,9 @@ document.addEventListener('click',e=>{
   if(a==='gen')return generate();
   if(a==='send')return send($('#chatin').value);
   if(a==='chip')return send(b.dataset.t);
-  if(a==='list'){S.view='list';S.del=null}
+  if(a==='list'){S.view='mini';S.miniTab='list';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){S.view='edit';S.id=id}
+  else if(a==='open'){S.view='mini';S.miniTab='edit';S.id=id}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));S.del=null}else S.del=id}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
@@ -302,6 +309,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
+  if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
   else if(d.dom)upd(d.dom,q=>{q.domain=v.trim()||null});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
@@ -352,10 +360,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
-const GC={Overblik:'#2540D9',Hjemmesider:'#1E8E5A',Udgivelse:'#7B3FD1',Forretning:'#E8730C',System:'#6B7280'};
+const GC={Overblik:'#2540D9','Mini Websites':'#1E8E5A','Kunder og vækst':'#E8730C',Finance:'#7B3FD1',System:'#6B7280'};
 const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv');if(f){S.q='';f.click()}}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
 const PT={edit:'AI Chat Editor',builder:'AI Website Builder',customize:'Tilpas design',preview:'Forhåndsvisning',history:'Versionshistorik'};
 GC.Redigering='#0E9AA7';
@@ -364,7 +372,7 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
   const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" data-act="go" data-v="${k}"><span>${t}</span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
-      if(!ch)return((!q||t.toLowerCase().includes(q))?btn(k,t):'')+(k==='list'?projBtns(q):'');
+      if(!ch)return((!q||t.toLowerCase().includes(q))?btn(k,t):'');
       const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';
       const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view):v===1);
       return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span>${t}</span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
@@ -374,6 +382,12 @@ const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
 V.finance=()=>finMode('o','Finance: Overblik');V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
+function vMini(){
+  const tabs=[['list','Mini hjemmesider'],['templates','Skabeloner'],['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']];
+  const tab=tabs.some(([k])=>k===S.miniTab)?S.miniTab:'list';
+  const current=V[tab]||vList;
+  return `<h1>Mini Websites</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p><div class="row" style="flex-wrap:wrap;gap:.45rem;margin:0 0 1rem">${tabs.map(([k,n])=>`<button class="btn ${tab===k?'':'ghost'}" data-act="miniTab" data-tab="${k}">${n}</button>`).join('')}</div>${PB.includes(tab)?`<div style="max-width:320px;margin-bottom:1rem">${projPick()}</div>`:''}${current()}`;
+}
 const _vAdm=vAdmin;
 V.admin=()=>_vAdm().split('<!--BK-->')[0].replace('<h1>Admin Panel</h1>','<h1>Admin Panel: Roller og adgang</h1>');
 V.backup=()=>{const p=_vAdm().split('<!--BK-->');return p.length>1?'<h1>Sikkerhedskopi og gendannelse</h1>'+p[1]:p[0]};
