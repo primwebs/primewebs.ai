@@ -398,9 +398,11 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
       const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';
       const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view):v===1);
       return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
-    if(!rows)return '';const open=q?true:st[g]!==0;
-    const gi=g==='Finance'?'finance':g==='Kunder og vækst'?'customers':g==='System'?'settings':'dash';
-    return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?(g==='Redigering'?projPick():'')+rows:''}</div>`}).join('')}
+    if(!rows)return '';
+    if(g==='Dashboard')return rows;
+    const open=q?true:st[g]!==0;
+    const gi=g==='Finance'?'finance':g==='Planer'?'credits':'settings';
+    return `<div class="gp" style="--gc:${GC[g]||'#2540D9'}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?rows:''}</div>`}).join('')}
 const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)=>h.slice(i(a)+a.length+7,b?i(b):h.length);
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
