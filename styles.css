@@ -100,7 +100,7 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 /* Sidebar navigation icons */
 .nv-label,.gh-label{display:inline-flex;align-items:center;gap:.72rem;min-width:0}
 .nav-icon{width:19px;height:19px;flex:0 0 19px;opacity:.86}
-.nv.on .nav-icon{color:var(--ac);opacity:1}
+.nv .nav-icon{color:var(--ni,var(--mu));opacity:.95}.nv.on .nav-icon{color:var(--ni,var(--ac));opacity:1}
 .nv.kid .nv-label{padding-left:.3rem}
 .gh-label{gap:.55rem}
 .gh .nav-icon{width:17px;height:17px;flex-basis:17px;color:var(--gc)}
