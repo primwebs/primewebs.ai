@@ -16,6 +16,8 @@ services: {id,type:"services",title,items:[{t,d},...]} (4-6 concrete services)
 steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
+gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)
+hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
 For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
@@ -57,6 +59,8 @@ const TEXT_FIELDS = { hero: ["title", "text", "cta"], about: ["title", "text"], 
 const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 
 // Sikrer, at AI'ens svar kun indeholder kendte blokke og gyldige værdier.
+const imgRef = v => { const s = String(v || ""); return (/^img:[a-z0-9]{3,12}$/.test(s) || /^https?:\/\/[^\s"'<>]{1,500}$/i.test(s)) ? s : ""; };
+
 function sanitizeSite(site) {
   const meta = site.meta || {};
   const t = meta.theme || {};
@@ -78,9 +82,12 @@ function sanitizeSite(site) {
     if (["features", "services", "steps", "faq"].includes(b.type)) {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
       out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
+    } else if (b.type === "gallery") {
+      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
       const o = { id, type: b.type };
       TEXT_FIELDS[b.type].forEach(k => { o[k] = str(b[k], k === "text" ? 1200 : 160); });
+      if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; }
       out.blocks.push(o);
     }
   }

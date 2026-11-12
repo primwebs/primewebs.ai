@@ -7,7 +7,7 @@ const $=s=>document.querySelector(s);
 /* ===== Lag 1: adaptere (udskiftes senere med backend) ===== */
 // Storage: browseren nu, database (fx Supabase) senere
 const Storage={mem:{},
-  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return k in this.mem?this.mem[k]:d}},
+  get(k,d){try{const v=localStorage.getItem(k);if(!v)return d;const x=JSON.parse(v);return(x==null||Array.isArray(x)!==Array.isArray(d)||typeof x!==typeof d)?d:x}catch(e){return k in this.mem?this.mem[k]:d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
 // Session: én lokal bruger nu, rigtigt login senere
 const Session={user:()=>({id:'local',name:'Ejer',role:'owner',email:Settings.get().ownerEmail}),can:()=>['owner','admin'].includes(Session.user().role)};
@@ -17,9 +17,9 @@ const Credits={cost:{generate:10,edit:1},
   balance(){return this.unlimited()?Infinity:Storage.get('pw.credits',50)},
   spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
-const Projects={all:()=>Storage.get('pw.projects',[]),save:l=>Storage.set('pw.projects',l)};
-const Customers={all:()=>Storage.get('pw.customers',[]),save:l=>Storage.set('pw.customers',l)};
-const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',ownerEmail:'primewebssupport@gmail.com',theme:'auto'},get(){return{...this.d,...Storage.get('pw.settings',{})}},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
+const Projects={all:()=>Storage.get('pw.projects',[]).map(fixP).filter(Boolean),save:l=>Storage.set('pw.projects',l)};
+const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
+const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.space',ownerEmail:'primewebssupport@gmail.com',theme:'auto'},get(){const s={...this.d,...Storage.get('pw.settings',{})};['company','email','phone','web','ownerEmail'].forEach(k=>{s[k]=String(s[k]??'')});return s},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
 /* ===== Lag 2: rigtig AI via sikker serverfunktion ===== */
 const STYLES={Moderne:{accent:'#2540D9',font:'sans',mode:'light'},Elegant:{accent:'#9A6B2F',font:'serif',mode:'light'},Frisk:{accent:'#1E8E5A',font:'sans',mode:'light'},Mørk:{accent:'#8DA0FF',font:'sans',mode:'dark'},Natur:{accent:'#3F7D4E',font:'sans',mode:'light'},Hav:{accent:'#0E7C86',font:'sans',mode:'light'},Solnedgang:{accent:'#E8730C',font:'sans',mode:'light'},Rosa:{accent:'#D6457F',font:'sans',mode:'light'},Lavendel:{accent:'#7B3FD1',font:'sans',mode:'light'},Premium:{accent:'#C9A24B',font:'serif',mode:'dark'}};
@@ -48,6 +48,7 @@ const mk={
     {t:'Hvad koster det?',d:'Prisen afhænger af opgavens omfang. Du får et tilbud, før vi går i gang.'},
     {t:'Kan jeg få rettet noget bagefter?',d:'Ja, sig til, hvis noget skal justeres, så kigger vi på det sammen.'}]}),
   cta:n=>({id:uid(),type:'cta',title:'Klar til at komme i gang?',text:'Kontakt '+n+' i dag, og hør, hvordan vi kan hjælpe dig. Samtalen er uforpligtende.',cta:'Kontakt os nu'}),
+  gallery:()=>({id:uid(),type:'gallery',title:'Galleri',images:[]}),
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
   async generate(input){await wait(900);return smartSite(input)},
@@ -98,20 +99,21 @@ const AI={mode:'api',
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
-  hero:b=>`<section><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></section>`,
+  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
-  about:b=>`<section><h2>${esc(b.title)}</h2>${String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('')}</section>`,
+  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   services:b=>B.features(b),
   steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
   cta:b=>`<section style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></section>`,
+  gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
   contact:b=>`<section id="kontakt"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><p><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></p></section>`};
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
 const Renderer={html(p){
   const s=p.site,t=s.meta.theme,d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
   const f=t.font==='serif'?'Georgia,"Times New Roman",serif':'system-ui,-apple-system,"Segoe UI",sans-serif';
   const bg=d?'#0E1320':'#fff',fg=d?'#E8ECF5':'#101828',mu=d?'#9AA6BD':'#4B5565',ln=d?'#2A3350':'#E3E8F0',sf=d?'#171E30':'#F5F7FB';
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}</style></head><body><header>${esc(s.meta.title)}</header>${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}header{position:sticky;top:0;z-index:5;background:${bg};padding:1rem 1.5rem;font-size:1.05rem}section{padding:3.5rem 1.5rem}.hero{padding-top:4.5rem;padding-bottom:4.5rem}h1{letter-spacing:-.02em}h2{font-size:1.8rem;letter-spacing:-.01em;margin-bottom:1.25rem}p{max-width:68ch}section[style*="center"] p{margin-left:auto;margin-right:auto}.c{border-radius:14px;padding:1.4rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}.btn{border-radius:10px;padding:.9rem 1.6rem}img{max-width:100%;height:auto;display:block}.hero.two,.ab.two{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center}.hero img,.ab img{width:100%;border-radius:16px;object-fit:cover;aspect-ratio:4/3}.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}@media(max-width:700px){.hero.two,.ab.two{grid-template-columns:1fr}section{padding:2.5rem 1.25rem}}</style></head><body><header>${esc(s.meta.title)}</header>${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
 
 /* ===== Lag 4: UI ===== */
 let S={view:'dash',miniTab:'list',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
@@ -138,15 +140,17 @@ const NAV=[
  ['Finance',[['finance','Finance']]],
  ['System',[
   ['settings','Indstillinger'],
+  ['colors','Udseende og farver'],
+  ['contact','Kontakt'],
   ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
  ]]
 ];
-const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
+const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50,0],['Starter',200,25],['Pro',400,50],['Business',1000,100]];
 const TPL=[{n:'Restaurant',s:'Elegant',d:'Hyggelig restaurant med lokale råvarer og sæsonens menu.'},{n:'Håndværker',s:'Moderne',d:'Pålidelig håndværker til nybyg, renovering og service.'},{n:'Frisør',s:'Frisk',d:'Frisørsalon med fokus på klip, farve og personlig rådgivning.'},{n:'Konsulent',s:'Mørk',d:'Selvstændig konsulent, der hjælper virksomheder med strategi og vækst.'}];
 const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'Live preview og chat-redigering'],[1,'Bygger med direkte redigering af blokke'],[1,'Ejer/admin med ubegrænsede credits'],[1,'Kunder med egne credits (manuelt)'],[1,'Sikkerhedskopi og gendannelse'],[1,'Adgangskode, begrænsning og validering på AI-serveren'],[1,'Demo-tilstand, hvis AI-serveren ikke er sat op'],[0,'Login og database'],[0,'Rigtig publicering og egne domæner'],[0,'Betaling og abonnementer (kræver din godkendelse)']];
 const nEdits=p=>p.chat.filter(m=>m.r==='u').length;
-const snap=()=>JSON.stringify({app:'primewebs',v:1,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),credits:Storage.get('pw.credits',50)},null,1);
+const snap=()=>JSON.stringify({app:'primewebs',v:1,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),images:Imgs.all(),credits:Storage.get('pw.credits',50)},null,1);
 const frame=p=>`<iframe title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe>`;
 
 function vPick(t){const l=Projects.all();return `<h1>${PT[t]||'Vælg hjemmeside'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
@@ -156,7 +160,7 @@ function vDash(){const l=Projects.all(),u=Session.user(),t=(n,x)=>`<div class="c
 
 function vBuilder(){const p=getP();if(!p)return vPick('builder');const bl=p.site.blocks;
   const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}${(k==='text'||k==='d')?`<textarea data-b="${bi}" data-k="${k}" ${x}>${esc(v)}</textarea>`:`<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}">`}</label>`;
-  const card=(b,bi)=>`<div class="card" style="margin-bottom:.8rem"><div class="row"><strong>${BT[b.type]||b.type}</strong><span class="sp"></span><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="-1" ${bi?'':'disabled'}>↑</button><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="1" ${bi<bl.length-1?'':'disabled'}>↓</button>${b.type==='hero'?'':`<button class="btn ghost" data-act="brem" data-i="${bi}">Fjern</button>`}</div>${Object.keys(b).filter(k=>k!=='id'&&k!=='type').map(k=>Array.isArray(b[k])?b[k].map((it,ii)=>fl(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)+fl(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)).join(''):fl(bi,k,b[k])).join('')}</div>`;
+  const card=(b,bi)=>`<div class="card" style="margin-bottom:.8rem"><div class="row"><strong>${BT[b.type]||b.type}</strong><span class="sp"></span><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="-1" ${bi?'':'disabled'}>↑</button><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="1" ${bi<bl.length-1?'':'disabled'}>↓</button>${b.type==='hero'?'':`<button class="btn ghost" data-act="brem" data-i="${bi}">Fjern</button>`}</div>${Object.keys(b).filter(k=>k!=='id'&&k!=='type'&&k!=='image'&&k!=='images').map(k=>Array.isArray(b[k])?b[k].map((it,ii)=>fl(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)+fl(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)).join(''):fl(bi,k,b[k])).join('')}</div>`;
   const adds=Object.keys(BT).filter(t=>!bl.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">+ ${BT[t]}</button>`).join('');
   return `<div class="bar"><strong>AI Website Builder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="unpick">Vælg anden</button><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto"><p class="mu">Ret felterne direkte. Ændringer gemmes med det samme, og preview opdateres.</p>${bl.map(card).join('')}<div class="row">${adds}</div></section><section class="pv">${frame(p)}</section></div>`}
 
@@ -180,7 +184,7 @@ function vAdmin(){if(!Session.can())return '<h1>Admin Panel</h1><p>Du har ikke a
   return `<h1>Admin Panel</h1><div class="grid" style="margin-bottom:1rem"><div class="card"><div class="mu">Roller</div><p><span class="badge">OWNER</span> og <span class="badge">ADMIN</span>: fuld adgang og ubegrænsede credits.<br><span class="badge">KUNDE</span>: egne hjemmesider og credits (kommer med login).</p></div><div class="card"><div class="mu">Data i denne browser</div><p>${Projects.all().length} hjemmesider, ${Customers.all().length} kunder</p></div></div><!--BK--><div class="card stack"><h3>Sikkerhedskopi</h3><p class="mu">Kopiér al data (hjemmesider, kunder, indstillinger) og gem teksten i en fil på din computer.</p><button class="btn" data-act="bk">Lav sikkerhedskopi</button>${S.out&&S.outId==='bk'?`<textarea class="code" readonly>${esc(S.out)}</textarea>`:''}<h3>Gendan</h3><textarea class="code" id="rs" placeholder="Indsæt sikkerhedskopi her">${esc(S.rv)}</textarea><button class="btn ghost" data-act="rs">${S.rc?'Bekræft: overskriv al data':'Gendan fra kopi'}</button>${S.msg?`<p class="${S.msg.startsWith('Fejl')?'err':''}">${esc(S.msg)}</p>`:''}</div>`}
 
 /* ===== Finance (manuel registrering, ingen betalingssystem tilsluttet) ===== */
-const Fin={all:()=>Storage.get('pw.finance',[]),save:l=>Storage.set('pw.finance',l)};
+const Fin={all:()=>Storage.get('pw.finance',[]).map(fixF).filter(Boolean),save:l=>Storage.set('pw.finance',l)};
 const fmt=n=>new Intl.NumberFormat('da-DK',{style:'currency',currency:'DKK',maximumFractionDigits:0}).format(n||0);
 const monthKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 const today=()=>{const d=new Date();return monthKey(d)+'-'+String(d.getDate()).padStart(2,'0')};
@@ -220,8 +224,8 @@ document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.f
 const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
-  if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='build'){S.view='mini';S.miniTab='builder';S.id=id;return 1}
   if(a==='tpl'){const t=TPL[+d.i];S.form={name:'',desc:t.d,style:t.s};S.view='new';S.err='';return 1}
@@ -236,13 +240,12 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='cdel'){if(S.cdel===id){Customers.save(Customers.all().filter(x=>x.id!==id));S.cdel=null}else S.cdel=id;return 1}
   if(a==='bk'){S.out=snap();S.outId='bk';return 1}
   if(a==='rs'){if(!S.rc){S.rc=1;S.msg='';return 1}S.rc=0;
-    try{const x=JSON.parse(S.rv||'');if(x.app!=='primewebs'||!Array.isArray(x.projects))throw 0;Projects.save(x.projects);Customers.save(x.customers||[]);Storage.set('pw.settings',{...(x.settings||{}),aiCode:Settings.get().aiCode});Fin.save(Array.isArray(x.finance)?x.finance:[]);if(x.credits!=null)Storage.set('pw.credits',x.credits);S.rv='';S.msg='Gendannet: '+x.projects.length+' hjemmesider.'}catch(e){S.msg='Fejl: kopien kunne ikke læses.'}return 1}
+    try{const x=JSON.parse(S.rv||'');if(x.app!=='primewebs'||!Array.isArray(x.projects))throw 0;Projects.save(x.projects);Customers.save(x.customers||[]);Storage.set('pw.settings',{...(x.settings||{}),aiCode:Settings.get().aiCode});Fin.save(Array.isArray(x.finance)?x.finance:[]);{const im={};Object.entries(x.images||{}).forEach(([k,v])=>{if(/^[a-z0-9]{3,12}$/.test(k)&&/^data:image\/(jpeg|png|webp|gif);base64,/.test(v))im[k]=v});Storage.set('pw.img',im)}if(x.credits!=null)Storage.set('pw.credits',x.credits);S.rv='';S.msg='Gendannet: '+x.projects.length+' hjemmesider.'}catch(e){S.msg='Fejl: kopien kunne ikke læses.'}return 1}
 }
 
 function ext2(a,b){const d=b.dataset;
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
-  if(a==='sub'){const n=Storage.get('pw.nav',{});n['s:'+d.k]=n['s:'+d.k]===1?0:1;Storage.set('pw.nav',n);return 1}
   if(a==='fp'){S.fp=d.p;return 1}
   if(a==='fadd'){const f=S.ff,amt=parseFloat(String(f.amount).replace(',','.'));
     if(!(amt>0)){S.err='Skriv et beløb større end 0.';return 1}
@@ -251,13 +254,13 @@ function ext2(a,b){const d=b.dataset;
   if(a==='fdel'){if(S.fdel===d.id){Fin.save(Fin.all().filter(e=>e.id!==d.id));S.fdel=null}else S.fdel=d.id;return 1}
   return 0}
 
-function render(){
+function render0(){
   const searchWasFocused=!!document.querySelector('[data-q]:focus');
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
   const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
-  $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
+  $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${safeView()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
   const mq=$('[data-q]');if(searchWasFocused&&mq){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
@@ -284,7 +287,7 @@ async function send(t){
   if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>q.chat.push({r:'ai',t:'Du har ikke flere credits.'}));return render()}
   S.busy=true;render();
   try {
-    const r=await AI.edit(p.site,t);
+    const r=await AI.edit(p.site,t);keepImages(p.site,r.site);
     upd(p.id,q=>{if(r.site){q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=r.site;Credits.spend('edit')}q.chat.push({r:'ai',t:r.reply||'Ændringerne er udført.'})});
   } catch(error) {
     upd(p.id,q=>q.chat.push({r:'ai',t:'AI-fejl: '+(error.message||'Kunne ikke kontakte AI-generatoren.')}));
@@ -365,7 +368,7 @@ const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
-const PT={edit:'AI Chat Editor',builder:'AI Website Builder',customize:'Tilpas design',preview:'Forhåndsvisning',history:'Versionshistorik'};
+const PT={edit:'AI Chat Editor',builder:'AI Website Builder',customize:'Tilpas design',media:'Billeder',preview:'Forhåndsvisning',history:'Versionshistorik'};
 GC.Redigering='#0E9AA7';
 function projPick(){return `<select class="ms" data-proj aria-label="Valgt hjemmeside"><option value="">Vælg hjemmeside…</option>${Projects.all().map(p=>`<option value="${p.id}" ${p.id===S.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>`}
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
@@ -381,9 +384,9 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
 const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)=>h.slice(i(a)+a.length+7,b?i(b):h.length);
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
-V.finance=()=>finMode('o','Finance: Overblik');V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
+V.finance=()=>vFin();V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
 function vMini(){
-  const tabs=[['list','Mini hjemmesider'],['templates','Skabeloner'],['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']];
+  const tabs=[['list','Mini hjemmesider'],['templates','Skabeloner'],['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['media','Billeder'],['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']];
   const tab=tabs.some(([k])=>k===S.miniTab)?S.miniTab:'list';
   const current=V[tab]||vList;
   return `<h1>Mini Websites</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p><div class="row" style="flex-wrap:wrap;gap:.45rem;margin:0 0 1rem">${tabs.map(([k,n])=>`<button class="btn ${tab===k?'':'ghost'}" data-act="miniTab" data-tab="${k}">${n}</button>`).join('')}</div>${PB.includes(tab)?`<div style="max-width:320px;margin-bottom:1rem">${projPick()}</div>`:''}${current()}`;
@@ -402,7 +405,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act="sub"]
   else{upd(S.id,q=>{const sn=q.history[+d.i];if(!sn)return;q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=structuredClone(sn)});render()}});
 document.addEventListener('change',e=>{if(e.target.dataset.proj!==undefined){S.id=e.target.value||null;render()}});
 /* ===== Prompt-først oprettelse, gemte hjemmesider i menuen og priser ===== */
-const PB=['edit','builder','customize','preview','history'];
+const PB=['edit','builder','customize','media','preview','history'];
 const EXAMPLES=['Frisørsalon i Aarhus med grønne farver','Tømrerfirma i Odense, der laver tilbygninger','Café i København med frokost og kage','Konsulent, der hjælper små virksomheder med regnskab'];
 function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang:'Dansk',phone:'',email:'',...S.form};
   const inp=(k,t,x='')=>`<label>${t}<input data-f="${k}" value="${esc(f[k])}" ${x}></label>`;
@@ -417,6 +420,61 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="proj"],
 document.addEventListener('toggle',e=>{if(e.target.dataset&&e.target.dataset.more!==undefined)S.more=e.target.open},true);
 const _vA2=V.admin;
 V.admin=()=>_vA2()+`<div class="card" style="margin-top:1rem;max-width:720px"><h3>Login og adgang</h3><p>${S.auth&&S.auth.enabled?'Login er aktivt. Kun den godkendte e-mail kan åbne dashboardet og bruge AI-generatoren.':'Login er ikke aktiveret endnu. Alle, der kender adressen, kan åbne dashboardet (men dine data ligger kun i din egen browser, og AI-generatoren kræver adgangskode). Se README for opsætning.'}</p>${S.auth&&S.auth.authenticated?`<p class="mu">Logget ind som ${esc(S.auth.email)}</p><a class="btn ghost" href="/api/auth/logout">Log ud</a>`:''}</div>`;
+/* ===== Billeder i hjemmesider ===== */
+const Imgs={all:()=>Storage.get('pw.img',{}),add(id,url){try{const m=this.all();m[id]=url;localStorage.setItem('pw.img',JSON.stringify(m));return true}catch(e){return false}}};
+function imgSrc(r){r=String(r||'');if(r.startsWith('img:'))return Imgs.all()[r.slice(4)]||'';return /^https?:\/\/[^\s"'<>]+$/i.test(r)?r:''}
+function keepImages(o,n){if(!n||!o)return;(n.blocks||[]).forEach(b=>{const x=o.blocks.find(y=>y.id===b.id);if(x){if(x.image&&!b.image)b.image=x.image;if(x.images&&!b.images)b.images=x.images}})}
+function fileToData(file){return new Promise((ok,no)=>{const fr=new FileReader();fr.onerror=()=>no(new Error('Filen kunne ikke læses'));fr.onload=()=>{const im=new Image();im.onerror=()=>no(new Error('Filen er ikke et billede'));im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.82))};im.src=fr.result};fr.readAsDataURL(file)})}
+function setImg(slot,val){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks;
+  if(slot==='gal'){let g=bl.find(x=>x.type==='gallery');if(!g){g=mk.gallery();const ci=bl.findIndex(x=>x.type==='contact');ci>-1?bl.splice(ci,0,g):bl.push(g)}g.images=[...(g.images||[]),val].slice(0,8)}
+  else{const b=bl.find(x=>x.type===slot);if(b)b.image=val}})}
+function delImg(slot,i){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks;
+  if(slot==='gal'){const g=bl.find(x=>x.type==='gallery');if(g){g.images.splice(i,1);if(!g.images.length)q.site.blocks=bl.filter(x=>x!==g)}}
+  else{const b=bl.find(x=>x.type===slot);if(b)delete b.image}})}
+V.media=()=>{const p=getP();if(!p)return vPick('media');const bl=p.site.blocks,h=bl.find(x=>x.type==='hero'),a=bl.find(x=>x.type==='about'),g=bl.find(x=>x.type==='gallery'),gi=(g&&g.images)||[];
+  const th=r=>{const s=imgSrc(r);return s?`<img src="${esc(s)}" alt="" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin:.5rem 0">`:''};
+  const sm=r=>{const s=imgSrc(r);return s?`<img src="${esc(s)}" alt="" style="width:96px;height:70px;object-fit:cover;border-radius:8px;display:block;margin-bottom:.3rem">`:''};
+  const slot=(key,title,b,hint)=>b?`<div class="card" style="margin-bottom:.8rem"><strong>${title}</strong><p class="mu">${hint}</p>${th(b.image)}<label>Upload billede<input type="file" accept="image/*" data-up="${key}"></label><label>Eller billed-adresse (URL)<input data-url="${key}" placeholder="https://…" value="${esc(String(b.image||'').startsWith('http')?b.image:'')}"></label>${b.image?`<button class="btn ghost" data-x="imgdel" data-slot="${key}">Fjern billede</button>`:''}</div>`:`<div class="card" style="margin-bottom:.8rem"><strong>${title}</strong><p class="mu">Hjemmesiden har ingen blok til dette billede. Tilføj blokken under AI Website Builder.</p></div>`;
+  return `<div class="bar"><strong>Billeder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto">${S.msg?`<p class="err">${esc(S.msg)}</p>`:''}${slot('hero','Forsidebillede',h,'Vises ved siden af overskriften.')}${slot('about','Billede til Om os',a,'Vises ved siden af teksten om virksomheden.')}<div class="card"><strong>Galleri</strong><p class="mu">Op til 8 billeder. ${gi.length}/8 tilføjet.</p><div class="sw" style="margin:.5rem 0">${gi.map((r,i)=>`<div style="width:96px">${sm(r)}<button class="btn ghost" data-x="imgdel" data-slot="gal" data-i="${i}" style="width:100%;padding:.3rem">Fjern</button></div>`).join('')}</div>${gi.length<8?`<label>Tilføj billede<input type="file" accept="image/*" data-up="gal"></label><label>Eller billed-adresse (URL)<input data-url="gal" placeholder="https://…"></label>`:''}</div></section><section class="pv">${frame(p)}</section></div>`};
+document.addEventListener('change',async e=>{const t=e.target,d=t.dataset;
+  if(d.up!==undefined&&t.files&&t.files[0]){const f=t.files[0];S.msg='';
+    if(f.size>12*1024*1024){S.msg='Billedet er for stort (maks. 12 MB).';return render()}
+    try{const url=await fileToData(f),id=uid();if(!Imgs.add(id,url)){S.msg='Browserens lager er fuldt. Fjern billeder, eller brug en billed-adresse i stedet.';return render()}setImg(d.up,'img:'+id)}catch(err){S.msg='Billedet kunne ikke bruges: '+err.message}
+    render()}
+  else if(d.url!==undefined){const v=t.value.trim();if(!v)return;if(!/^https?:\/\/[^\s"'<>]+$/i.test(v)){S.msg='Billed-adressen skal starte med https://';return render()}S.msg='';setImg(d.url,v);render()}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x="imgdel"]');if(b){delImg(b.dataset.slot,+b.dataset.i);render()}});
+/* ===== Stabilitet: datareparation, fejlbeskeder i stedet for hvide skærme, Kontakt ===== */
+const arr=v=>Array.isArray(v)?v:[];
+function fixP(p,i){if(!p||typeof p!=='object'||Array.isArray(p))return null;
+  const name=String(p.name||'Uden navn').slice(0,160),ok=p.site&&typeof p.site==='object'&&Array.isArray(p.site.blocks);
+  const site=ok?p.site:{v:1,meta:{title:name,theme:{...STYLES.Moderne}},blocks:[mk.hero(name,''),mk.contact()]};
+  site.meta=site.meta&&typeof site.meta==='object'?site.meta:{};site.meta.title=String(site.meta.title||name);
+  const t=site.meta.theme=site.meta.theme&&typeof site.meta.theme==='object'?site.meta.theme:{};
+  if(!/^#[0-9a-fA-F]{6}$/.test(t.accent))t.accent='#2540D9';if(t.font!=='serif')t.font='sans';if(t.mode!=='dark')t.mode='light';
+  site.blocks=site.blocks.filter(b=>b&&typeof b==='object'&&b.type).map((b,n)=>{const o={...b,id:String(b.id||'b'+n)};
+    if(['features','services','steps','faq'].includes(o.type))o.items=arr(o.items).map(x=>({t:String((x&&x.t)||''),d:String((x&&x.d)||'')}));
+    if(o.type==='gallery')o.images=arr(o.images).filter(x=>typeof x==='string');return o});
+  const sane=a=>arr(a).filter(x=>x&&typeof x==='object'&&Array.isArray(x.blocks));
+  return{...p,id:String(p.id||'p'+i),name,status:p.status==='ready'?'ready':'draft',site,history:sane(p.history),future:sane(p.future),chat:arr(p.chat).filter(m=>m&&typeof m.t==='string'),createdAt:p.createdAt||Date.now(),updatedAt:p.updatedAt||Date.now()}}
+function fixC(c,i){if(!c||typeof c!=='object'||Array.isArray(c))return null;return{...c,id:String(c.id||'c'+i),name:String(c.name||'Uden navn'),email:String(c.email||''),plan:String(c.plan||'Gratis'),credits:Number.isFinite(+c.credits)?+c.credits:0}}
+function fixF(e,i){if(!e||typeof e!=='object'||(e.type!=='income'&&e.type!=='expense')||!(+e.amount>0)||!Number.isFinite(+e.amount))return null;
+  return{...e,id:String(e.id||'f'+i),amount:+e.amount,date:/^\d{4}-\d{2}-\d{2}$/.test(String(e.date))?e.date:today(),cat:String(e.cat||'Andet'),cust:e.cust||null,note:String(e.note||'')}}
+function banner(m){let b=document.getElementById('errbar');if(!b){b=document.createElement('div');b.id='errbar';b.setAttribute('role','alert');b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:99;background:#C0263A;color:#fff;padding:.6rem 1rem;border-radius:10px;max-width:90vw;box-shadow:0 4px 16px rgba(0,0,0,.2)';document.body.appendChild(b)}b.innerHTML=esc(m)+' <button data-x="closeerr" style="margin-left:.6rem">Luk</button>'}
+const errCard=e=>`<h1>Siden kunne ikke vises</h1><div class="card" style="max-width:640px"><p class="err">${esc((e&&e.message)||e)}</p><p>Dine data er ikke slettet. Prøv en anden side, eller gå tilbage til Dashboard.</p><div class="row"><button class="btn" data-act="go" data-v="dash">Til Dashboard</button><button class="btn ghost" data-act="go" data-v="list">Mine hjemmesider</button></div></div>`;
+function safeView(){try{return(V[S.view]||vList)()}catch(e){console.error(e);return errCard(e)}}
+function fatal(e){console.error(e);let raw='';try{raw=Object.keys(localStorage).filter(k=>k.startsWith('pw.')).map(k=>k+' = '+localStorage.getItem(k)).join('\n\n')}catch(x){}
+  $('#app').innerHTML=`<main class="main" style="max-width:720px;margin:6vh auto"><div class="card"><h1>Noget gik galt</h1><p class="err">${esc((e&&e.message)||e)}</p><p>Dine data er ikke slettet. Prøv igen, eller kopiér dem herfra til en fil som sikkerhed.</p><div class="row"><button class="btn" data-x="retry">Prøv igen</button><button class="btn ghost" data-x="home">Til Dashboard</button></div><label style="margin-top:1rem">Dine data (markér og kopiér)<textarea class="code" readonly>${esc(raw)}</textarea></label></div></main>`}
+function render(){try{render0()}catch(e){fatal(e)}}
+window.addEventListener('error',e=>banner('Der opstod en fejl: '+(e.message||'ukendt')));
+window.addEventListener('unhandledrejection',e=>banner('Der opstod en fejl: '+((e.reason&&e.reason.message)||e.reason)));
+{const _g=generate,_s=send;
+ generate=async function(){try{await _g()}catch(e){S.busy=false;S.err='Kunne ikke oprette hjemmesiden: '+((e&&e.message)||e);render()}};
+ send=async function(t){try{await _s(t)}catch(e){S.busy=false;banner('Kunne ikke gennemføre ændringen: '+((e&&e.message)||e));render()}}}
+V.contact=()=>{const s=Settings.get();return `<h1>Kontakt</h1><p class="mu">Kontakt ${esc(s.company)} for support, spørgsmål eller bestilling af en plan.</p><div class="grid"><div class="card"><h3>Oplysninger</h3><p>Telefon: <a href="tel:${esc(s.phone.replace(/\s+/g,''))}">${esc(s.phone)}</a></p><p>E-mail: <a href="mailto:${esc(s.email)}">${esc(s.email)}</a></p><p>Web: <a href="${esc(s.web)}" target="_blank" rel="noopener">${esc(s.web)}</a></p><p class="mu">Oplysningerne rettes under Indstillinger.</p></div><div class="card form"><h3>Send en besked</h3><label>Dit navn<input id="kn"></label><label>Besked<textarea id="kb"></textarea></label><button class="btn" data-x="mail">Åbn i din mail</button></div></div>`};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"],[data-x="home"],[data-x="closeerr"],[data-x="mail"]');if(!b)return;const x=b.dataset.x;
+  if(x==='closeerr'){const r=document.getElementById('errbar');if(r)r.remove()}
+  else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
+  else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatin')send(e.target.value)});
 async function boot(){
   try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
