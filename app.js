@@ -362,7 +362,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
-const GC={Dashboard:'#2540D9','Credits og abonnementer':'#E8730C',Finance:'#7B3FD1',System:'#6B7280'};
+const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280'};
+const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B'};
 const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
@@ -388,7 +389,7 @@ const NAV_ICONS={
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
-  const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
+  const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
     if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'){
       const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
