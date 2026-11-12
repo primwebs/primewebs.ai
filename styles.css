@@ -144,3 +144,13 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .dash-check{font-weight:800;color:var(--mu);flex:0 0 auto}
 .dash-check.ok{color:#1E8E5A}
 @media(max-width:600px){.dash-hero{padding:1.35rem;min-height:180px}.dash-hero-side{gap:.6rem}.dash-hero-mark{font-size:1.5rem}.dash-status-pill{font-size:.68rem}.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.dash-kpi{min-height:100px;padding:.85rem}.dash-kpi-label{font-size:.74rem}.dash-kpi-value{font-size:1.35rem}.dash-actions .btn{flex:1}.dash-project-card{flex-wrap:wrap}.dash-project-card .btn{margin-left:3.1rem}.dash-empty p{margin-left:0}}
+
+
+/* Dashboard website library and streamlined builder entry */
+.dash-project-card{align-items:center;gap:1rem}
+.dash-project-info{display:flex;flex-direction:column;gap:.2rem;min-width:0;flex:1}
+.dash-project-info .mu{font-size:.78rem;margin:0}
+.dash-project-card .row{flex:0 0 auto}
+.dash-actions{display:flex;gap:.65rem;flex-wrap:wrap;margin:0 0 1.8rem}
+.dash-actions .btn{min-height:44px}
+@media(max-width:650px){.dash-project-card{align-items:flex-start;flex-wrap:wrap}.dash-project-info{flex:1 1 calc(100% - 55px)}.dash-project-card>.row{width:100%;margin-left:3.2rem}.dash-project-card>.row .btn{flex:1}.dash-actions .btn{flex:1}}
