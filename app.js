@@ -125,10 +125,16 @@ function vList(){const l=Projects.all();
   return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="open" data-id="${p.id}">Chat-editor</button><button class="btn ghost" data-act="build" data-id="${p.id}">Bygger</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
-function vEdit(){const p=getP();if(!p)return vPick('edit')
-  const chips=['Skift farve til grøn','Gør siden mørk','Tilføj Om os','Skift overskrift til “Din lokale ekspert”'];
-  return `<div class="bar"><button class="btn ghost" data-act="list">← Projekter</button><strong>${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button><button class="btn ${S.device==='desktop'?'':'ghost'}" data-act="dev" data-d="desktop">Computer</button><button class="btn ${S.device==='mobile'?'':'ghost'}" data-act="dev" data-d="mobile">Mobil</button></div>
-<div class="ed"><section class="chat"><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="chips">${chips.map(t=>`<button class="chip" data-act="chip" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="row"><input id="chatin" placeholder="Skriv en ændring…" ${S.busy?'disabled':''}><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
+function vEdit(){const p=getP();if(!p)return vPick('edit');
+  const hero=p.site.blocks.find(b=>b.type==='hero')||{},contact=p.site.blocks.find(b=>b.type==='contact')||{};
+  return `<div class="bar"><button class="btn ghost" data-act="list">← Hjemmesider</button><strong>${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button><button class="btn ${S.device==='desktop'?'':'ghost'}" data-act="dev" data-d="desktop">Computer</button><button class="btn ${S.device==='mobile'?'':'ghost'}" data-act="dev" data-d="mobile">Mobil</button></div>
+<div class="ed"><section class="chat"><div class="card form"><h2>Forside</h2><p class="mu">Ret de fem vigtigste oplysninger her. Din forhåndsvisning opdateres, når du gemmer.</p>
+<label>Overskrift<input data-home="title" value="${esc(hero.title||'')}"></label>
+<label>Tekst<textarea data-home="text" rows="3">${esc(hero.text||'')}</textarea></label>
+<label>Kontakt e-mail<input data-home="email" type="email" value="${esc(contact.email||'')}"></label>
+<label>Telefon<input data-home="phone" type="tel" value="${esc(contact.phone||'')}"></label>
+<label>Knaptekst<input data-home="cta" value="${esc(hero.cta||'')}"></label>
+<button class="btn" data-act="savehome">Gem ændringer</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
 
 /* ===== Nye sider ===== */
 const NAV=[
@@ -223,6 +229,7 @@ document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.f
 const V={dash:vDash,list:vList,new:vNew,builderHub:vBuilderHub,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
+  if(a==='savehome'){const fields={};document.querySelectorAll('[data-home]').forEach(el=>fields[el.dataset.home]=el.value.trim());upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];let h=q.site.blocks.find(x=>x.type==='hero'),c=q.site.blocks.find(x=>x.type==='contact');if(!h){h=mk.hero(q.name,'');q.site.blocks.unshift(h)}if(!c){c={id:uid(),type:'contact',title:'Kontakt',text:'Kontakt os gerne.',phone:'',email:''};q.site.blocks.push(c)}h.title=fields.title;h.text=fields.text;h.cta=fields.cta;c.email=fields.email;c.phone=fields.phone});return 1}
   if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
   if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
@@ -403,14 +410,7 @@ const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
 V.finance=()=>vFin();V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
-function vMini(){
-  const tabs=[['list','Alle hjemmesider','Websites'],['templates','Skabeloner','Websites'],['builder','AI Website Builder','Byg'],['edit','AI Chat Editor','Byg'],['customize','Tilpas design','Design'],['media','Billeder','Design'],['preview','Forhåndsvisning','Gennemgå'],['history','Versionshistorik','Gennemgå'],['domains','Domæner og publicering','Udgiv'],['export','Eksportér','Udgiv']];
-  const tab=tabs.some(([k])=>k===S.miniTab)?S.miniTab:'list';
-  const current=V[tab]||vList,groups=['Websites','Byg','Design','Gennemgå','Udgiv'];
-  return `<div class="editor-heading"><div><span class="dash-section-kicker">WEBSITE WORKSPACE</span><h1>Website-værktøjer</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p></div></div>
-  <div class="editor-layout"><nav class="editor-nav" aria-label="Website-værktøjer">${groups.map(g=>{const items=tabs.filter(x=>x[2]===g);return `<div class="editor-nav-group"><span class="editor-nav-label">${g}</span>${items.map(([k,n])=>`<button class="editor-nav-item ${tab===k?'active':''}" data-act="miniTab" data-tab="${k}" aria-current="${tab===k?'page':'false'}">${n}</button>`).join('')}</div>`}).join('')}</nav>
-  <section class="editor-content">${PB.includes(tab)?`<div class="editor-project-picker">${projPick()}</div>`:''}${current()}</section></div>`;
-}
+function vMini(){const p=getP();return p?vEdit():vList()}
 const _vAdm=vAdmin;
 V.admin=()=>_vAdm().split('<!--BK-->')[0].replace('<h1>Admin Panel</h1>','<h1>Admin Panel: Roller og adgang</h1>');
 V.backup=()=>{const p=_vAdm().split('<!--BK-->');return p.length>1?'<h1>Sikkerhedskopi og gendannelse</h1>'+p[1]:p[0]};
