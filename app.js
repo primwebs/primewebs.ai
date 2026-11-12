@@ -126,16 +126,8 @@ function vList(){const l=Projects.all();
 
 
 function vEdit(){const p=getP();if(!p)return vPick('edit');
-  const hero=p.site.blocks.find(b=>b.type==='hero')||{},contact=p.site.blocks.find(b=>b.type==='contact')||{};
   return `<div class="bar"><button class="btn ghost" data-act="list">← Hjemmesider</button><strong>${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button><button class="btn ${S.device==='desktop'?'':'ghost'}" data-act="dev" data-d="desktop">Computer</button><button class="btn ${S.device==='mobile'?'':'ghost'}" data-act="dev" data-d="mobile">Mobil</button></div>
-<div class="ed"><section class="chat"><div class="card form"><h2>Forside</h2><p class="mu">Ret de fem vigtigste oplysninger her. Din forhåndsvisning opdateres, når du gemmer.</p>
-<label>Overskrift<input data-home="title" value="${esc(hero.title||'')}"></label>
-<label>Tekst<textarea data-home="text" rows="3">${esc(hero.text||'')}</textarea></label>
-<label>Kontakt e-mail<input data-home="email" type="email" value="${esc(contact.email||'')}"></label>
-<label>Telefon<input data-home="phone" type="tel" value="${esc(contact.phone||'')}"></label>
-<label>Knaptekst<input data-home="cta" value="${esc(hero.cta||'')}"></label>
-<button class="btn" data-act="savehome">Gem ændringer</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
-
+<div class="ed"><section class="chat"><h2>Forside</h2><p class="mu">Beskriv med dine egne ord, hvad du vil ændre på hjemmesiden. AI'en skal klare resten.</p><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="row"><textarea id="chatin" rows="4" placeholder="Beskriv hvad der skal ændres på forsiden…" ${S.busy?'disabled':''}></textarea><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
