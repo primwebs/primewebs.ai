@@ -131,11 +131,17 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 /* ===== Nye sider ===== */
 const NAV=[
  ['Overblik',[['dash','Dashboard']]],
- ['Hjemmesider',[['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['templates','Skabeloner']]],
- ['Redigering',[['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['preview','Forhåndsvisning'],['history','Versionshistorik']]],
- ['Udgivelse',[['domains','Domæner og publicering'],['export','Eksportér']]],
- ['Forretning',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['finp','Finance',[['finance','Overblik'],['finlist','Posteringer'],['fincust','Pr. kunde']]],['stats','Statistik og analyser']]],
- ['System',[['setp','Indstillinger',[['settings','Virksomhed og konto'],['colors','Udseende og farver']]],['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]]]
+ ['Mini Websites',[
+  ['list','Mine hjemmesider'],['new','Opret ny hjemmeside'],['templates','Skabeloner'],
+  ['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],
+  ['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']
+ ]],
+ ['Kunder og vækst',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['stats','Statistik og analyser']]],
+ ['Finance',[['finance','Finance']]],
+ ['System',[
+  ['settings','Indstillinger'],
+  ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
+ ]]
 ];
 const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50,0],['Starter',200,25],['Pro',400,50],['Business',1000,100]];
@@ -237,6 +243,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 
 function ext2(a,b){const d=b.dataset;
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
+  if(a==='sub'){const n=Storage.get('pw.nav',{});n['s:'+d.k]=n['s:'+d.k]===1?0:1;Storage.set('pw.nav',n);return 1}
   if(a==='fp'){S.fp=d.p;return 1}
   if(a==='fadd'){const f=S.ff,amt=parseFloat(String(f.amount).replace(',','.'));
     if(!(amt>0)){S.err='Skriv et beløb større end 0.';return 1}
@@ -246,6 +253,7 @@ function ext2(a,b){const d=b.dataset;
   return 0}
 
 function render(){
+  const searchWasFocused=!!document.querySelector('[data-q]:focus');
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
@@ -253,7 +261,7 @@ function render(){
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${(V[S.view]||vList)()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
-  const mq=$('[data-q]');if(S.q&&mq&&!i){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
+  const mq=$('[data-q]');if(searchWasFocused&&mq){mq.focus();mq.setSelectionRange(mq.value.length,mq.value.length)}
 }
 
 async function generate(){
@@ -302,6 +310,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
+  if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
   else if(d.dom)upd(d.dom,q=>{q.domain=v.trim()||null});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
@@ -352,10 +361,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
-const GC={Overblik:'#2540D9',Hjemmesider:'#1E8E5A',Udgivelse:'#7B3FD1',Forretning:'#E8730C',System:'#6B7280'};
+const GC={Overblik:'#2540D9','Mini Websites':'#1E8E5A','Kunder og vækst':'#E8730C',Finance:'#7B3FD1',System:'#6B7280'};
 const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv');if(f){S.q='';f.click()}}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
 const PT={edit:'AI Chat Editor',builder:'AI Website Builder',customize:'Tilpas design',preview:'Forhåndsvisning',history:'Versionshistorik'};
 GC.Redigering='#0E9AA7';
