@@ -133,6 +133,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit');
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
+ ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
  ['Finance',[['finance','Finance'],['stats','Statistik og analyser']]],
  ['System',[
@@ -374,6 +375,7 @@ const NAV_ICONS={
   new:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4M12 8v6M9 11h6"/>',
   mini:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4M7 8h10"/>',
   customers:'<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  domains:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
   credits:'<circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.7-.7-1.8-1.1-3.2-1.1-1.7 0-2.8.8-2.8 2s1 1.8 2.8 2.1 2.8.9 2.8 2.1-1.1 2-2.8 2c-1.4 0-2.5-.4-3.2-1.1M12.8 5.5v13"/>',
   stats:'<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 6-7"/>',
   finance:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
@@ -388,7 +390,7 @@ function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20"
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
   const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
-    if(g==='Dashboard'||g==='Credits og abonnementer'){
+    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'){
       const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
     }
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
@@ -397,7 +399,7 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
       const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view):v===1);
       return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
     if(!rows)return '';const open=q?true:st[g]!==0;
-    const gi=g==='Finance'?'finance':g==='System'?'settings':'dash';
+    const gi=g==='Finance'?'finance':g==='System'?'settings':g==='Domæner og publicering'?'domains':'dash';
     return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?(g==='Redigering'?projPick():'')+rows:''}</div>`}).join('')}
 const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)=>h.slice(i(a)+a.length+7,b?i(b):h.length);
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
