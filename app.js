@@ -122,13 +122,13 @@ const upd=(id,fn)=>{const l=Projects.all(),i=l.findIndex(p=>p.id===id);if(i<0)re
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="open" data-id="${p.id}">Chat-editor</button><button class="btn ghost" data-act="build" data-id="${p.id}">Bygger</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="build" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
-function vEdit(){const p=getP();if(!p)return vPick('edit')
-  const chips=['Skift farve til grøn','Gør siden mørk','Tilføj Om os','Skift overskrift til “Din lokale ekspert”'];
-  return `<div class="bar"><button class="btn ghost" data-act="list">← Projekter</button><strong>${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button><button class="btn ${S.device==='desktop'?'':'ghost'}" data-act="dev" data-d="desktop">Computer</button><button class="btn ${S.device==='mobile'?'':'ghost'}" data-act="dev" data-d="mobile">Mobil</button></div>
-<div class="ed"><section class="chat"><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="chips">${chips.map(t=>`<button class="chip" data-act="chip" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="row"><input id="chatin" placeholder="Skriv en ændring…" ${S.busy?'disabled':''}><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send</button></div></section><section class="pv"><iframe class="${S.device}" title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`}
+function vEdit(){const p=getP();if(!p)return vPick('edit');
+  return `<div class="bar"><button class="btn ghost" data-act="list">← Mine hjemmesider</button><strong>${esc(p.name)}</strong></div>
+<div class="ed"><section class="chat"><div class="editor-section"><span class="badge">Forside</span><p class="mu">Skriv alt, hvad du vil ændre på hjemmesiden, i ét felt. Du kan bede om nye overskrifter, tekster, farver, billeder, ydelser, fordele, Om os, spørgsmål og svar, opfølgning eller kontaktoplysninger.</p></div><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="prompt-box"><textarea id="chatin" rows="4" placeholder="Beskriv med dine egne ord, hvad AI'en skal ændre på hjemmesiden…" ${S.busy?'disabled':''}></textarea><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send ændring</button></div></section><section class="pv"><iframe title="Live preview" sandbox srcdoc="${esc(Renderer.html(p))}"></iframe></section></div>`;
+}
 
 /* ===== Nye sider ===== */
 const NAV=[
@@ -157,15 +157,11 @@ function vDash(){const l=Projects.all(),u=Session.user(),t=(n,x)=>`<div class="c
   <div class="dash-kpis">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(fmt(finSum('income',monthKey())-finSum('expense',monthKey())),'Resultat denne måned')}${t(Credits.unlimited()?'Ubegrænset':Credits.balance(),'Dine credits')}</div>
   <div class="dash-actions"><button class="btn dash-create-btn" data-act="go" data-v="new">＋ Create a new website</button></div>
   <div class="dash-section-head"><div><span class="dash-section-kicker">DIT ARBEJDE</span><h3>Alle hjemmesider</h3></div><span class="mu">${l.length} i alt</span></div>
-  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Aktiv':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Åbn builder</button></article>`}).join('')}</div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Opret en hjemmeside, og den vises automatisk her.</p></div>`}
+  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Aktiv':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Opret en hjemmeside, og den vises automatisk her.</p></div>`}
   <div class="dash-health"><div class="dash-section-head"><div><span class="dash-section-kicker">SYSTEMOVERBLIK</span><h3>Platformens status</h3></div></div><div class="dash-health-grid">${CK.map(([o,x])=>`<div class="ck dash-health-item"><span class="dash-check ${o?'ok':''}">${o?'✓':'○'}</span><span>${x}</span></div>`).join('')}</div></div>`}
 function vBuilderHub(){const l=Projects.all();return `<h1>Builder</h1><p class="mu">Vælg en hjemmeside, du vil bygge videre på, eller start et nyt projekt.</p><div class="row" style="margin-bottom:1rem"><button class="btn" data-act="go" data-v="new">＋ Create new website</button></div>${l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</p><div class="row"><button class="btn" data-act="build" data-id="${p.id}">Open builder</button><button class="btn ghost" data-act="open" data-id="${p.id}">Chat edit</button></div></div>`).join('')}</div>`:'<div class="card"><strong>Ingen hjemmesider endnu</strong><p class="mu">Start med at oprette din første hjemmeside.</p></div>'}`}
 
-function vBuilder(){const p=getP();if(!p)return vPick('builder');const bl=p.site.blocks;
-  const fl=(bi,k,v,x='')=>`<label>${LBL[k]||k}${(k==='text'||k==='d')?`<textarea data-b="${bi}" data-k="${k}" ${x}>${esc(v)}</textarea>`:`<input data-b="${bi}" data-k="${k}" ${x} value="${esc(v)}">`}</label>`;
-  const card=(b,bi)=>`<div class="card" style="margin-bottom:.8rem"><div class="row"><strong>${BT[b.type]||b.type}</strong><span class="sp"></span><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="-1" ${bi?'':'disabled'}>↑</button><button class="btn ghost" data-act="bmove" data-i="${bi}" data-d="1" ${bi<bl.length-1?'':'disabled'}>↓</button>${b.type==='hero'?'':`<button class="btn ghost" data-act="brem" data-i="${bi}">Fjern</button>`}</div>${Object.keys(b).filter(k=>k!=='id'&&k!=='type'&&k!=='image'&&k!=='images').map(k=>Array.isArray(b[k])?b[k].map((it,ii)=>fl(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)+fl(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)).join(''):fl(bi,k,b[k])).join('')}</div>`;
-  const adds=Object.keys(BT).filter(t=>!bl.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">+ ${BT[t]}</button>`).join('');
-  return `<div class="bar"><strong>AI Website Builder: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="unpick">Vælg anden</button><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto"><p class="mu">Ret felterne direkte. Ændringer gemmes med det samme, og preview opdateres.</p>${bl.map(card).join('')}<div class="row">${adds}</div></section><section class="pv">${frame(p)}</section></div>`}
+function vBuilder(){return vEdit()}
 
 function vTpl(){return `<h1>Skabeloner</h1><p class="mu">Start fra en skabelon, og tilpas den bagefter.</p><div class="grid">${TPL.map((t,i)=>`<div class="card"><h3>${t.n}</h3><p class="mu">${t.d}</p><p class="mu">Stil: ${t.s}</p><button class="btn" data-act="tpl" data-i="${i}">Brug skabelon</button></div>`).join('')}</div>`}
 
@@ -230,7 +226,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
   if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
-  if(a==='build'){S.view='builder';S.id=id;return 1}
+  if(a==='build'){S.view='mini';S.miniTab='edit';S.id=id;return 1}
   if(a==='tpl'){const t=TPL[+d.i];S.form={name:'',desc:t.d,style:t.s};S.view='new';S.err='';return 1}
   if(a==='bmove'||a==='brem'||a==='badd'){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks,i=+d.i;
     if(a==='badd'){const ci=bl.findIndex(x=>x.type==='contact'),nb=mk[d.t](q.site.meta.title,'');(d.t!=='contact'&&ci>-1)?bl.splice(ci,0,nb):bl.push(nb)}
@@ -282,7 +278,7 @@ async function generate(){
   const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
-  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='builder';S.id=p.id;render();
+  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='mini';S.miniTab='edit';S.id=p.id;render();
 }
 async function send(t){
   t=(t||'').trim();if(!t||S.busy)return;const p=getP();
@@ -304,10 +300,9 @@ document.addEventListener('click',e=>{
   if(ext2(a,b)||ext(a,b))return render();
   if(a==='gen')return generate();
   if(a==='send')return send($('#chatin').value);
-  if(a==='chip')return send(b.dataset.t);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){S.view='edit';S.id=id}
+  else if(a==='open'){S.view='mini';S.miniTab='edit';S.id=id}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));S.del=null}else S.del=id}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
@@ -405,12 +400,8 @@ const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
 V.finance=()=>vFin();V.finlist=()=>finMode('l','Finance: Posteringer');V.fincust=()=>finMode('c','Finance: Indtægt pr. kunde');
-function vMini(){
-  const tabs=[['list','Mini hjemmesider'],['templates','Skabeloner'],['edit','AI Chat Editor'],['builder','AI Website Builder'],['customize','Tilpas design'],['media','Billeder'],['preview','Forhåndsvisning'],['history','Versionshistorik'],['domains','Domæner og publicering'],['export','Eksportér']];
-  const tab=tabs.some(([k])=>k===S.miniTab)?S.miniTab:'list';
-  const current=V[tab]||vList;
-  return `<h1>Mini Websites</h1><p class="mu">Alle værktøjer til dine hjemmesider samlet ét sted.</p><div class="row" style="flex-wrap:wrap;gap:.45rem;margin:0 0 1rem">${tabs.map(([k,n])=>`<button class="btn ${tab===k?'':'ghost'}" data-act="miniTab" data-tab="${k}">${n}</button>`).join('')}</div>${PB.includes(tab)?`<div style="max-width:320px;margin-bottom:1rem">${projPick()}</div>`:''}${current()}`;
-}
+function vMini(){return vEdit()}
+
 const _vAdm=vAdmin;
 V.admin=()=>_vAdm().split('<!--BK-->')[0].replace('<h1>Admin Panel</h1>','<h1>Admin Panel: Roller og adgang</h1>');
 V.backup=()=>{const p=_vAdm().split('<!--BK-->');return p.length>1?'<h1>Sikkerhedskopi og gendannelse</h1>'+p[1]:p[0]};
@@ -425,7 +416,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act="sub"]
   else{upd(S.id,q=>{const sn=q.history[+d.i];if(!sn)return;q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=structuredClone(sn)});render()}});
 document.addEventListener('change',e=>{if(e.target.dataset.proj!==undefined){S.id=e.target.value||null;render()}});
 /* ===== Prompt-først oprettelse, gemte hjemmesider i menuen og priser ===== */
-const PB=['edit','builder','customize','media','preview','history'];
+const PB=['edit'];
 const EXAMPLES=['Frisørsalon i Aarhus med grønne farver','Tømrerfirma i Odense, der laver tilbygninger','Café i København med frokost og kage','Konsulent, der hjælper små virksomheder med regnskab'];
 function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang:'Dansk',phone:'',email:'',...S.form};
   const inp=(k,t,x='')=>`<label>${t}<input data-f="${k}" value="${esc(f[k])}" ${x}></label>`;
@@ -495,7 +486,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   if(x==='closeerr'){const r=document.getElementById('errbar');if(r)r.remove()}
   else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chatin')send(e.target.value)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
   try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
   render()}
