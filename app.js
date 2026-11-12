@@ -99,13 +99,13 @@ const AI={mode:'api',
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
-  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><a class="btn" href="#kontakt" target="_self">${esc(b.cta)}</a></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
+  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><a class="btn" href="#kontakt" data-preview-scroll="kontakt">${esc(b.cta)}</a></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   services:b=>B.features(b),
   steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
-  cta:b=>`<section style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><a class="btn" href="#kontakt" target="_self">${esc(b.cta)}</a></section>`,
+  cta:b=>`<section style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><a class="btn" href="#kontakt" data-preview-scroll="kontakt">${esc(b.cta)}</a></section>`,
   gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
   contact:b=>`<section id="kontakt"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><p><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></p></section>`};
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
@@ -126,7 +126,7 @@ const Renderer={html(p){
   } catch(err) {
     console.error('Website preview render failed:',err);
     const title=esc(p&&p.name||'Hjemmeside');
-    return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px system-ui;padding:2rem;line-height:1.6;color:#182230}main{max-width:680px;margin:8vh auto}a{color:#2540D9}</style></head><body><main><h1>${title}</h1><p>Forhåndsvisningen kunne ikke indlæse alle elementer. Dine ændringer er stadig gemt. Gå tilbage til dashboardet, og prøv igen.</p><p><a href="#kontakt" target="_self">Gå til kontakt</a></p><section id="kontakt"><h2>Kontakt</h2></section></main></body></html>`;
+    return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px system-ui;padding:2rem;line-height:1.6;color:#182230}main{max-width:680px;margin:8vh auto}a{color:#2540D9}</style></head><body><main><h1>${title}</h1><p>Forhåndsvisningen kunne ikke indlæse alle elementer. Dine ændringer er stadig gemt. Gå tilbage til dashboardet, og prøv igen.</p><p><a href="#kontakt" data-preview-scroll="kontakt">Gå til kontakt</a></p><section id="kontakt"><h2>Kontakt</h2></section></main></body></html>`;
   }
 }};
 
@@ -293,6 +293,26 @@ function render0(){
     if(!project)return;
     try {
       const html=Renderer.html(project);
+      // Handle internal preview links inside the same-origin iframe without triggering
+      // WebKit's sandboxed srcdoc fragment navigation, which can blank the preview.
+      frame.addEventListener('load',()=>{
+        try {
+          const doc=frame.contentDocument;
+          if(!doc||doc.documentElement.dataset.previewNavigationReady==='1')return;
+          doc.documentElement.dataset.previewNavigationReady='1';
+          doc.addEventListener('click',event=>{
+            const link=event.target&&event.target.closest?event.target.closest('[data-preview-scroll]'):null;
+            if(!link)return;
+            const targetId=link.getAttribute('data-preview-scroll');
+            const target=doc.getElementById(targetId);
+            if(!target)return;
+            event.preventDefault();
+            target.scrollIntoView({behavior:'smooth',block:'start'});
+          },true);
+        } catch(error) {
+          console.error('Preview internal navigation setup failed:',error);
+        }
+      },{once:true});
       frame.srcdoc=html;
       frame.addEventListener('error',()=>{frame.srcdoc='<!doctype html><html lang="da"><meta charset="utf-8"><body style="font:16px system-ui;padding:24px;color:#182230"><h2>Preview kunne ikke indlæses</h2><p>Dine ændringer er gemt. Prøv at åbne previewet igen.</p></body></html>'},{once:true});
     } catch(error) {
