@@ -95,3 +95,13 @@ tr:hover td{background:var(--bg)}
 .chat,.pv iframe{border-radius:14px}
 input[type=file]{padding:.5rem;font-size:.88rem}
 @media(max-width:820px){.main{padding:1.25rem}}
+
+
+/* Sidebar navigation icons */
+.nv-label,.gh-label{display:inline-flex;align-items:center;gap:.72rem;min-width:0}
+.nav-icon{width:19px;height:19px;flex:0 0 19px;opacity:.86}
+.nv.on .nav-icon{color:var(--ac);opacity:1}
+.nv.kid .nv-label{padding-left:.3rem}
+.gh-label{gap:.55rem}
+.gh .nav-icon{width:17px;height:17px;flex-basis:17px;color:var(--gc)}
+@media(max-width:820px){.nv-label,.gh-label{gap:.5rem}.nav-icon{width:18px;height:18px;flex-basis:18px}}
