@@ -132,12 +132,23 @@ function vEdit(){const p=getP();if(!p)return vPick('edit')
 
 /* ===== Nye sider ===== */
 const NAV=[
- ['Overblik',[['dash','Dashboard']]],
- ['Mini Websites',[
-  ['new','Opret ny hjemmeside'],['mini','Mini hjemmesider']
+ ['Workspace',[
+  ['dash','▦　Dashboard'],
+  ['builder','🛠　Builder'],
+  ['domains','🌐　Domains'],
+  ['finance','💶　Finance']
  ]],
- ['Kunder og vækst',[['customers','Kunder og projekter'],['credits','Credits og abonnementer'],['stats','Statistik og analyser']]],
- ['Finance',[['finance','Finance']]],
+ ['Websites',[
+  ['new','Opret ny hjemmeside'],
+  ['mini','Mini hjemmesider'],
+  ['list','Mine hjemmesider'],
+  ['templates','Skabeloner']
+ ]],
+ ['Kunder og vækst',[
+  ['customers','Kunder og projekter'],
+  ['credits','Credits og abonnementer'],
+  ['stats','Statistik og analyser']
+ ]],
  ['System',[
   ['settings','Indstillinger'],
   ['colors','Udseende og farver'],
