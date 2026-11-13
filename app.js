@@ -194,7 +194,7 @@ const inPer=(e,p)=>{const d=e.date||'',n=new Date(),months=p==='m6'?6:p==='m3'?3
 const finSum=(t,pre)=>Fin.all().filter(e=>e.type===t&&(e.date||'').startsWith(pre)).reduce((n,e)=>n+e.amount,0);
 S.ff={type:'income',amount:'',date:today(),cat:'Hjemmeside',cust:'',note:''};S.fp='m6';S.fdel=null;
 
-function vFin(){const p=S.fp||'m',f=S.ff,cs=Customers.all();
+function vFin(){const p=S.fp||'m6',f=S.ff,cs=Customers.all();
   const L=Fin.all().filter(e=>inPer(e,p)).sort((a,b)=>b.date.localeCompare(a.date));
   const sm=t=>L.filter(e=>e.type===t).reduce((n,e)=>n+e.amount,0),inc=sm('income'),exp=sm('expense'),res=inc-exp;
   const payers=new Set(L.filter(e=>e.type==='income'&&e.cust).map(e=>e.cust)).size;
@@ -205,7 +205,7 @@ function vFin(){const p=S.fp||'m',f=S.ff,cs=Customers.all();
   const byC={};L.filter(e=>e.type==='income').forEach(e=>{byC[e.cust||'']=(byC[e.cust||'']||0)+e.amount});
   const opt=(arr,v)=>arr.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
   return `<section class="finance-hero"><span class="finance-eyebrow">PRIME WEBS AI · ØKONOMI</span><h1>Finance & overblik</h1><p>Følg virksomhedens registrerede indtægter, udgifter og resultat fra ét samlet overblik.</p><div class="finance-tags"><span>↗ Indtægter</span><span>↘ Udgifter</span><span>◎ Resultat</span></div></section><div class="finance-toolbar"><h2>Økonomisk overblik</h2><p class="mu">Tallene er baseret på dine egne registreringer.</p></div>
-<div class="row" style="margin-bottom:1rem">${FPER.map(([k,t])=>`<button class="btn ${p===k?'':'ghost'}" data-act="fp" data-p="${k}">${t}</button>`).join('')}</div>
+<div class="finance-period" role="group" aria-label="Vælg periode">${FPER.map(([k,t])=>`<button class="btn ${p===k?'':'ghost'}" data-act="fp" data-p="${k}">${t}</button>`).join('')}</div>
 <!--KPI--><div class="finance-kpi-grid">${tile(fmt(inc),'Indtægter')}${tile(fmt(exp),'Udgifter')}${tile(fmt(res),'Resultat',res<0?'color:#C0263A':'')}${tile(payers,'Betalende kunder')}${tile(payers?fmt(inc/payers):'–','Gns. indtægt pr. kunde')}</div>
 <!--CH--><div class="finance-panel"><h2>Indtægter og udgifter · Seneste 6 måneder</h2><p class="mu">Øverste bjælke: indtægter. Nederste bjælke (rød): udgifter.</p>${md.map(([k,i,e])=>`<div style="display:grid;grid-template-columns:70px 1fr;gap:.6rem;margin:.5rem 0"><div>${new Date(k+'-01T12:00:00').toLocaleDateString('da-DK',{month:'short',year:'2-digit'})}</div><div><div class="bar2" style="width:${i/mx*100}%"></div><div class="bar2" style="width:${e/mx*100}%;background:#C0263A"></div><small class="mu">${fmt(i)} ind / ${fmt(e)} ud</small></div></div>`).join('')}</div>
 <!--FORM--><div class="finance-panel finance-form-panel"><h2>Ny postering</h2><p class="mu">Registrér indtægter og udgifter manuelt.</p>
