@@ -478,3 +478,49 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .backup-warning{border-color:rgba(222,157,50,.25);background:rgba(222,157,50,.07)}
 .backup-warning>span{color:#d28a20}
 @media(max-width:650px){.domains-hero,.admin-hero,.backup-hero{align-items:flex-start}.domains-hero-art,.admin-hero-art,.backup-hero-art{flex-basis:72px;width:72px;height:72px;border-radius:19px;font-size:1.8rem}.modern-section-head{align-items:flex-start;flex-direction:column}.backup-grid{grid-template-columns:1fr}.modern-tags span{font-size:.66rem}}
+
+
+/* ===== PRIME WEBS AI: cohesive dashboard refinement ===== */
+.main:has(.dash-hero){max-width:1320px;padding:clamp(1.1rem,2.6vw,2.4rem)}
+.dash-hero{min-height:190px;padding:clamp(1.45rem,3vw,2.35rem);border-radius:22px;background:radial-gradient(ellipse at 88% 12%,rgba(160,174,255,.25),transparent 36%),linear-gradient(118deg,#111d3d 0%,#1b3269 56%,#303b83 100%);box-shadow:0 18px 42px rgba(19,35,78,.16)}
+.dash-hero h1{font-size:clamp(1.8rem,3.2vw,2.35rem);letter-spacing:-.045em}
+.dash-hero p{font-size:.94rem;line-height:1.65}
+.dash-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin:0 0 1.55rem}
+.dash-kpi{min-width:0;min-height:128px;padding:1.2rem 1.25rem 1.35rem;border:1px solid var(--ln);border-radius:17px;background:var(--sf);box-shadow:0 5px 18px rgba(16,24,40,.045);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.dash-kpi:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ac) 30%,var(--ln));box-shadow:0 10px 25px rgba(16,24,40,.075)}
+.dash-kpi-label{font-size:.78rem;letter-spacing:.015em;font-weight:700;margin-bottom:.8rem}
+.dash-kpi-value{font-size:clamp(1.65rem,2.5vw,2.15rem);line-height:1.08;letter-spacing:-.055em;font-variant-numeric:tabular-nums;font-weight:850;color:var(--ink)}
+.dash-kpi-accent{left:1.25rem;right:1.25rem;height:3px;opacity:.82}
+.dash-actions{align-items:center;gap:.7rem;margin:0 0 2rem}
+.dash-actions .btn,.dash-project-card .btn{min-height:44px;border-radius:11px;padding:.72rem 1.15rem;font-weight:700;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+.dash-actions .btn:hover,.dash-project-card .btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(37,64,217,.16)}
+.dash-section-head{align-items:center;margin:0 0 .9rem}
+.dash-section-head h3{font-size:1.12rem;letter-spacing:-.03em}
+.dash-section-kicker{font-size:.64rem;letter-spacing:.14em}
+.dash-projects{gap:1rem;margin-bottom:1.6rem}
+.dash-project-card{min-height:100px;padding:1.2rem 1.25rem;border-radius:16px;box-shadow:0 4px 16px rgba(16,24,40,.04);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.dash-project-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ac) 28%,var(--ln));box-shadow:0 10px 24px rgba(16,24,40,.07)}
+.dash-project-symbol,.dash-empty-symbol{width:42px;height:42px;flex-basis:42px;border-radius:13px}
+.dash-project-name{font-size:.96rem;letter-spacing:-.015em}
+.dash-project-meta{font-size:.74rem;gap:.6rem}
+.dash-project-status{padding:.24rem .62rem;font-size:.68rem}
+.dash-empty{padding:1.5rem;border-radius:16px}
+.dash-health{padding-top:.25rem}
+.dash-health-grid{gap:.65rem}
+.dash-health-item{padding:.85rem 1rem;border-radius:12px;background:var(--sf);line-height:1.5}
+@media(max-width:950px){.dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ .main:has(.dash-hero){padding:1rem}
+ .dash-hero{min-height:165px;padding:1.25rem;border-radius:17px}
+ .dash-hero h1{font-size:1.55rem}
+ .dash-hero p{font-size:.82rem}
+ .dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+ .dash-kpi{min-height:105px;padding:.9rem;border-radius:13px}
+ .dash-kpi-label{font-size:.7rem;margin-bottom:.65rem}
+ .dash-kpi-value{font-size:clamp(1.3rem,6vw,1.65rem)}
+ .dash-kpi-accent{left:.9rem;right:.9rem}
+ .dash-actions{display:grid;grid-template-columns:1fr;width:100%;gap:.55rem;margin-bottom:1.5rem}
+ .dash-actions .btn{width:100%;justify-content:center}
+ .dash-project-card{padding:1rem;border-radius:14px}
+}
+@media(prefers-reduced-motion:reduce){.dash-kpi,.dash-project-card,.dash-actions .btn,.dash-project-card .btn{transition:none}.dash-kpi:hover,.dash-project-card:hover,.dash-actions .btn:hover,.dash-project-card .btn:hover{transform:none}}
