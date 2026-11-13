@@ -169,3 +169,27 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .dash-open-project{flex:0 0 auto;white-space:nowrap;min-height:40px}
 @media(max-width:900px){.dash-projects{grid-template-columns:1fr}}
 @media(max-width:600px){.dash-project-card{align-items:flex-start;flex-wrap:wrap}.dash-project-info{flex:1 1 calc(100% - 55px)}.dash-open-project{margin-left:3.2rem;width:calc(100% - 3.2rem)}.dash-project-meta{align-items:flex-start}}
+
+
+/* Subscription pricing cards */
+.pricing-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;align-items:stretch;margin:1.2rem 0}
+.pricing-card{position:relative;display:flex;flex-direction:column;min-width:0;padding:1.25rem;overflow:hidden}
+.pricing-card h2{font-size:1.25rem;margin:0 0 1rem}
+.pricing-featured{border:2px solid var(--ac);box-shadow:0 10px 28px rgba(37,64,217,.12)}
+.pricing-popular{display:block;width:max-content;max-width:100%;margin:-.2rem 0 .85rem;padding:.3rem .55rem;border-radius:6px;background:var(--so);color:var(--ac);font-size:.65rem;font-weight:800;letter-spacing:.06em}
+.pricing-price{display:flex;align-items:baseline;gap:.4rem;min-height:2.8rem}
+.pricing-price strong{font-size:2rem;letter-spacing:-.05em;line-height:1.1}
+.pricing-price span{font-size:.78rem;color:var(--mu)}
+.pricing-annual{display:flex;flex-direction:column;gap:.15rem;padding:.7rem 0;border-bottom:1px solid var(--ln);font-size:.76rem;color:var(--mu)}
+.pricing-annual strong{font-size:.9rem;color:var(--ink)}
+.pricing-credit{display:flex;flex-direction:column;gap:0;margin:1rem 0 .65rem}
+.pricing-credit strong{font-size:1.65rem;letter-spacing:-.04em}
+.pricing-credit span{font-size:.78rem;color:var(--mu)}
+.pricing-features{list-style:none;padding:0;margin:.4rem 0 1.2rem;display:grid;gap:.65rem;font-size:.82rem}
+.pricing-cta{display:block;text-align:center;text-decoration:none;margin-top:auto;padding:.7rem .8rem}
+.pricing-note{font-size:.78rem;line-height:1.5;margin:1rem 0 1.5rem}
+.pricing-owner{max-width:720px;margin-top:1.5rem}
+.pricing-usage{max-width:720px;padding:.4rem 1rem}
+.pricing-usage p{display:flex;justify-content:space-between;gap:1rem}
+@media(max-width:1100px){.pricing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.pricing-grid{grid-template-columns:1fr}.pricing-card{padding:1.1rem}.pricing-price strong{font-size:2.2rem}}
