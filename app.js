@@ -166,11 +166,35 @@ function vBuilder(){return vEdit()}
 
 function vTpl(){return `<h1>Skabeloner</h1><p class="mu">Start fra en skabelon, og tilpas den bagefter.</p><div class="grid">${TPL.map((t,i)=>`<div class="card"><h3>${t.n}</h3><p class="mu">${t.d}</p><p class="mu">Stil: ${t.s}</p><button class="btn" data-act="tpl" data-i="${i}">Brug skabelon</button></div>`).join('')}</div>`}
 
-function vDom(){const l=Projects.all();
-  return `<section class="domains-hero"><div><span class="modern-eyebrow">PRIME WEBS AI · WEBSITES & DOMÆNER</span><h1>Domæner og publicering</h1><p>Administrér domæner og klargør dine kunders hjemmesider til publicering fra ét samlet overblik.</p><div class="modern-tags"><span>◎ Domæneopsætning</span><span>↗ Publicering</span><span>⌁ DNS-status</span></div></div><div class="domains-hero-art">⌘<small>GO LIVE</small></div></section>
-  <div class="modern-section-head"><div><span class="modern-kicker">DINE PROJEKTER</span><h2>Domæner og websites</h2><p>Gem domænet på det rigtige projekt. Tilslutning og DNS-verifikation er endnu ikke aktiveret.</p></div><span class="modern-count">${l.length} ${l.length===1?'website':'websites'}</span></div>
-  ${l.length?'<div class="domains-grid">'+l.map(p=>`<article class="domain-card"><div class="domain-card-top"><span class="domain-icon">◎</span><span class="domain-status ${p.status==='ready'?'ready':''}">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</span></div><h3>${esc(p.name)}</h3><p class="domain-project-note">Kundehjemmeside · projekt</p><label class="domain-field">Domænenavn<input data-dom="${p.id}" placeholder="fx minvirksomhed.dk" value="${esc(p.domain||'')}"></label><div class="domain-connection"><span class="domain-connection-dot"></span><span>${p.domain?'Domænenavn gemt · ikke tilsluttet':'Afventer domænenavn'}</span></div><div class="domain-card-actions"><button class="btn ghost" data-act="rdy" data-id="${p.id}">${p.status==='ready'?'Sæt tilbage til kladde':'Markér klar til udgivelse'}</button></div>${S.out&&S.outId===p.id?`<label class="domain-code-label">HTML-kode (markér og kopiér)<textarea class="code" readonly>${esc(S.out)}</textarea></label>`:''}</article>`).join('')+'</div>':'<div class="domain-empty"><span>◎</span><h3>Ingen websites endnu</h3><p>Opret først en hjemmeside. Derefter kan du tilføje dens domænenavn her.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button></div>'}
-  <div class="domain-info"><span>ⓘ</span><div><strong>Domænetilslutning kommer senere</strong><p>Her kan du allerede gemme domænenavne og markere projekter som klar. Automatisk DNS-kontrol, SSL-certifikat og direkte publicering kræver stadig hostingintegration.</p></div></div>`;
+function vDom(){
+  const l=Projects.all(),q=String(S.domainQuery||'');
+  const ext=['.com','.es','.dk','.net','.org','.io','.ai','.shop'];
+  return `<section class="domain-store-hero">
+    <div class="domain-store-copy"><span class="domain-store-eyebrow"><i></i> PRIME WEBS AI · DOMÆNECENTER</span>
+      <h1>Find dit næste <em>domæne.</em></h1>
+      <p>Find den perfekte adresse til din hjemmeside. Søg, sammenlign og administrér dine domæner – samlet ét sted.</p>
+      <div class="domain-store-trust"><span>✓ Enkel administration</span><span>✓ Klar til DNS & SSL</span><span>✓ Samlet overblik</span></div>
+    </div><div class="domain-store-orbit" aria-hidden="true"><div class="domain-orbit-ring ring-one"></div><div class="domain-orbit-ring ring-two"></div><div class="domain-orbit-core">.com</div><span class="domain-orbit-tag tag-one">.es</span><span class="domain-orbit-tag tag-two">.ai</span></div>
+  </section>
+  <section class="domain-search-panel">
+    <div class="domain-search-heading"><div><span class="domain-store-kicker">DOMÆNESØGNING</span><h2>Hvilket navn har du i tankerne?</h2><p>Indtast et navn for at klargøre søgningen.</p></div><span class="domain-search-status"><i></i> Søgetjeneste klargøres</span></div>
+    <form class="domain-search-form" onsubmit="return false">
+      <span class="domain-search-glass">⌕</span><input data-dom-query type="search" value="${esc(q)}" placeholder="Skriv dit ønskede domæne, fx minvirksomhed" aria-label="Søg efter et domæne">
+      <button class="btn domain-search-button" type="button" data-act="domSearch">Søg domæne <span>→</span></button>
+    </form>
+    <div class="domain-tld-row"><span>POPULÆRE ENDELSER</span>${ext.map(x=>`<span class="domain-tld">${x}</span>`).join('')}</div>
+    ${S.domSearched?`<div class="domain-no-results"><span class="domain-no-results-icon">⌕</span><div><strong>Søgning er snart klar</strong><p>Domænesøgning er endnu ikke aktiveret. Der vises derfor ingen ledighed eller priser endnu. Din søgning “${esc(q)}” er ikke sendt til en udbyder.</p><span class="domain-coming-label"><i></i> Kommer snart</span></div></div>`:''}
+  </section>
+  <div class="domain-store-section-head"><div><span class="domain-store-kicker">KOMMER TIL DOMÆNECENTERET</span><h2>Alt til dine domæner</h2><p>De vigtigste værktøjer er gjort klar til aktivering.</p></div></div>
+  <div class="domain-feature-grid">
+    <article class="domain-feature-card"><span class="domain-feature-icon purple">⌕</span><span class="domain-feature-label">SØG & FIND</span><h3>Find dit domæne</h3><p>Søg efter navne og sammenlign forskellige domæneendelser, når søgetjenesten aktiveres.</p><span class="domain-feature-state">Klargjort til senere</span></article>
+    <article class="domain-feature-card"><span class="domain-feature-icon blue">＋</span><span class="domain-feature-label">REGISTRERING</span><h3>Køb et domæne</h3><p>Et samlet købsflow med pris, registreringsperiode og fornyelse bliver tilsluttet senere.</p><button class="btn domain-buy-button" type="button" disabled title="Domænekøb aktiveres senere">Køb domæne <span>↗</span></button></article>
+    <article class="domain-feature-card"><span class="domain-feature-icon teal">◎</span><span class="domain-feature-label">ADMINISTRATION</span><h3>Administrér domæner</h3><p>Hold styr på ejerskab, fornyelsesdatoer, DNS-indstillinger og SSL-status.</p><span class="domain-feature-state">Klargjort til senere</span></article>
+  </div>
+  <section class="domain-managed-section"><div class="domain-store-section-head"><div><span class="domain-store-kicker">DIT WORKSPACE</span><h2>Dine hjemmesider</h2><p>Domæner og projekter samlet i dit workspace.</p></div><span class="domain-managed-count">${l.length} ${l.length===1?'projekt':'projekter'}</span></div>
+    ${l.length?`<div class="domains-grid">${l.map(p=>`<article class="domain-card domain-managed-card"><div class="domain-card-top"><span class="domain-icon">◎</span><span class="domain-status ${p.status==='ready'?'ready':''}">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</span></div><h3>${esc(p.name)}</h3><p class="domain-project-note">Hjemmeside · projekt</p><label class="domain-field">Dit domæne<input data-dom="${p.id}" placeholder="fx minvirksomhed.dk" value="${esc(p.domain||'')}"></label><div class="domain-connection"><span class="domain-connection-dot"></span><span>${p.domain?'Domænenavn gemt · ikke tilsluttet':'Intet domæne tilføjet endnu'}</span></div><div class="domain-card-actions"><button class="btn ghost" data-act="rdy" data-id="${p.id}">${p.status==='ready'?'Sæt tilbage til kladde':'Markér klar til udgivelse'}</button></div></article>`).join('')}</div>`:`<div class="domain-empty"><span>◎</span><h3>Dine projekter vises her</h3><p>Opret en hjemmeside, og administrér dens domæne fra dette område.</p><button class="btn" data-act="go" data-v="new">Opret hjemmeside</button></div>`}
+  </section>
+  <div class="domain-store-note"><span>ⓘ</span><div><strong>Designet er klar – forbindelserne aktiveres senere</strong><p>Domænesøgning, aktuelle priser, betaling, registrering, DNS-verifikation og SSL er endnu ikke tilsluttet. Der foretages ingen søgninger eller køb i denne version.</p></div></div>`;
 }
 function vCred(){return `<h1>Credits og abonnementer</h1><div class="card" style="margin-bottom:1rem"><span class="badge">OWNER / ADMIN</span><h3 style="margin-top:.6rem">Din konto: ubegrænsede credits</h3><p class="mu">Intet trækkes, når du selv genererer, tester eller redigerer.</p></div><h3>Credit-forbrug for kunder</h3><table><tr><th>Handling</th><th>Credits</th></tr><tr><td>Generér hjemmeside</td><td>${Credits.cost.generate}</td></tr><tr><td>Chat-ændring</td><td>${Credits.cost.edit}</td></tr></table><h3 style="margin-top:1.5rem">Abonnementer (udkast)</h3><table><tr><th>Plan</th><th>Credits pr. måned</th></tr>${PLANS.map(([n,c])=>`<tr><td>${n}</td><td>${c}</td></tr>`).join('')}</table><p class="mu">Der er ikke tilsluttet nogen betaling. Priser og betalingssystem tilføjes først, når du har godkendt det.</p>`}
 
@@ -267,6 +291,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 }
 
 function ext2(a,b){const d=b.dataset;
+  if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
   if(a==='billing'){S.pricingPeriod=d.p==='annual'?'annual':'monthly';return 1}
