@@ -273,7 +273,7 @@ document.addEventListener('change',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.
 const V={dash:vDash,list:vList,new:vNew,builderHub:vBuilderHub,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','domains','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
   if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='build'){S.view='mini';S.miniTab='edit';S.id=id;return 1}
