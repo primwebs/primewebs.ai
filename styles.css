@@ -581,3 +581,10 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .domain-price-disclaimer{max-width:950px;margin:.8rem 0 0;color:var(--mu);font-size:.68rem;line-height:1.6}
 @media(max-width:760px){.domain-price-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.domain-price-card{padding:.9rem}.domain-price-card-top>strong{font-size:1.2rem}}
 @media(max-width:420px){.domain-price-grid{grid-template-columns:1fr}}
+
+
+/* Dashboard result trend */
+.dash-kpi-trend{display:inline-flex;align-items:center;gap:.25rem;margin-top:.62rem;font-size:.72rem;line-height:1.25;font-weight:750;letter-spacing:.005em}
+.dash-kpi-trend.up{color:#159653}
+.dash-kpi-trend.down{color:#dc5252}
+.dash-kpi-trend.flat{color:var(--mu)}
