@@ -566,3 +566,18 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .domain-store-note{display:flex;gap:.8rem;align-items:flex-start;margin-top:1.2rem;padding:1rem 1.1rem;border:1px solid rgba(65,119,225,.2);border-radius:14px;background:rgba(65,119,225,.055)}
 .domain-store-note>span{color:#4c7ce8;font-size:1.1rem;font-weight:850}.domain-store-note strong{font-size:.8rem}.domain-store-note p{margin:.2rem 0 0;color:var(--mu);font-size:.75rem;line-height:1.6}
 @media(max-width:760px){.domain-store-hero{min-height:0;padding:1.35rem;border-radius:19px}.domain-store-orbit{flex-basis:100px;width:100px;height:100px;margin:0 -1rem 0 0;transform:scale(.72)}.domain-store-hero h1{font-size:1.9rem}.domain-store-hero p{font-size:.82rem}.domain-store-trust{gap:.45rem .75rem;font-size:.65rem}.domain-search-heading{flex-direction:column}.domain-search-status{white-space:normal}.domain-search-form{gap:.45rem;padding:.45rem}.domain-search-form input{font-size:.82rem}.domain-search-button{padding:.65rem .7rem;font-size:.72rem}.domain-feature-grid{grid-template-columns:1fr}.domain-store-section-head{align-items:flex-start;flex-direction:column}}
+
+/* Namecheap public-price reference cards; no live availability or checkout */
+.domain-price-section{margin:1.8rem 0 2rem}.domain-price-currency{padding:.42rem .7rem;border:1px solid var(--ln);border-radius:999px;color:var(--mu);font-size:.66rem;font-weight:850;letter-spacing:.08em;white-space:nowrap}
+.domain-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.85rem}
+.domain-price-card{min-width:0;padding:1.1rem;border:1px solid var(--ln);border-radius:17px;background:var(--card);box-shadow:0 6px 20px rgba(18,32,66,.04);transition:transform .18s ease,border-color .18s ease}
+.domain-price-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--ac) 35%,var(--ln))}
+.domain-price-card-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.9rem}
+.domain-price-card-top>strong{font-size:1.35rem;letter-spacing:-.04em}.domain-price-ref{padding:.28rem .48rem;border-radius:7px;background:var(--sf);color:var(--mu);font-size:.58rem;font-weight:800}
+.domain-price-reg,.domain-price-renew{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.48rem 0;border-bottom:1px solid var(--ln)}
+.domain-price-reg span,.domain-price-renew span{color:var(--mu);font-size:.7rem}.domain-price-reg strong{font-size:1.1rem;letter-spacing:-.03em}.domain-price-renew strong{font-size:.83rem}
+.domain-price-card>p{min-height:2.2em;margin:.65rem 0;color:var(--mu);font-size:.66rem;line-height:1.5}
+.domain-price-card .domain-buy-button{margin-top:.3rem}
+.domain-price-disclaimer{max-width:950px;margin:.8rem 0 0;color:var(--mu);font-size:.68rem;line-height:1.6}
+@media(max-width:760px){.domain-price-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.domain-price-card{padding:.9rem}.domain-price-card-top>strong{font-size:1.2rem}}
+@media(max-width:420px){.domain-price-grid{grid-template-columns:1fr}}
