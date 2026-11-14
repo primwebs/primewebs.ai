@@ -373,7 +373,36 @@ function vFin(){const p=S.fp||'m6',f=S.ff,cs=Customers.all(),months=p==='m1'?1:p
 document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 
-const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
+
+/* ===== Lead Finder og Lead History ===== */
+const LeadStore={
+  all:()=>Storage.get('pw.leads',[]).filter(x=>x&&typeof x==='object'),
+  save:list=>Storage.set('pw.leads',list),
+  add(item){const list=this.all();this.save([{...item,id:uid(),createdAt:Date.now()},...list]);},
+  remove(id){this.save(this.all().filter(x=>x.id!==id))}
+};
+S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};
+function vLeadFinder(){
+ const f=S.leadForm||{},leads=LeadStore.all();
+ const field=(k,label,placeholder='',type='text')=>'<label style="display:grid;gap:6px;font-weight:650">'+label+'<input data-lf="'+k+'" type="'+type+'" value="'+esc(f[k]||'')+'" placeholder="'+placeholder+'" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit"></label>';
+ return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Lead Finder</h1><p>Find, registrér og organisér virksomheder, du gerne vil kontakte.</p></div><div class="settings-hero-icon" aria-hidden="true">⌕</div></section>'+
+ '<div class="settings-card" style="margin-bottom:18px"><div class="settings-card-head"><span class="settings-card-icon blue">⌕</span><div><h2>Tilføj en virksomhed</h2><p>Indtast virksomhedsoplysninger og gem virksomheden i din lead-historik.</p></div></div>'+
+ '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">'+field('name','Virksomhedsnavn','Fx Málaga Auto Service')+field('industry','Branche','Fx autoværksted')+field('city','By / område','Fx Málaga')+field('website','Hjemmeside','https://…','url')+field('phone','Telefon','Telefonnummer','tel')+field('email','E-mail','kontakt@virksomhed.dk','email')+'</div>'+
+ '<label style="display:grid;gap:6px;margin-top:14px;font-weight:650">Noter<textarea data-lf="notes" rows="3" placeholder="Skriv noter om virksomheden…" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit">'+esc(f.notes||'')+'</textarea></label>'+
+ (S.leadErr?'<p class="err">'+esc(S.leadErr)+'</p>':'')+
+ '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px"><button class="btn" data-act="leadSave">＋ Gem lead</button><span class="mu">Gemte leads lagres i denne browser og kan ses under Lead History.</span></div></div>'+
+ '<div class="settings-card"><div class="settings-card-head"><span class="settings-card-icon teal">◎</span><div><h2>Dine seneste leads</h2><p>'+leads.length+' gemte virksomheder</p></div><span style="margin-left:auto"><button class="btn ghost" data-act="go" data-v="leadhistory">Se Lead History →</button></span></div>'+
+ (leads.length?'<div style="display:grid;gap:10px">'+leads.slice(0,5).map(x=>'<article style="padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · '))+'</div></article>').join('')+'</div>':'<p class="mu">Du har endnu ikke gemt nogen leads. Tilføj din første virksomhed ovenfor.</p>')+'</div></section>';
+}
+function vLeadHistory(){
+ const leads=LeadStore.all(),q=String(S.leadQuery||'').toLowerCase().trim(),list=leads.filter(x=>[x.name,x.industry,x.city,x.website,x.email,x.phone].join(' ').toLowerCase().includes(q));
+ return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Lead History</h1><p>Alle dine gemte virksomheder samlet ét sted.</p></div><div class="settings-hero-icon" aria-hidden="true">◷</div></section>'+
+ '<div class="settings-card"><div class="settings-card-head"><div><h2>Gemte leads</h2><p>'+leads.length+' i alt · '+list.length+' vist</p></div><button class="btn" style="margin-left:auto" data-act="go" data-v="leadfinder">＋ Nyt lead</button></div>'+
+ '<input data-lead-query type="search" value="'+esc(S.leadQuery||'')+'" placeholder="Søg efter navn, branche eller by…" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;margin:8px 0 16px;background:var(--card,#fff);color:inherit">'+
+ (list.length?'<div style="overflow-x:auto"><table><thead><tr><th>Virksomhed</th><th>Branche / by</th><th>Kontakt</th><th>Tilføjet</th><th></th></tr></thead><tbody>'+list.map(x=>'<tr><td><strong>'+esc(x.name)+'</strong>'+(x.website?'<div><a href="'+esc(x.website)+'" target="_blank" rel="noopener">'+esc(x.website)+'</a></div>':'')+'</td><td>'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'—')+'</td><td>'+(x.phone?'<div>'+esc(x.phone)+'</div>':'')+(x.email?'<div>'+esc(x.email)+'</div>':'')+'</td><td>'+new Date(x.createdAt).toLocaleDateString('da-DK')+'</td><td><button class="btn ghost" data-act="leadDelete" data-id="'+esc(x.id)+'">'+(S.leadDelete===x.id?'Bekræft sletning':'Slet')+'</button></td></tr>').join('')+'</tbody></table></div>':'<p class="mu">'+(leads.length?'Ingen leads matcher søgningen.':'Ingen leads gemt endnu. Tilføj virksomheder i Lead Finder.')+'</p>')+'</div></section>';
+}
+
+const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadhistory:vLeadHistory};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
@@ -396,7 +425,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 }
 
 function ext2(a,b){const d=b.dataset;
-  if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
+  if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}\n  if(a==='leadSave'){const f=S.leadForm||{};if(!String(f.name||'').trim()){S.leadErr='Skriv virksomhedens navn først.';return 1}if(f.website&&!/^https?:\\/\\//i.test(f.website)){S.leadErr='Hjemmesiden skal begynde med https:// eller http://.';return 1}LeadStore.add({...f,name:f.name.trim()});S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.leadQuery='';S.view='leadhistory';return 1}\n  if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
   if(a==='billing'){S.pricingPeriod=d.p==='annual'?'annual':'monthly';return 1}
@@ -463,7 +492,7 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]')){S.leadQuery=e.target.value;render()}if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
@@ -537,9 +566,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);if(d.th==='background'){const n=parseInt(e.target.value.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;setTheme('surface',bright>155?'#FFFFFF':'#252A35');setTheme('text',bright>155?'#111111':'#FFFFFF');}render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
-const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280'};
-const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B'};
-const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
+const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280','Lead værktøjer':'#7B3FD1'};
+const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B',leadfinder:'#7B3FD1',leadhistory:'#0E9AA7'};
+const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length,leadfinder:()=>LeadStore.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
@@ -560,7 +589,7 @@ const NAV_ICONS={
   contact:'<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="7" rx="2"/><rect x="17" y="12" width="4" height="7" rx="2"/><path d="M17 19a5 5 0 0 1-5 3h-1"/>',
   adminp:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
   admin:'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z"/>',
-  group:'<path d="M4 5h16M4 12h16M4 19h16"/>'
+  leadfinder:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/>',\n  leadhistory:'<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',\n  group:'<path d="M4 5h16M4 12h16M4 19h16"/>'
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
