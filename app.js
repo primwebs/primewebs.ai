@@ -235,6 +235,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit');
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
+ ['Lead værktøjer',[['leadfinder','Lead Finder'],['leadhistory','Lead History']]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
  ['Finance',[['finance','Finance'],['stats','Statistik og analyser']]],
