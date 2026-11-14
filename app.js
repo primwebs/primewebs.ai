@@ -53,30 +53,96 @@ const mk={
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
   async generate(input){await wait(900);return smartSite(input)},
-  async edit(site,msg){await wait(500);
-    const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
-    const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
-    const tk=m.split(/[^a-zæøå]+/),col=Object.keys(COLORS).find(k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'));
-    if(col&&!q&&/farve|knap|skift|gør|ændr/.test(m)){th.accent=COLORS[col];out.push('Farven er skiftet til '+col)}
-    if(/mørk/.test(m)){th.mode='dark';out.push('Siden er nu mørk')}
-    else if(/\blys\b|lyst/.test(m)){th.mode='light';out.push('Siden er nu lys')}
-    if(/serif|elegant|klassisk/.test(m)){th.font='serif';out.push('Skriften er nu serif')}
-    else if(/sans|moderne/.test(m)){th.font='sans';out.push('Skriften er nu sans-serif')}
-    if(hero){
-      if(/overskrift/.test(m)){
-        if(q){hero.title=q;out.push('Overskriften er ændret')}
-        else if(/personlig/.test(m)){hero.title='Hos '+name+' er du i gode hænder';out.push('Overskriften er gjort mere personlig')}
-        else if(/kort/.test(m)){hero.title=name;out.push('Overskriften er gjort kortere')}
-      }else if(q&&/tekst|beskrivelse/.test(m)){hero.text=q;out.push('Teksten er ændret')}
-      if(q&&/knap/.test(m)){hero.cta=q;out.push('Knappen hedder nu '+q)}
+  async edit(site,msg){await wait(350);
+    const s=structuredClone(site),m=String(msg||'').toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
+    const quoted=[...String(msg||'').matchAll(/[“"„»]([^”"“«]+)[”"“«]/g)].map(x=>x[1].trim()).filter(Boolean);
+    const q=quoted[0]||'',q2=quoted[1]||'';
+    const hero=s.blocks.find(b=>b.type==='hero');
+    const sectionMap=[
+      {type:'about',names:['om os','om virksomheden','om firmaet','about']},
+      {type:'services',names:['ydelser','tjenester','services','service']},
+      {type:'features',names:['fordele','hvorfor vælge os','fordelssektion']},
+      {type:'steps',names:['sådan foregår det','arbejdsgang','proces','trin']},
+      {type:'faq',names:['ofte stillede spørgsmål','spørgsmål og svar','faq']},
+      {type:'gallery',names:['galleri','billedgalleri','portfolio','portefølje','billeder']},
+      {type:'contact',names:['kontakt os','kontaktsektion','kontakt']},
+      {type:'cta',names:['call to action','opfordring','cta']}
+    ];
+    const target=sectionMap.find(x=>x.names.some(n=>m.includes(n)));
+    const block=target&&s.blocks.find(b=>b.type===target.type);
+    const add=(x)=>{if(x&&!out.includes(x))out.push(x)};
+    const colorHex=String(msg||'').match(/#[0-9a-f]{6}/i);
+    const words=m.split(/[^a-zæøå0-9#]+/).filter(Boolean);
+    const colorName=Object.keys(COLORS).find(k=>words.includes(k)||words.includes(k+'t')||words.includes(k+'e'));
+    if((colorHex||colorName)&&/farve|farven|farver|knap|knapper|skift|ændr|gør|accent/.test(m)){
+      th.accent=colorHex?colorHex[0]:COLORS[colorName];
+      add('Accentfarven er ændret til '+(colorName||th.accent));
     }
-    const T={'kontakt':'contact','fordele':'features','om os':'about','ydelser':'services','sådan foregår':'steps','faq':'faq','opfordring':'cta'};
-    for(const [k,t] of Object.entries(T)){if(!m.includes(k))continue;const has=s.blocks.some(b=>b.type===t);
-      if(/tilføj/.test(m)&&!has){const nb=mk[t](name,''),ci=s.blocks.findIndex(b=>b.type==='contact');
-        (t!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);out.push(k+' er tilføjet')}
-      else if(/fjern|slet/.test(m)&&has){s.blocks=s.blocks.filter(b=>b.type!==t);out.push(k+' er fjernet')}}
-    if(!out.length)return{site:null,reply:'Det forstod testgeneratoren ikke endnu. Prøv fx: skift farve til grøn, gør siden mørk, tilføj Om os, eller skift overskrift til “…”. Intet er trukket fra dine credits.'};
-    return{site:s,reply:out.join('. ')+'.'}}};
+    if(/mørk|dark mode/.test(m)){th.mode='dark';add('Siden er sat til mørkt design')}
+    else if(/\blys\b|\blyst\b|light mode/.test(m)){th.mode='light';add('Siden er sat til lyst design')}
+    if(/serif|elegant|klassisk/.test(m)){th.font='serif';add('Skrifttypen er ændret til Serif')}
+    else if(/sans|moderne/.test(m)){th.font='sans';add('Skrifttypen er ændret til Sans')}
+    if(q&&/(navnet på (hjemmesiden|siden|virksomheden)|sidens navn|hjemmesidens navn|firmanavn)/.test(m)){
+      s.meta.title=q;add('Hjemmesidens navn er ændret');
+    }
+    const heroTitle=/(overskrift|hovedtitel|headline)/.test(m);
+    const heroText=/(undertekst|beskrivelse|brødtekst|intro|tekst)/.test(m);
+    const heroButton=/(knap|call to action|cta)/.test(m);
+    if(target&&block&&q&&/(overskrift|titel)/.test(m)){
+      block.title=q;add('Overskriften på '+target.names[0]+' er ændret');
+    }else if(hero&&heroTitle){
+      if(q){hero.title=q;add('Forsidens overskrift er ændret')}
+      else if(/kortere|kort/.test(m)){hero.title=name;add('Forsidens overskrift er gjort kortere')}
+      else if(/personlig/.test(m)){hero.title='Velkommen til '+name;add('Forsidens overskrift er gjort mere personlig')}
+    }
+    if(target&&block&&q&&/(tekst|beskrivelse|indhold)/.test(m)&&target.type==='about'){
+      block.text=q;add('Teksten i Om os er ændret');
+    }else if(hero&&heroText&&!heroTitle&&!heroButton){
+      if(q){hero.text=q;add('Forsidens beskrivelse er ændret')}
+      else if(/kortere|kort/.test(m)&&hero.text){hero.text=hero.text.split(/(?<=[.!?])\s/)[0];add('Forsidens tekst er gjort kortere')}
+    }
+    if(hero&&heroButton&&q){hero.cta=q;add('Teksten på forsides knap er ændret')}
+    if(target&&/(tilføj|indsæt|opret|lav|vis)/.test(m)&&!/(ydelse|fordel|spørgsmål|trin)/.test(m)){
+      if(!block){
+        const nb=target.type==='gallery'?mk.gallery():mk[target.type](name,'');
+        const ci=s.blocks.findIndex(b=>b.type==='contact');
+        (target.type!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);
+        add('Sektionen '+target.names[0]+' er tilføjet');
+      }else add('Sektionen '+target.names[0]+' findes allerede');
+    }
+    if(target&&block&&/(fjern|slet|skjul)/.test(m)){
+      s.blocks=s.blocks.filter(b=>b.type!==target.type);
+      add('Sektionen '+target.names[0]+' er fjernet');
+    }
+    if(target&&block&&/(flyt|ryk|placér|placer)/.test(m)){
+      const from=s.blocks.findIndex(b=>b.type===target.type);
+      if(from>=0){
+        const moved=s.blocks.splice(from,1)[0];
+        if(/øverst|først|starten/.test(m))s.blocks.unshift(moved);
+        else if(/nederst|sidst|bunden/.test(m))s.blocks.push(moved);
+        else s.blocks.splice(from,0,moved);
+        if(/øverst|først|starten|nederst|sidst|bunden/.test(m))add('Sektionen '+target.names[0]+' er flyttet');
+      }
+    }
+    const itemTarget=target&&['services','features','steps','faq'].includes(target.type)?s.blocks.find(b=>b.type===target.type):null;
+    if(itemTarget&&q&&/(tilføj|opret|indsæt)/.test(m)){
+      const label=target.type==='services'?'ydelsen':target.type==='features'?'fordelen':target.type==='steps'?'trinnet':'spørgsmålet';
+      const description=target.type==='faq'?'Kontakt os, så hjælper vi dig med at få svar på dette spørgsmål.':'Kontakt os for at høre mere om '+q.toLowerCase()+'.';
+      itemTarget.items=Array.isArray(itemTarget.items)?itemTarget.items:[];
+      itemTarget.items.push({t:q,d:description});
+      add('Den nye '+label+' er tilføjet');
+    }else if(itemTarget&&q&&/(fjern|slet)/.test(m)){
+      const before=(itemTarget.items||[]).length;
+      itemTarget.items=(itemTarget.items||[]).filter(i=>String(i.t||'').toLowerCase()!==q.toLowerCase());
+      if(itemTarget.items.length<before)add('Elementet '+q+' er fjernet');
+    }else if(itemTarget&&q&&q2&&/(ændr|omdøb|ret)/.test(m)){
+      const item=(itemTarget.items||[]).find(i=>String(i.t||'').toLowerCase()===q.toLowerCase());
+      if(item){item.t=q2;add('Elementet '+q+' er omdøbt til '+q2)}
+    }
+    if(!out.length)return{site:null,reply:'Testgeneratoren forstod ikke den præcise ændring endnu. Du kan fx skrive: “skift farven til lilla”, “gør siden mørk”, “skift overskriften til …”, “tilføj en FAQ”, “fjern Om os”, “flyt ydelser øverst” eller “tilføj ydelsen …”. Den kan stadig ikke opfinde billeder eller omskrive lange tekster frit uden den rigtige AI-forbindelse.'};
+    return{site:s,reply:out.join('. ')+'.'};
+  }
+};
 
 /* AI-lag: rigtig AI via /api/ai; falder tilbage til demo-tilstand, hvis serveren ikke er sat op */
 const AI={mode:'api',
