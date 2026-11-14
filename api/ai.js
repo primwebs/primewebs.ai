@@ -6,7 +6,7 @@ const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
 The JSON must have this shape:
-{"site":{"v":1,"meta":{"title":"...","theme":{"accent":"#2540D9","font":"sans","mode":"light"}},"blocks":[...]}, "reply":"short Danish explanation"}
+{"site":{"v":1,"meta":{"title":"...","theme":{"accent":"#2540D9","font":"sans","mode":"light","background":"#FFFFFF","surface":"#F5F7FB","text":"#101828"}},"blocks":[...],"pages":[{"id":"...","title":"Om os","slug":"om-os","blocks":[...]}]}, "reply":"short Danish explanation"}
 Allowed block types:
 hero: {id,type:"hero",title,text,cta}
 features: {id,type:"features",title,items:[{t,d},{t,d},{t,d}]}
@@ -17,12 +17,13 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)
+Pages: site.pages is an optional array of up to 20 additional standalone pages. Each page is {id,title,slug,blocks:[...]}. Use the same allowed block types as above. Keep the home page in site.blocks; put every additional page in site.pages. Slugs must be lowercase URL-safe words separated by hyphens. When the user asks to create a page, add it to site.pages and include a concise navigation label in the page title. When editing a named page, modify only that page unless the user asks for a site-wide change.
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
-For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
+Interpret the user's request flexibly, including informal Danish, typos, short phrases, synonyms, and several requested changes in one message. Understand common website terms such as hero/forside, headline/overskrift, CTA/knap, services/ydelser, features/fordele, about/om os, FAQ/spørgsmål, gallery/galleri, and contact/kontakt as referring to the matching existing blocks. Treat text inside quotation marks as exact replacement text when the user clearly asks to set a title, paragraph, button label, FAQ question, service, or feature to that text. The user may ask to add, remove, rename, rewrite, shorten, expand, reorder, or restyle sections and individual list items; apply all unambiguous requested edits in one pass. For vague requests such as "make it more modern", improve the existing copy and design conservatively without changing the business facts. Preserve unrelated content, IDs, images, contact details, and section order unless asked to change them. Never claim an edit was made if the JSON does not reflect it. If an instruction is genuinely ambiguous and choosing wrong would materially change the site, preserve the site and explain briefly what detail is needed. Never invent image URLs, reviews, credentials, prices, guarantees, or business facts.\nFor generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
 For edit, preserve the existing site structure and content unless the user asks to change it. Apply the requested change to the site JSON. Keep existing block IDs where possible and add IDs to new blocks.
-Theme accent must be a valid hex color; font must be "sans" or "serif"; mode must be "light" or "dark".`;
+Theme colors: accent, background, surface, and text must each be valid six-digit hex colors. Use coherent contrast and apply a requested site-wide color change across all four fields, not only buttons. Font must be "sans" or "serif"; mode must be "light" or "dark". Preserve all existing pages and their IDs unless explicitly asked to change them.`;
 
 function extractJSON(text) {
   const cleaned = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
@@ -61,38 +62,55 @@ const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 // Sikrer, at AI'ens svar kun indeholder kendte blokke og gyldige værdier.
 const imgRef = v => { const s = String(v || ""); return (/^img:[a-z0-9]{3,12}$/.test(s) || /^https?:\/\/[^\s"'<>]{1,500}$/i.test(s)) ? s : ""; };
 
-function sanitizeSite(site) {
-  const meta = site.meta || {};
-  const t = meta.theme || {};
-  const out = {
-    v: 1,
-    meta: {
-      title: str(meta.title, 160),
-      theme: {
-        accent: /^#[0-9a-fA-F]{6}$/.test(t.accent) ? t.accent : "#2540D9",
-        font: t.font === "serif" ? "serif" : "sans",
-        mode: t.mode === "dark" ? "dark" : "light"
-      }
-    },
-    blocks: []
-  };
-  for (const b of site.blocks.slice(0, 12)) {
+function sanitizeBlocks(blocks) {
+  const out = [];
+  for (const b of (Array.isArray(blocks) ? blocks : []).slice(0, 12)) {
     if (!b || typeof b !== "object") continue;
     const id = str(b.id, 40) || Math.random().toString(36).slice(2, 9);
     if (["features", "services", "steps", "faq"].includes(b.type)) {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
-      out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
+      out.push({ id, type: b.type, title: str(b.title, 160), items });
     } else if (b.type === "gallery") {
-      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
+      out.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
       const o = { id, type: b.type };
       TEXT_FIELDS[b.type].forEach(k => { o[k] = str(b[k], k === "text" ? 1200 : 160); });
       if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; }
-      out.blocks.push(o);
+      out.push(o);
     }
   }
-  if (!out.blocks.length) throw new Error("AI'en returnerede ingen gyldige blokke.");
   return out;
+}
+
+function sanitizeSite(site) {
+  const meta = site.meta || {};
+  const t = meta.theme || {};
+  const color = (v, fallback) => /^#[0-9a-fA-F]{6}$/.test(v || "") ? v : fallback;
+  const blocks = sanitizeBlocks(site.blocks);
+  if (!blocks.length) throw new Error("AI'en returnerede ingen gyldige blokke.");
+  const pages = (Array.isArray(site.pages) ? site.pages : []).slice(0, 20).map((p, i) => {
+    const pageBlocks = sanitizeBlocks(p && p.blocks);
+    const title = str(p && p.title, 100).trim();
+    const slug = str(p && p.slug, 100).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+    if (!title || !slug || !pageBlocks.length) return null;
+    return { id: str(p.id, 40) || "page-" + (i + 1), title, slug, blocks: pageBlocks };
+  }).filter(Boolean);
+  return {
+    v: 1,
+    meta: {
+      title: str(meta.title, 160),
+      theme: {
+        accent: color(t.accent, "#2540D9"),
+        background: color(t.background, t.mode === "dark" ? "#0E1320" : "#FFFFFF"),
+        surface: color(t.surface, t.mode === "dark" ? "#171E30" : "#F5F7FB"),
+        text: color(t.text, t.mode === "dark" ? "#E8ECF5" : "#101828"),
+        font: t.font === "serif" ? "serif" : "sans",
+        mode: t.mode === "dark" ? "dark" : "light"
+      }
+    },
+    blocks,
+    pages
+  };
 }
 
 function extra(b) {

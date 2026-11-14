@@ -53,30 +53,96 @@ const mk={
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
   async generate(input){await wait(900);return smartSite(input)},
-  async edit(site,msg){await wait(500);
-    const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
-    const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
-    const tk=m.split(/[^a-zæøå]+/),col=Object.keys(COLORS).find(k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'));
-    if(col&&!q&&/farve|knap|skift|gør|ændr/.test(m)){th.accent=COLORS[col];out.push('Farven er skiftet til '+col)}
-    if(/mørk/.test(m)){th.mode='dark';out.push('Siden er nu mørk')}
-    else if(/\blys\b|lyst/.test(m)){th.mode='light';out.push('Siden er nu lys')}
-    if(/serif|elegant|klassisk/.test(m)){th.font='serif';out.push('Skriften er nu serif')}
-    else if(/sans|moderne/.test(m)){th.font='sans';out.push('Skriften er nu sans-serif')}
-    if(hero){
-      if(/overskrift/.test(m)){
-        if(q){hero.title=q;out.push('Overskriften er ændret')}
-        else if(/personlig/.test(m)){hero.title='Hos '+name+' er du i gode hænder';out.push('Overskriften er gjort mere personlig')}
-        else if(/kort/.test(m)){hero.title=name;out.push('Overskriften er gjort kortere')}
-      }else if(q&&/tekst|beskrivelse/.test(m)){hero.text=q;out.push('Teksten er ændret')}
-      if(q&&/knap/.test(m)){hero.cta=q;out.push('Knappen hedder nu '+q)}
+  async edit(site,msg){await wait(350);
+    const s=structuredClone(site),m=String(msg||'').toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
+    const quoted=[...String(msg||'').matchAll(/[“"„»]([^”"“«]+)[”"“«]/g)].map(x=>x[1].trim()).filter(Boolean);
+    const q=quoted[0]||'',q2=quoted[1]||'';
+    const hero=s.blocks.find(b=>b.type==='hero');
+    const sectionMap=[
+      {type:'about',names:['om os','om virksomheden','om firmaet','about']},
+      {type:'services',names:['ydelser','ydelsen','ydelse','tjenester','services','service']},
+      {type:'features',names:['fordele','fordelen','fordel','hvorfor vælge os','fordelssektion']},
+      {type:'steps',names:['sådan foregår det','arbejdsgang','processen','proces','trinnet','trin']},
+      {type:'faq',names:['ofte stillede spørgsmål','spørgsmål og svar','spørgsmålet','spørgsmål','faq']},
+      {type:'gallery',names:['galleri','billedgalleri','portfolio','portefølje','billeder']},
+      {type:'contact',names:['kontakt os','kontaktsektion','kontakt']},
+      {type:'cta',names:['call to action','opfordring','cta']}
+    ];
+    const target=sectionMap.find(x=>x.names.some(n=>m.includes(n)));
+    const block=target&&s.blocks.find(b=>b.type===target.type);
+    const add=(x)=>{if(x&&!out.includes(x))out.push(x)};
+    const colorHex=String(msg||'').match(/#[0-9a-f]{6}/i);
+    const words=m.split(/[^a-zæøå0-9#]+/).filter(Boolean);
+    const colorName=Object.keys(COLORS).find(k=>words.includes(k)||words.includes(k+'t')||words.includes(k+'e'));
+    if((colorHex||colorName)&&/farve|farven|farver|knap|knapper|skift|ændr|gør|accent/.test(m)){
+      th.accent=colorHex?colorHex[0]:COLORS[colorName];
+      add('Accentfarven er ændret til '+(colorName||th.accent));
     }
-    const T={'kontakt':'contact','fordele':'features','om os':'about','ydelser':'services','sådan foregår':'steps','faq':'faq','opfordring':'cta'};
-    for(const [k,t] of Object.entries(T)){if(!m.includes(k))continue;const has=s.blocks.some(b=>b.type===t);
-      if(/tilføj/.test(m)&&!has){const nb=mk[t](name,''),ci=s.blocks.findIndex(b=>b.type==='contact');
-        (t!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);out.push(k+' er tilføjet')}
-      else if(/fjern|slet/.test(m)&&has){s.blocks=s.blocks.filter(b=>b.type!==t);out.push(k+' er fjernet')}}
-    if(!out.length)return{site:null,reply:'Det forstod testgeneratoren ikke endnu. Prøv fx: skift farve til grøn, gør siden mørk, tilføj Om os, eller skift overskrift til “…”. Intet er trukket fra dine credits.'};
-    return{site:s,reply:out.join('. ')+'.'}}};
+    if(/mørk|dark mode/.test(m)){th.mode='dark';add('Siden er sat til mørkt design')}
+    else if(/\blys\b|\blyst\b|light mode/.test(m)){th.mode='light';add('Siden er sat til lyst design')}
+    if(/serif|elegant|klassisk/.test(m)){th.font='serif';add('Skrifttypen er ændret til Serif')}
+    else if(/sans|moderne/.test(m)){th.font='sans';add('Skrifttypen er ændret til Sans')}
+    if(q&&/(navnet på (hjemmesiden|siden|virksomheden)|sidens navn|hjemmesidens navn|firmanavn)/.test(m)){
+      s.meta.title=q;add('Hjemmesidens navn er ændret');
+    }
+    const heroTitle=/(overskrift|hovedtitel|headline)/.test(m);
+    const heroText=/(undertekst|beskrivelse|brødtekst|intro|tekst)/.test(m);
+    const heroButton=/(knap|call to action|cta)/.test(m);
+    if(target&&block&&q&&/(overskrift|titel)/.test(m)){
+      block.title=q;add('Overskriften på '+target.names[0]+' er ændret');
+    }else if(hero&&heroTitle){
+      if(q){hero.title=q;add('Forsidens overskrift er ændret')}
+      else if(/kortere|kort/.test(m)){hero.title=name;add('Forsidens overskrift er gjort kortere')}
+      else if(/personlig/.test(m)){hero.title='Velkommen til '+name;add('Forsidens overskrift er gjort mere personlig')}
+    }
+    if(target&&block&&q&&/(tekst|beskrivelse|indhold)/.test(m)&&target.type==='about'){
+      block.text=q;add('Teksten i Om os er ændret');
+    }else if(hero&&heroText&&!heroTitle&&!heroButton){
+      if(q){hero.text=q;add('Forsidens beskrivelse er ændret')}
+      else if(/kortere|kort/.test(m)&&hero.text){hero.text=hero.text.split(/(?<=[.!?])\s/)[0];add('Forsidens tekst er gjort kortere')}
+    }
+    if(hero&&heroButton&&q){hero.cta=q;add('Teksten på forsides knap er ændret')}
+    if(target&&/(tilføj|indsæt|opret|lav|vis)/.test(m)&&!(q&&/(ydelse|fordel|spørgsmål|trin)/.test(m))){
+      if(!block){
+        const nb=target.type==='gallery'?mk.gallery():mk[target.type](name,'');
+        const ci=s.blocks.findIndex(b=>b.type==='contact');
+        (target.type!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);
+        add('Sektionen '+target.names[0]+' er tilføjet');
+      }else add('Sektionen '+target.names[0]+' findes allerede');
+    }
+    if(target&&block&&/(fjern|slet|skjul)/.test(m)){
+      s.blocks=s.blocks.filter(b=>b.type!==target.type);
+      add('Sektionen '+target.names[0]+' er fjernet');
+    }
+    if(target&&block&&/(flyt|ryk|placér|placer)/.test(m)){
+      const from=s.blocks.findIndex(b=>b.type===target.type);
+      if(from>=0){
+        const moved=s.blocks.splice(from,1)[0];
+        if(/øverst|først|starten/.test(m))s.blocks.unshift(moved);
+        else if(/nederst|sidst|bunden/.test(m))s.blocks.push(moved);
+        else s.blocks.splice(from,0,moved);
+        if(/øverst|først|starten|nederst|sidst|bunden/.test(m))add('Sektionen '+target.names[0]+' er flyttet');
+      }
+    }
+    const itemTarget=target&&['services','features','steps','faq'].includes(target.type)?s.blocks.find(b=>b.type===target.type):null;
+    if(itemTarget&&q&&/(tilføj|opret|indsæt)/.test(m)){
+      const label=target.type==='services'?'ydelsen':target.type==='features'?'fordelen':target.type==='steps'?'trinnet':'spørgsmålet';
+      const description=target.type==='faq'?'Kontakt os, så hjælper vi dig med at få svar på dette spørgsmål.':'Kontakt os for at høre mere om '+q.toLowerCase()+'.';
+      itemTarget.items=Array.isArray(itemTarget.items)?itemTarget.items:[];
+      itemTarget.items.push({t:q,d:description});
+      add('Den nye '+label+' er tilføjet');
+    }else if(itemTarget&&q&&/(fjern|slet)/.test(m)){
+      const before=(itemTarget.items||[]).length;
+      itemTarget.items=(itemTarget.items||[]).filter(i=>String(i.t||'').toLowerCase()!==q.toLowerCase());
+      if(itemTarget.items.length<before)add('Elementet '+q+' er fjernet');
+    }else if(itemTarget&&q&&q2&&/(ændr|omdøb|ret)/.test(m)){
+      const item=(itemTarget.items||[]).find(i=>String(i.t||'').toLowerCase()===q.toLowerCase());
+      if(item){item.t=q2;add('Elementet '+q+' er omdøbt til '+q2)}
+    }
+    if(!out.length)return{site:null,reply:'Testgeneratoren forstod ikke den præcise ændring endnu. Du kan fx skrive: “skift farven til lilla”, “gør siden mørk”, “skift overskriften til …”, “tilføj en FAQ”, “fjern Om os”, “flyt ydelser øverst” eller “tilføj ydelsen …”. Den kan stadig ikke opfinde billeder eller omskrive lange tekster frit uden den rigtige AI-forbindelse.'};
+    return{site:s,reply:out.join('. ')+'.'};
+  }
+};
 
 /* AI-lag: rigtig AI via /api/ai; falder tilbage til demo-tilstand, hvis serveren ikke er sat op */
 const AI={mode:'api',
@@ -113,8 +179,9 @@ const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*
 const Renderer={html(p){
   const s=p.site,t=s.meta.theme,d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
   const f=t.font==='serif'?'Georgia,"Times New Roman",serif':'system-ui,-apple-system,"Segoe UI",sans-serif';
-  const bg=d?'#0E1320':'#fff',fg=d?'#E8ECF5':'#101828',mu=d?'#9AA6BD':'#4B5565',ln=d?'#2A3350':'#E3E8F0',sf=d?'#171E30':'#F5F7FB';
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}header{position:sticky;top:0;z-index:5;background:${bg};padding:1rem 1.5rem;font-size:1.05rem}section{padding:3.5rem 1.5rem}.hero{padding-top:4.5rem;padding-bottom:4.5rem}h1{letter-spacing:-.02em}h2{font-size:1.8rem;letter-spacing:-.01em;margin-bottom:1.25rem}p{max-width:68ch}section[style*="center"] p{margin-left:auto;margin-right:auto}.c{border-radius:14px;padding:1.4rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}.btn{border-radius:10px;padding:.9rem 1.6rem}img{max-width:100%;height:auto;display:block}.hero.two,.ab.two{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center}.hero img,.ab img{width:100%;border-radius:16px;object-fit:cover;aspect-ratio:4/3}.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}@media(max-width:700px){.hero.two,.ab.two{grid-template-columns:1fr}section{padding:2.5rem 1.25rem}}</style></head><body><header>${esc(s.meta.title)}</header>${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
+  const bg=/^#[0-9a-fA-F]{6}$/.test(t.background)?t.background:(d?'#0E1320':'#FFFFFF'),fg=/^#[0-9a-fA-F]{6}$/.test(t.text)?t.text:(d?'#E8ECF5':'#101828'),mu=d?'#9AA6BD':'#4B5565',ln=d?'#2A3350':'#E3E8F0',sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
+  const pages=Array.isArray(s.pages)?s.pages:[];const pageNav=pages.map(pg=>`<a href="#page-${esc(pg.slug)}">${esc(pg.title)}</a>`).join('');const pageHtml=pages.map(pg=>`<div class="site-page" id="page-${esc(pg.slug)}"><h1>${esc(pg.title)}</h1>${(pg.blocks||[]).map(b=>(B[b.type]||(()=>''))(b)).join('')}</div>`).join('');
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}header nav{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}header nav a{font-size:.9rem;text-decoration:none}.site-page{display:none;padding:2rem 1.5rem;max-width:960px;margin:0 auto}.site-page:target{display:block}body:has(.site-page:target) .home-page{display:none}header{position:sticky;top:0;z-index:5;background:${bg};padding:1rem 1.5rem;font-size:1.05rem}section{padding:3.5rem 1.5rem}.hero{padding-top:4.5rem;padding-bottom:4.5rem}h1{letter-spacing:-.02em}h2{font-size:1.8rem;letter-spacing:-.01em;margin-bottom:1.25rem}p{max-width:68ch}section[style*="center"] p{margin-left:auto;margin-right:auto}.c{border-radius:14px;padding:1.4rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}.btn{border-radius:10px;padding:.9rem 1.6rem}img{max-width:100%;height:auto;display:block}.hero.two,.ab.two{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center}.hero img,.ab img{width:100%;border-radius:16px;object-fit:cover;aspect-ratio:4/3}.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}@media(max-width:700px){.hero.two,.ab.two{grid-template-columns:1fr}section{padding:2.5rem 1.25rem}}</style></head><body><header>${esc(s.meta.title)}${pages.length?`<nav><a href="#">Forside</a>${pageNav}</nav>`:''}</header><div class="home-page">${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}</div>${pageHtml}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
 
 /* ===== Lag 4: UI ===== */
 let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
@@ -528,6 +595,7 @@ function fixP(p,i){if(!p||typeof p!=='object'||Array.isArray(p))return null;
   site.blocks=site.blocks.filter(b=>b&&typeof b==='object'&&b.type).map((b,n)=>{const o={...b,id:String(b.id||'b'+n)};
     if(['features','services','steps','faq'].includes(o.type))o.items=arr(o.items).map(x=>({t:String((x&&x.t)||''),d:String((x&&x.d)||'')}));
     if(o.type==='gallery')o.images=arr(o.images).filter(x=>typeof x==='string');return o});
+  site.pages=arr(site.pages).filter(pg=>pg&&typeof pg==='object'&&Array.isArray(pg.blocks)).slice(0,20).map((pg,n)=>({...pg,id:String(pg.id||'page-'+n),title:String(pg.title||'Ny side').slice(0,100),slug:String(pg.slug||'side-'+(n+1)).toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80),blocks:pg.blocks.filter(b=>b&&typeof b==='object'&&b.type).map((b,j)=>({...b,id:String(b.id||'p'+n+'-b'+j)}))}));
   const sane=a=>arr(a).filter(x=>x&&typeof x==='object'&&Array.isArray(x.blocks));
   return{...p,id:String(p.id||'p'+i),name,status:p.status==='ready'?'ready':'draft',site,history:sane(p.history),future:sane(p.future),chat:arr(p.chat).filter(m=>m&&typeof m.t==='string'),createdAt:p.createdAt||Date.now(),updatedAt:p.updatedAt||Date.now()}}
 function fixC(c,i){if(!c||typeof c!=='object'||Array.isArray(c))return null;return{...c,id:String(c.id||'c'+i),name:String(c.name||'Uden navn'),email:String(c.email||''),plan:String(c.plan||'Gratis'),credits:Number.isFinite(+c.credits)?+c.credits:0}}
