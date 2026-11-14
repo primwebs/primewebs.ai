@@ -52,31 +52,79 @@ const mk={
   gallery:()=>({id:uid(),type:'gallery',title:'Galleri',images:[]}),
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
-  async generate(input){await wait(900);return smartSite(input)},
-  async edit(site,msg){await wait(500);
-    const s=structuredClone(site),m=msg.toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
-    const q=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1],hero=s.blocks.find(b=>b.type==='hero');
-    const tk=m.split(/[^a-zæøå]+/),col=Object.keys(COLORS).find(k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'));
-    if(col&&!q&&/farve|knap|skift|gør|ændr/.test(m)){th.accent=COLORS[col];out.push('Farven er skiftet til '+col)}
-    if(/mørk/.test(m)){th.mode='dark';out.push('Siden er nu mørk')}
-    else if(/\blys\b|lyst/.test(m)){th.mode='light';out.push('Siden er nu lys')}
-    if(/serif|elegant|klassisk/.test(m)){th.font='serif';out.push('Skriften er nu serif')}
-    else if(/sans|moderne/.test(m)){th.font='sans';out.push('Skriften er nu sans-serif')}
-    if(hero){
-      if(/overskrift/.test(m)){
-        if(q){hero.title=q;out.push('Overskriften er ændret')}
-        else if(/personlig/.test(m)){hero.title='Hos '+name+' er du i gode hænder';out.push('Overskriften er gjort mere personlig')}
-        else if(/kort/.test(m)){hero.title=name;out.push('Overskriften er gjort kortere')}
-      }else if(q&&/tekst|beskrivelse/.test(m)){hero.text=q;out.push('Teksten er ændret')}
-      if(q&&/knap/.test(m)){hero.cta=q;out.push('Knappen hedder nu '+q)}
+  async generate(input){await wait(500);return smartSite(input)},
+  async edit(site,msg){await wait(250);
+    const s=structuredClone(site),m=String(msg||'').toLowerCase(),th=s.meta.theme,name=s.meta.title,out=[];
+    const quoted=(msg.match(/[“"„»]([^”"“«]+)[”"“«]/)||[])[1];
+    const say=x=>out.push(x);
+    const colorNames={...COLORS,hvid:'#FFFFFF',hvidt:'#FFFFFF',creme:'#F7F1E8',koksgrå:'#292D32'};
+    const colorKey=Object.keys(colorNames).sort((x,y)=>y.length-x.length).find(k=>m.includes(k));
+    const hex=(msg.match(/#[0-9a-f]{6}\b/i)||[])[0];
+    const wantsColor=/farve|farver|tema|design|baggrund|baggrunde|rød|rødt|grøn|blå|sort|hvid|orange|pink|lilla|gul|turkis|bordeaux/.test(m);
+    if((hex||colorKey)&&wantsColor){
+      const c=hex||colorNames[colorKey];
+      th.accent=c;
+      if(/hele|hele hjemmesiden|overalt|alt skal være|gennemgående|baggrund|baggrunde|tema/.test(m)){
+        th.background=c;
+        th.surface=/rød|bordeaux/.test(m)?(c.toLowerCase()==='#7a1f3d'?'#5D172E':'#B82032'):c;
+        th.text=/sort tekst|sort skrift|sort font/.test(m)?'#111111':(/hvid tekst|hvid skrift|hvid font/.test(m)?'#FFFFFF':(c.toLowerCase()==='#ffffff'?'#111111':'#FFFFFF'));
+        th.mode='light';
+        say('Hele hjemmesidens farvetema er ændret');
+      } else say('Hjemmesidens accentfarve er ændret');
     }
-    const T={'kontakt':'contact','fordele':'features','om os':'about','ydelser':'services','sådan foregår':'steps','faq':'faq','opfordring':'cta'};
-    for(const [k,t] of Object.entries(T)){if(!m.includes(k))continue;const has=s.blocks.some(b=>b.type===t);
-      if(/tilføj/.test(m)&&!has){const nb=mk[t](name,''),ci=s.blocks.findIndex(b=>b.type==='contact');
-        (t!=='contact'&&ci>-1)?s.blocks.splice(ci,0,nb):s.blocks.push(nb);out.push(k+' er tilføjet')}
-      else if(/fjern|slet/.test(m)&&has){s.blocks=s.blocks.filter(b=>b.type!==t);out.push(k+' er fjernet')}}
-    if(!out.length)return{site:null,reply:'Det forstod testgeneratoren ikke endnu. Prøv fx: skift farve til grøn, gør siden mørk, tilføj Om os, eller skift overskrift til “…”. Intet er trukket fra dine credits.'};
-    return{site:s,reply:out.join('. ')+'.'}}};
+    if(/hvid tekst|hvid skrift|hvid font/.test(m)){th.text='#FFFFFF';say('Teksten er gjort hvid')}
+    if(/sort tekst|sort skrift|sort font/.test(m)){th.text='#111111';say('Teksten er gjort sort')}
+    if(/mørk/.test(m)){th.mode='dark';say('Siden er sat i mørk tilstand')}
+    else if(/\blys\b|lyst/.test(m)){th.mode='light';say('Siden er sat i lys tilstand')}
+    if(/serif|elegant|klassisk/.test(m)){th.font='serif';say('Skriften er ændret til serif')}
+    else if(/sans|moderne/.test(m)){th.font='sans';say('Skriften er ændret til sans-serif')}
+    const hero=s.blocks.find(x=>x.type==='hero');
+    if(hero){
+      if(/overskrift|headline|titel/.test(m)&&quoted){hero.title=quoted;say('Forsidens overskrift er ændret')}
+      if(/tekst|beskrivelse|brødtekst/.test(m)&&quoted){hero.text=quoted;say('Forsidens tekst er ændret')}
+      if(/knap|call.to.action/.test(m)&&quoted){hero.cta=quoted;say('Forsidens knaptekst er ændret')}
+      if(/kortere overskrift/.test(m)){hero.title=name;say('Overskriften er gjort kortere')}
+    }
+    const add=/tilføj|opret|indsæt|lav også|lav en/.test(m),remove=/fjern|slet|tag .* væk/.test(m);
+    const sectionMap=[
+      [['kontakt','kontaktsektion'],'contact','Kontakt'],
+      [['fordele','fordelssektion'],'features','Fordele'],
+      [['om os','om-sektion'],'about','Om os'],
+      [['ydelser','services'],'services','Ydelser'],
+      [['sådan foregår','proces','trin'],'steps','Sådan foregår det'],
+      [['faq','spørgsmål og svar','ofte stillede'],'faq','FAQ'],
+      [['opfordring','call to action','cta'],'cta','Opfordring'],
+      [['galleri','billeder','portfolio'],'gallery','Galleri']
+    ];
+    for(const [words,type,label] of sectionMap){
+      if(!words.some(w=>m.includes(w)))continue;
+      const exists=s.blocks.some(x=>x.type===type);
+      if(add&&!exists){
+        const nb=type==='about'?mk.about(name,''):type==='cta'?mk.cta(name):mk[type]();
+        const ci=s.blocks.findIndex(x=>x.type==='contact');
+        if(type!=='contact'&&ci>=0)s.blocks.splice(ci,0,nb);else s.blocks.push(nb);
+        say(label+'-sektionen er tilføjet');
+      } else if(remove&&exists&&type!=='hero'&&type!=='contact'){
+        s.blocks=s.blocks.filter(x=>x.type!==type);say(label+'-sektionen er fjernet');
+      }
+    }
+    if(/flere fordele|flere kort|flere ydelser/.test(m)){
+      const block=s.blocks.find(x=>x.type==='features'||x.type==='services');
+      if(block){const base=block.items[0]||{t:'Personlig service',d:'Kontakt os for en løsning, der passer til dine behov.'};block.items=[...block.items,{...base,t:'Fleksible løsninger'},{...base,t:'Personlig rådgivning'}].slice(0,8);say('Flere indholdskort er tilføjet')}
+    }
+    if(/mere professionel|mere detaljeret|mere indhold|uddyb/.test(m)){
+      const f=s.blocks.find(x=>x.type==='features');
+      if(f&&f.items.length<6)f.items=[...f.items,{t:'Gennemtænkt kvalitet',d:'Vi lægger vægt på tydelig kommunikation, godt håndværk og en løsning, der passer til opgaven.'}];
+      say('Indholdet er udbygget med mere forklarende tekst og flere detaljer');
+    }
+    if(/centrer|centreret/.test(m)){th.align='center';say('Layoutet er sat mere centralt')}
+    if(/afrundede hjørner|runde hjørner/.test(m)){th.radius='large';say('Kort og knapper får mere afrundede hjørner')}
+    if(/fjern billeder|uden billeder/.test(m)){
+      s.blocks.forEach(x=>{if(x.image)delete x.image;if(x.type==='gallery')x.images=[]});say('Billeder er fjernet fra hjemmesiden');
+    }
+    if(!out.length)return{site:null,reply:'Testgeneratoren kan nu håndtere flere faste ændringer, men forstod ikke netop den formulering. Prøv fx: "Gør hele hjemmesiden rød med hvid tekst", "tilføj et galleri", "lav flere fordele", "skift overskriften til \"Velkommen\" eller "gør hjørnerne mere afrundede".'};
+    return{site:s,reply:out.join('. ')+'.'};}
+};
 
 /* AI-lag: rigtig AI via /api/ai; falder tilbage til demo-tilstand, hvis serveren ikke er sat op */
 const AI={mode:'api',
@@ -111,10 +159,34 @@ const B={
   contact:b=>`<section id="kontakt"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><p><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></p></section>`};
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
 const Renderer={html(p){
-  const s=p.site,t=s.meta.theme,d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
+  const s=p.site,t=s.meta.theme||{},d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
   const f=t.font==='serif'?'Georgia,"Times New Roman",serif':'system-ui,-apple-system,"Segoe UI",sans-serif';
-  const bg=d?'#0E1320':'#fff',fg=d?'#E8ECF5':'#101828',mu=d?'#9AA6BD':'#4B5565',ln=d?'#2A3350':'#E3E8F0',sf=d?'#171E30':'#F5F7FB';
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>*{box-sizing:border-box}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.6}header{padding:1rem 1.5rem;font-weight:700;border-bottom:1px solid ${ln}}section{padding:2.5rem 1.5rem;max-width:960px;margin:0 auto}h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.1;margin:0 0 1rem}h2{margin:0 0 1rem}p{color:${mu}}.btn{display:inline-block;background:${a};color:${bt};padding:.8rem 1.4rem;border-radius:8px;text-decoration:none;font-weight:600}.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}.c{background:${sf};border:1px solid ${ln};border-radius:10px;padding:1rem}a{color:${a}}.btn{color:${bt}}footer{padding:1.5rem;text-align:center;color:${mu};border-top:1px solid ${ln}}header{position:sticky;top:0;z-index:5;background:${bg};padding:1rem 1.5rem;font-size:1.05rem}section{padding:3.5rem 1.5rem}.hero{padding-top:4.5rem;padding-bottom:4.5rem}h1{letter-spacing:-.02em}h2{font-size:1.8rem;letter-spacing:-.01em;margin-bottom:1.25rem}p{max-width:68ch}section[style*="center"] p{margin-left:auto;margin-right:auto}.c{border-radius:14px;padding:1.4rem;box-shadow:0 1px 2px rgba(0,0,0,.05)}.btn{border-radius:10px;padding:.9rem 1.6rem}img{max-width:100%;height:auto;display:block}.hero.two,.ab.two{display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center}.hero img,.ab img{width:100%;border-radius:16px;object-fit:cover;aspect-ratio:4/3}.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}@media(max-width:700px){.hero.two,.ab.two{grid-template-columns:1fr}section{padding:2.5rem 1.25rem}}</style></head><body><header>${esc(s.meta.title)}</header>${s.blocks.map(b=>(B[b.type]||(()=>''))(b)).join('')}<footer>© ${esc(s.meta.title)}</footer></body></html>`}};
+  const bg=/^#[0-9a-fA-F]{6}$/.test(t.background)?t.background:(d?'#0E1320':'#fff');
+  const fg=/^#[0-9a-fA-F]{6}$/.test(t.text)?t.text:(d?'#E8ECF5':'#101828');
+  const sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
+  const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
+  const body=s.blocks.map((b,i)=>{const html=(B[b.type]||(()=>''))(b);return html.replace('<section','<section id="section-'+b.type+'-'+i+'"')}).join('');
+  const links=s.blocks.filter(b=>['services','about','features','gallery','contact'].includes(b.type)).map(b=>'<a href="#section-'+b.type+'-'+s.blocks.indexOf(b)+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
+  const nav=links?'<nav aria-label="Hovedmenu">'+links+'</nav>':'';
+  const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>
+  *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.65}
+  header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem clamp(1rem,4vw,3rem);font-weight:800;background:${bg};border-bottom:1px solid ${ln}}
+  header nav{display:flex;flex-wrap:wrap;gap:1rem}header nav a{font-size:.9rem;text-decoration:none;font-weight:650}
+  section{padding:clamp(3rem,7vw,6rem) clamp(1.2rem,5vw,4rem);max-width:1120px;margin:0 auto}
+  h1{font-size:clamp(2.4rem,6vw,4.8rem);line-height:1.04;letter-spacing:-.04em;margin:0 0 1.2rem}h2{font-size:clamp(1.7rem,3vw,2.5rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 1.4rem}
+  h3{line-height:1.25}p{color:${mu};max-width:68ch}.btn{display:inline-block;background:${a};color:${bt};padding:.9rem 1.6rem;border-radius:${t.radius==='large'?'18px':'10px'};text-decoration:none;font-weight:750;box-shadow:0 8px 22px #00000018}
+  .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem}.c{background:${sf};color:${fg};border:1px solid ${ln};border-radius:${t.radius==='large'?'22px':'14px'};padding:1.5rem;box-shadow:0 12px 32px #00000010}
+  a{color:${a}}footer{padding:2rem;text-align:center;color:${fg};background:${sf};border-top:1px solid ${ln}}
+  .hero{padding-top:clamp(5rem,12vw,9rem);padding-bottom:clamp(5rem,12vw,9rem)}.hero p{font-size:1.12rem}
+  .hero.two,.ab.two{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:center}
+  .hero img,.ab img{width:100%;border-radius:22px;object-fit:cover;aspect-ratio:4/3}
+  .gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:16px}
+  details.c{margin-bottom:.7rem}summary{cursor:pointer;font-weight:700}
+  ${red?'header,footer{background:'+bg+'}header nav a{color:'+fg+'} .btn{background:#FFFFFF;color:#8F1D2B} .c{background:'+sf+'}':''}
+  @media(max-width:700px){header{align-items:flex-start;flex-direction:column;gap:.5rem}header nav{gap:.7rem}.hero.two,.ab.two{grid-template-columns:1fr}section{padding:3rem 1.2rem}}
+  </style></head><body><header><span>${esc(s.meta.title)}</span>${nav}</header>${body}<footer>© ${esc(s.meta.title)}</footer></body></html>`;
+}};
 
 /* ===== Lag 4: UI ===== */
 let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
