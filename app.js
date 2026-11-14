@@ -495,7 +495,7 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.valueif(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
