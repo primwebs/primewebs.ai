@@ -128,7 +128,7 @@ const DemoAI={mode:'test',
     if(/fjern billeder|uden billeder/.test(m)){
       s.blocks.forEach(x=>{if(x.image)delete x.image;if(x.type==='gallery')x.images=[]});say('Billeder er fjernet fra hjemmesiden');
     }
-    if(/book(ing|e)|bestil en tid|book en tid|tidsbestilling/.test(m)){
+    if(/\bbook(?:ing)?\s*(?:system|funktion|side)?\b|bestil\s+(?:en\s+)?tid|book\s+(?:en\s+)?tid|tidsbestilling|online\s+booking|lav\s+(?:et\s+)?booking(?:system|funktion|side)?/i.test(m)){
       if(!s.blocks.some(x=>x.type==='booking')){
         const ci=s.blocks.findIndex(x=>x.type==='contact');
         const block={id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'};
@@ -513,7 +513,7 @@ function smartSite(i){
   if(list.length)svc.items=list.map(x=>({t:x.charAt(0).toUpperCase()+x.slice(1),d:'Vi tilbyder '+x.toLowerCase()+' med fokus på kvalitet og din tilfredshed.'}));
   const faq=mk.faq();faq.items=[{t:b[4][0],d:b[4][1]},...faq.items].slice(0,5);
   const cta=mk.cta(n);if(i.tone==='Venlig')cta.cta='Skriv til os';if(i.tone==='Energisk')cta.cta='Kom i gang nu';
-  const wantsBooking=/book(ing|e)|bestil en tid|book en tid|tidsbestilling|online booking/.test(txt);
+  const wantsBooking=/\bbook(?:ing)?\s*(?:system|funktion|side)?\b|bestil\s+(?:en\s+)?tid|book\s+(?:en\s+)?tid|tidsbestilling|online\s+booking|lav\s+(?:et\s+)?booking(?:system|funktion|side)?/i.test(txt);
   const ct=mk.contact();ct.email=i.email||(desc.match(RX_MAIL)||[])[0]||Settings.get().email;ct.phone=i.phone||(desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone;
   const blocks=[hero,mk.features(),svc,mk.about(n,clean),mk.steps(),faq,cta];
   if(wantsBooking)blocks.push({id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'});
