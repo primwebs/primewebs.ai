@@ -427,7 +427,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 
 function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
-  if(a==='leadSave'){const f=S.leadForm||{};if(!String(f.name||'').trim()){S.leadErr='Skriv virksomhedens navn først.';return 1}if(f.website&&!/^https?:\\/\\//i.test(f.website)){S.leadErr='Hjemmesiden skal begynde med https:// eller http://.';return 1}LeadStore.add({...f,name:f.name.trim()});S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.leadQuery='';S.view='leadhistory';return 1}
+  if(a==='leadSave'){const f=S.leadForm||{};if(!String(f.name||'').trim()){S.leadErr='Skriv virksomhedens navn først.';return 1}if(f.website&&!/^https?:\/\//i.test(f.website)){S.leadErr='Hjemmesiden skal begynde med https:// eller http://.';return 1}LeadStore.add({...f,name:f.name.trim()});S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.leadQuery='';S.view='leadhistory';return 1}
   if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
