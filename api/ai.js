@@ -16,11 +16,11 @@ services: {id,type:"services",title,items:[{t,d},...]} (4-6 concrete services)
 steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
-gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)
+gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
-For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
+For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. If the user asks for online booking, appointments, reservations, or a booking system, also include a booking block before contact so the renderer adds a separate booking page. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
 For edit, preserve the existing site structure and content unless the user asks to change it. Apply the requested change to the site JSON. Keep existing block IDs where possible and add IDs to new blocks.
 Theme accent must be a valid hex color; font must be "sans" or "serif"; mode must be "light" or "dark".`;
 
@@ -82,6 +82,8 @@ function sanitizeSite(site) {
     if (["features", "services", "steps", "faq"].includes(b.type)) {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
       out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
+    } else if (b.type === "booking") {
+      out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
       out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
