@@ -61,10 +61,16 @@ const DemoAI={mode:'test',
     const colorKey=Object.keys(colorNames).sort((x,y)=>y.length-x.length).find(k=>m.includes(k));
     const hex=(msg.match(/#[0-9a-f]{6}\b/i)||[])[0];
     const wantsColor=/farve|farver|tema|design|baggrund|baggrunde|rød|rødt|grøn|blå|sort|hvid|orange|pink|lilla|gul|turkis|bordeaux/.test(m);
+    const bgRequest=/baggrund|baggrundsfarve|baggrunden/.test(m);
     if((hex||colorKey)&&wantsColor){
       const c=hex||colorNames[colorKey];
       th.accent=c;
-      if(/hele|hele hjemmesiden|overalt|alt skal være|gennemgående|baggrund|baggrunde|tema/.test(m)){
+      if(bgRequest){
+        th.background=c;
+        const n=parseInt(c.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;
+        th.surface=bright>155?'#FFFFFF':'#252A35';th.text=bright>155?'#111111':'#FFFFFF';th.mode='light';
+        say('Baggrundsfarven er ændret');
+      } else if(/hele|overalt|alt skal være|gennemgående|tema/.test(m)){
         th.background=c;
         th.surface=/rød|bordeaux/.test(m)?(c.toLowerCase()==='#7a1f3d'?'#5D172E':'#B82032'):c;
         th.text=/sort tekst|sort skrift|sort font/.test(m)?'#111111':(/hvid tekst|hvid skrift|hvid font/.test(m)?'#FFFFFF':(c.toLowerCase()==='#ffffff'?'#111111':'#FFFFFF'));
@@ -397,7 +403,7 @@ async function generate(){
   if(Credits.balance()<Credits.cost.generate){S.err='Du har ikke nok credits.';return render()}
   S.err='';S.busy=true;render();
   let result;
-  try { result=await AI.generate({name:f.name.trim(),description:f.desc.trim(),style:f.style,industry:f.ind||'',city:(f.city||'').trim(),services:(f.svc||'').trim(),tone:f.tone||'Professionel',language:f.lang||'Dansk',color:f.color||'',phone:(f.phone||'').trim()||(f.desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone,email:(f.email||'').trim()||(f.desc.match(RX_MAIL)||[''])[0]||Settings.get().email}); }
+  try { result=await AI.generate({name:f.name.trim(),description:f.desc.trim(),style:f.style,industry:f.ind||'',city:(f.city||'').trim(),services:(f.svc||'').trim(),tone:f.tone||'Professionel',language:f.lang||'Dansk',color:f.color||'',background:f.background||'',phone:(f.phone||'').trim()||(f.desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone,email:(f.email||'').trim()||(f.desc.match(RX_MAIL)||[''])[0]||Settings.get().email}); }
   catch(error){S.busy=false;S.err=error.message||'AI-generatoren kunne ikke kontaktes.';return render()}
   const site=result.site;
   Credits.spend('generate');
@@ -464,6 +470,12 @@ function smartSite(i){
   const th={...(STYLES[i.style]||STYLES.Moderne)},tk=txt.split(/[^a-zæøå]+/);
   const has=k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'||w===k+'ne'),pk=Object.keys(PAL).find(k=>has(k.toLowerCase())),ck=Object.keys(COLORS).find(has);
   const col=i.color||(pk&&PAL[pk])||(ck&&COLORS[ck]);if(col)th.accent=col;
+  if(/^#[0-9a-f]{6}$/i.test(i.background||'')){
+    const bg=i.background,lumBg=parseInt(bg.slice(1),16);
+    const r=(lumBg>>16)&255,g=(lumBg>>8)&255,bgB=lumBg&255,brightness=(r*299+g*587+bgB*114)/1000;
+    th.background=bg;th.surface=brightness>155?'#FFFFFF':'#252A35';
+    th.text=brightness>155?'#111111':'#FFFFFF';th.mode='light';
+  }
   if(/hele hjemmesiden.*rød|rød.*hele hjemmesiden|alt.*rødt|gennemgående.*rød|rødt farvetema|rød baggrund/.test(txt)){
     th.accent='#D12C3F';th.background='#D12C3F';th.surface='#B82032';
     th.text=/sort tekst|sort skrift|sort font/.test(txt)?'#111111':'#FFFFFF';
@@ -486,14 +498,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="fcol"]'
 /* ===== Farver: hjemmesidens design og dashboardets accentfarve ===== */
 const swatch=(x,n,h,on)=>`<button type="button" class="swb" data-x="${x}" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${on}" style="background:${h}"></button>`;
 function designCard(p){const t=p.site.meta.theme,ac=String(t.accent).toLowerCase();
-  return `<div class="card" style="margin-bottom:.8rem"><strong>Design</strong><div class="sw" style="margin:.6rem 0">${Object.entries(PAL).map(([n,h])=>swatch('acc',n,h,ac===h.toLowerCase())).join('')}<input type="color" data-th="accent" value="${esc(t.accent)}" title="Egen farve" aria-label="Egen farve"></div><div class="row"><button class="btn ${t.mode==='light'?'':'ghost'}" data-x="mode" data-v="light">Lys</button><button class="btn ${t.mode==='dark'?'':'ghost'}" data-x="mode" data-v="dark">Mørk</button><button class="btn ${t.font==='sans'?'':'ghost'}" data-x="font" data-v="sans">Sans</button><button class="btn ${t.font==='serif'?'':'ghost'}" data-x="font" data-v="serif">Serif</button></div></div>`}
+  return `<div class="card" style="margin-bottom:.8rem"><strong>Design</strong>
+  <div class="sw" style="margin:.6rem 0"><span>Accentfarve</span>${Object.entries(PAL).map(([n,h])=>swatch('acc',n,h,ac===h.toLowerCase())).join('')}<input type="color" data-th="accent" value="${esc(t.accent||'#2540D9')}" title="Egen accentfarve" aria-label="Egen accentfarve"></div>
+  <div class="sw" style="margin:.6rem 0"><span>Baggrundsfarve</span><input type="color" data-th="background" value="${/^#[0-9a-fA-F]{6}$/.test(t.background||'')?t.background:'#FFFFFF'}" title="Vælg hjemmesidens baggrundsfarve" aria-label="Vælg hjemmesidens baggrundsfarve"></div>
+  <div class="row"><button class="btn ${t.mode==='light'?'':'ghost'}" data-x="mode" data-v="light">Lys</button><button class="btn ${t.mode==='dark'?'':'ghost'}" data-x="mode" data-v="dark">Mørk</button><button class="btn ${t.font==='sans'?'':'ghost'}" data-x="font" data-v="sans">Sans</button><button class="btn ${t.font==='serif'?'':'ghost'}" data-x="font" data-v="serif">Serif</button></div></div>`}
 function setTheme(k,v){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];q.site.meta.theme[k]=v})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;const d=b.dataset;
   if(d.x==='uiacc'){Settings.set('accent',d.c);render()}
   else if(d.x==='uireset'){Settings.set('accent','');render()}
   else if(d.x==='acc'){setTheme('accent',d.c);render()}
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
-document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);render()}});
+document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);if(d.th==='background'){const n=parseInt(e.target.value.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;setTheme('surface',bright>155?'#FFFFFF':'#252A35');setTheme('text',bright>155?'#111111':'#FFFFFF');}render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
 const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280'};
 const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B'};
@@ -560,7 +575,7 @@ const EXAMPLES=['Frisørsalon i Aarhus med grønne farver','Tømrerfirma i Odens
 function vNew(){const f={ind:'',city:'',svc:'',tone:'Professionel',color:'',lang:'Dansk',phone:'',email:'',...S.form};
   const inp=(k,t,x='')=>`<label>${t}<input data-f="${k}" value="${esc(f[k])}" ${x}></label>`;
   const sel=(k,t,arr)=>`<label>${t}<select data-f="${k}">${arr.map(o=>`<option value="${esc(o)}" ${f[k]===o?'selected':''}>${esc(o||'Find selv')}</option>`).join('')}</select></label>`;
-  return `<h1>Opret ny hjemmeside</h1><div class="card form" style="max-width:720px"><label>Hvad skal hjemmesiden handle om?<textarea data-f="desc" id="nd" style="min-height:150px;font-size:1.05rem" placeholder="Beskriv virksomheden med dine egne ord. Fx: Vi er en frisørsalon i Aarhus med fokus på klip og farve. Vi vil gerne have en rolig, lys hjemmeside i grønne farver. Ring på 12 34 56 78.">${esc(f.desc)}</textarea></label><div class="row" style="margin:-.4rem 0 1rem">${EXAMPLES.map(x=>`<button type="button" class="chip" data-x="ex" data-t="${esc(x)}">${esc(x)}</button>`).join('')}</div>${inp('name','Virksomhedens navn','id="nn"')}<details data-more ${S.more?'open':''} style="margin-bottom:1rem"><summary style="cursor:pointer;font-weight:600;margin-bottom:.8rem">Flere indstillinger (valgfrit)</summary>${sel('ind','Branche',INDS)}${inp('city','By eller område')}${inp('svc','Ydelser (adskil med komma)')}${sel('tone','Tone',TONES)}${sel('style','Stil',Object.keys(STYLES))}${sel('lang','Sprog',['Dansk','English'])}<div style="margin-bottom:1rem"><strong>Farve</strong><div class="sw" style="margin-top:.4rem"><button type="button" class="btn ${f.color?'ghost':''}" data-x="fcol" data-c="">Lad AI vælge</button>${Object.entries(PAL).map(([n,h])=>`<button type="button" class="swb" data-x="fcol" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${f.color===h}" style="background:${h}"></button>`).join('')}</div></div>${inp('phone','Telefon på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().phone)+'"')}${inp('email','E-mail på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().email)+'"')}</details>${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="gen" ${S.busy?'disabled':''}>${S.busy?'Genererer…':'Generér hjemmeside'}</button><p class="mu" style="margin-top:.8rem">Hjemmesiden gemmes automatisk under Mine hjemmesider i menuen.</p></div>`}
+  return `<h1>Opret ny hjemmeside</h1><div class="card form" style="max-width:720px"><label>Hvad skal hjemmesiden handle om?<textarea data-f="desc" id="nd" style="min-height:150px;font-size:1.05rem" placeholder="Beskriv virksomheden med dine egne ord. Fx: Vi er en frisørsalon i Aarhus med fokus på klip og farve. Vi vil gerne have en rolig, lys hjemmeside i grønne farver. Ring på 12 34 56 78.">${esc(f.desc)}</textarea></label><div class="row" style="margin:-.4rem 0 1rem">${EXAMPLES.map(x=>`<button type="button" class="chip" data-x="ex" data-t="${esc(x)}">${esc(x)}</button>`).join('')}</div>${inp('name','Virksomhedens navn','id="nn"')}<details data-more ${S.more?'open':''} style="margin-bottom:1rem"><summary style="cursor:pointer;font-weight:600;margin-bottom:.8rem">Flere indstillinger (valgfrit)</summary>${sel('ind','Branche',INDS)}${inp('city','By eller område')}${inp('svc','Ydelser (adskil med komma)')}${sel('tone','Tone',TONES)}${sel('style','Stil',Object.keys(STYLES))}${sel('lang','Sprog',['Dansk','English'])}<div style="margin-bottom:1rem"><strong>Accentfarve</strong><div class="sw" style="margin-top:.4rem"><button type="button" class="btn ${f.color?'ghost':''}" data-x="fcol" data-c="">Lad AI vælge</button>${Object.entries(PAL).map(([n,h])=>`<button type="button" class="swb" data-x="fcol" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${f.color===h}" style="background:${h}"></button>`).join('')}</div></div><label>Baggrundsfarve på hele hjemmesiden<input type="color" data-f="background" value="${/^#[0-9a-fA-F]{6}$/.test(f.background||'')?f.background:'#FFFFFF'}"></label>${inp('phone','Telefon på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().phone)+'"')}${inp('email','E-mail på hjemmesiden (valgfri)','placeholder="'+esc(Settings.get().email)+'"')}</details>${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="gen" ${S.busy?'disabled':''}>${S.busy?'Genererer…':'Generér hjemmeside'}</button><p class="mu" style="margin-top:.8rem">Hjemmesiden gemmes automatisk under Mine hjemmesider i menuen.</p></div>`}
 V.credits=()=>{const own=Settings.get().ownerEmail,p=S.pricingPeriod||'monthly',annual=p==='annual';
   return `<section class="pricing-hero"><div class="pricing-hero-copy"><span class="pricing-eyebrow">PRIME WEBS AI · PLANER & CREDITS</span><h1>Byg mere med AI. Gør dine idéer til hjemmesider.</h1><p>Vælg den plan, der passer til dit arbejde. Brug dine AI credits til at generere hjemmesider og forbedre dem direkte med AI-chat.</p><div class="pricing-hero-points"><span>✦ AI-hjemmesidegenerering</span><span>✦ Redigering med AI-chat</span><span>✦ Credits med tydeligt forbrug</span></div></div><div class="pricing-hero-art" aria-hidden="true"><div class="pricing-orbit pricing-orbit-one"></div><div class="pricing-orbit pricing-orbit-two"></div><div class="pricing-credit-orb"><strong>AI</strong><span>CREDITS</span></div></div></section>
   <div class="pricing-heading"><div><h2>Vælg din plan</h2><p class="mu">Sammenlign credits og priser. Du kan skifte visning mellem måned og år.</p></div><div class="pricing-period" role="group" aria-label="Betalingsperiode"><button class="btn ${annual?'ghost':''}" data-act="billing" data-p="monthly">Månedlig</button><button class="btn ${annual?'':'ghost'}" data-act="billing" data-p="annual">Årlig</button></div></div>
