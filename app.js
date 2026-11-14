@@ -464,6 +464,14 @@ function smartSite(i){
   const th={...(STYLES[i.style]||STYLES.Moderne)},tk=txt.split(/[^a-zæøå]+/);
   const has=k=>tk.some(w=>w===k||w===k+'t'||w===k+'e'||w===k+'ne'),pk=Object.keys(PAL).find(k=>has(k.toLowerCase())),ck=Object.keys(COLORS).find(has);
   const col=i.color||(pk&&PAL[pk])||(ck&&COLORS[ck]);if(col)th.accent=col;
+  if(/hele hjemmesiden.*rød|rød.*hele hjemmesiden|alt.*rødt|gennemgående.*rød|rødt farvetema|rød baggrund/.test(txt)){
+    th.accent='#D12C3F';th.background='#D12C3F';th.surface='#B82032';
+    th.text=/sort tekst|sort skrift|sort font/.test(txt)?'#111111':'#FFFFFF';
+  } else if(/hele hjemmesiden.*grøn|grøn.*hele hjemmesiden|grønt farvetema|grøn baggrund/.test(txt)){
+    th.accent='#1E8E5A';th.background='#1E8E5A';th.surface='#176F45';
+    th.text=/sort tekst|sort skrift|sort font/.test(txt)?'#111111':'#FFFFFF';
+  } else if(/hvid tekst|hvid skrift/.test(txt))th.text='#FFFFFF';
+  else if(/sort tekst|sort skrift/.test(txt))th.text='#111111';
   if(/mørk|dark/.test(txt))th.mode='dark';
   if(/elegant|klassisk|eksklusiv/.test(txt)||i.tone==='Eksklusiv')th.font='serif';
   const clean=desc.replace(RX_MAIL,'').replace(RX_TEL,'').replace(/\s+/g,' ').trim();
