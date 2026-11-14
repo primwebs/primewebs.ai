@@ -588,3 +588,13 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .dash-kpi-trend.up{color:#159653}
 .dash-kpi-trend.down{color:#dc5252}
 .dash-kpi-trend.flat{color:var(--mu)}
+
+/* Dashboard AI prompt */
+.dash-prompt-panel{margin:1.4rem 0 2.2rem;padding:clamp(1.2rem,3vw,2rem);border:1px solid var(--ln);border-radius:22px;background:var(--card);box-shadow:0 12px 32px rgba(18,32,66,.055)}
+.dash-prompt-heading h2{margin:.35rem 0 .35rem;font-size:clamp(1.35rem,2.5vw,1.8rem);letter-spacing:-.04em}
+.dash-prompt-heading p{margin:0 0 1.1rem;color:var(--mu);font-size:.88rem}
+.dash-prompt-input{display:block;width:100%;min-height:118px;resize:vertical;padding:1rem 1.05rem;border:1.5px solid color-mix(in srgb,var(--ac) 30%,var(--ln));border-radius:15px;background:var(--bg);color:var(--ink);font:inherit;line-height:1.6;outline:none}
+.dash-prompt-input:focus{border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 9%,transparent)}
+.dash-prompt-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.9rem}
+.dash-prompt-footer .mu{font-size:.75rem}.dash-prompt-submit{min-height:46px;padding:.75rem 1.1rem;white-space:nowrap}
+@media(max-width:600px){.dash-prompt-footer{align-items:stretch;flex-direction:column}.dash-prompt-submit{width:100%}}
