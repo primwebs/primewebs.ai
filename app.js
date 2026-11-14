@@ -128,6 +128,14 @@ const DemoAI={mode:'test',
     if(/fjern billeder|uden billeder/.test(m)){
       s.blocks.forEach(x=>{if(x.image)delete x.image;if(x.type==='gallery')x.images=[]});say('Billeder er fjernet fra hjemmesiden');
     }
+    if(/book(ing|e)|bestil en tid|book en tid|tidsbestilling/.test(m)){
+      if(!s.blocks.some(x=>x.type==='booking')){
+        const ci=s.blocks.findIndex(x=>x.type==='contact');
+        const block={id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'};
+        ci>=0?s.blocks.splice(ci,0,block):s.blocks.push(block);
+      }
+      say('En separat bookingside med bookingformular er tilføjet');
+    }
     if(!out.length)return{site:null,reply:'Testgeneratoren kan nu håndtere flere faste ændringer, men forstod ikke netop den formulering. Prøv fx: "Gør hele hjemmesiden rød med hvid tekst", "tilføj et galleri", "lav flere fordele", "skift overskriften til \"Velkommen\" eller "gør hjørnerne mere afrundede".'};
     return{site:s,reply:out.join('. ')+'.'};}
 };
@@ -162,7 +170,20 @@ const B={
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
   cta:b=>`<section style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><a class="btn" href="#kontakt">${esc(b.cta)}</a></section>`,
   gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
+  booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="?booking=1">${esc(b.cta||'Book en tid')}</a></section>`,
   contact:b=>`<section id="kontakt"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><p><a href="tel:${esc(b.phone)}">${esc(b.phone)}</a><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a></p></section>`};
+const bookingRuntime=site=>{
+  const contact=site.blocks.find(b=>b.type==='contact')||{};
+  const services=site.blocks.find(b=>b.type==='services');
+  const choices=(services&&services.items||[]).map(x=>x.t).filter(Boolean);
+  const cfg=JSON.stringify({title:site.meta.title||'Booking',email:contact.email||'',services:choices});
+  return `<script>(function(){const c=${cfg};if(new URLSearchParams(location.search).get('booking')!=='1')return;
+  const esc=s=>String(s||'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  const today=new Date(),min=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+  document.body.innerHTML='<main style="max-width:720px;margin:0 auto;padding:clamp(24px,6vw,64px);font-family:inherit"><a href="./" style="text-decoration:none">← Tilbage til hjemmesiden</a><p style="margin-top:40px;color:#667085;font-weight:700;letter-spacing:.12em;font-size:12px">BOOKING</p><h1 style="font-size:clamp(34px,6vw,52px);line-height:1.1">Book en tid hos '+esc(c.title)+'</h1><p>Vælg en ydelse og ønsket tidspunkt. Din forespørgsel åbnes i din e-mail, så virksomheden kan bekræfte aftalen.</p><form id="pw-booking" style="display:grid;gap:16px;margin-top:28px"><label>Ydelse<select name="service" required style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px">'+(c.services.length?c.services:['Aftale / konsultation']).map(x=>'<option>'+esc(x)+'</option>').join('')+'</select></label><label>Dato<input name="date" type="date" min="'+min+'" required style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px"></label><label>Ønsket tidspunkt<select name="time" required style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px">'+Array.from({length:18},(_,i)=>{const h=9+Math.floor(i/2),m=i%2?'30':'00';return '<option>'+String(h).padStart(2,'0')+':'+m+'</option>'}).join('')+'</select></label><label>Dit navn<input name="name" required autocomplete="name" style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px"></label><label>E-mail<input name="email" type="email" required autocomplete="email" style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px"></label><label>Telefon<input name="phone" type="tel" autocomplete="tel" style="display:block;width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;margin-top:6px"></label><button type="submit" style="border:0;border-radius:10px;padding:16px 20px;background:#2540D9;color:white;font-weight:750;font-size:16px;cursor:pointer">Send bookingforespørgsel</button><p id="pw-booking-note" style="font-size:13px;color:#667085">Aftalen er først bekræftet, når virksomheden har svaret.</p></form></main>';
+  document.getElementById('pw-booking').addEventListener('submit',function(e){e.preventDefault();const d=Object.fromEntries(new FormData(this).entries());if(!c.email){document.getElementById('pw-booking-note').textContent='Virksomheden har endnu ikke angivet en e-mailadresse. Kontakt dem via hjemmesiden.';return}const subject='Bookingforespørgsel – '+c.title;const body='Bookingforespørgsel\\n\\nYdelse: '+d.service+'\\nDato: '+d.date+'\\nTid: '+d.time+'\\nNavn: '+d.name+'\\nE-mail: '+d.email+'\\nTelefon: '+d.phone+'\\n\\nSendt fra hjemmesidens bookingside.';location.href='mailto:'+encodeURIComponent(c.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);document.getElementById('pw-booking-note').textContent='Din e-mailapp åbnes med bookingforespørgslen. Tryk Send for at sende den.'});
+  })();</script>`;
+};
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
 const Renderer={html(p){
   const s=p.site,t=s.meta.theme||{},d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
@@ -191,7 +212,7 @@ const Renderer={html(p){
   details.c{margin-bottom:.7rem}summary{cursor:pointer;font-weight:700}
   ${red?'header,footer{background:'+bg+'}header nav a{color:'+fg+'} .btn{background:#FFFFFF;color:#8F1D2B} .c{background:'+sf+'}':''}
   @media(max-width:700px){header{align-items:flex-start;flex-direction:column;gap:.5rem}header nav{gap:.7rem}.hero.two,.ab.two{grid-template-columns:1fr}section{padding:3rem 1.2rem}}
-  </style></head><body><header><span>${esc(s.meta.title)}</span>${nav}</header>${body}<footer>© ${esc(s.meta.title)}</footer></body></html>`;
+  </style></head><body><header><span>${esc(s.meta.title)}</span>${nav}</header>${body}<footer>© ${esc(s.meta.title)}</footer>${bookingRuntime(s)}</body></html>`;
 }};
 
 /* ===== Lag 4: UI ===== */
@@ -492,8 +513,12 @@ function smartSite(i){
   if(list.length)svc.items=list.map(x=>({t:x.charAt(0).toUpperCase()+x.slice(1),d:'Vi tilbyder '+x.toLowerCase()+' med fokus på kvalitet og din tilfredshed.'}));
   const faq=mk.faq();faq.items=[{t:b[4][0],d:b[4][1]},...faq.items].slice(0,5);
   const cta=mk.cta(n);if(i.tone==='Venlig')cta.cta='Skriv til os';if(i.tone==='Energisk')cta.cta='Kom i gang nu';
+  const wantsBooking=/book(ing|e)|bestil en tid|book en tid|tidsbestilling|online booking/.test(txt);
   const ct=mk.contact();ct.email=i.email||(desc.match(RX_MAIL)||[])[0]||Settings.get().email;ct.phone=i.phone||(desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone;
-  return{v:1,meta:{title:n,theme:th},blocks:[hero,mk.features(),svc,mk.about(n,clean),mk.steps(),faq,cta,ct]}}
+  const blocks=[hero,mk.features(),svc,mk.about(n,clean),mk.steps(),faq,cta];
+  if(wantsBooking)blocks.push({id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'});
+  blocks.push(ct);
+  return{v:1,meta:{title:n,theme:th},blocks}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x="fcol"]');if(b){S.form={...S.form,color:b.dataset.c};render()}});
 /* ===== Farver: hjemmesidens design og dashboardets accentfarve ===== */
 const swatch=(x,n,h,on)=>`<button type="button" class="swb" data-x="${x}" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${on}" style="background:${h}"></button>`;
