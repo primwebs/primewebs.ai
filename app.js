@@ -426,7 +426,9 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 }
 
 function ext2(a,b){const d=b.dataset;
-  if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}\n  if(a==='leadSave'){const f=S.leadForm||{};if(!String(f.name||'').trim()){S.leadErr='Skriv virksomhedens navn først.';return 1}if(f.website&&!/^https?:\\/\\//i.test(f.website)){S.leadErr='Hjemmesiden skal begynde med https:// eller http://.';return 1}LeadStore.add({...f,name:f.name.trim()});S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.leadQuery='';S.view='leadhistory';return 1}\n  if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
+  if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
+  if(a==='leadSave'){const f=S.leadForm||{};if(!String(f.name||'').trim()){S.leadErr='Skriv virksomhedens navn først.';return 1}if(f.website&&!/^https?:\\/\\//i.test(f.website)){S.leadErr='Hjemmesiden skal begynde med https:// eller http://.';return 1}LeadStore.add({...f,name:f.name.trim()});S.leadForm={name:'',industry:'',city:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.leadQuery='';S.view='leadhistory';return 1}
+  if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
   if(a==='billing'){S.pricingPeriod=d.p==='annual'?'annual':'monthly';return 1}
@@ -493,7 +495,7 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]')){S.leadQuery=e.target.value;render()}if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.valueif(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
@@ -501,6 +503,7 @@ document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
   else if(d.cu){const c=Customers.all(),u=c.find(x=>x.id===d.cu);if(u){u[d.cf]=v;Customers.save(c)}}
   else if(d.s)Settings.set(d.s,v);
+  else if(e.target.matches('[data-lead-query]'))S.leadQuery=v;
   else return;
   render()});
 /* ===== Oprettelse: flere felter og bedre forståelse af beskrivelsen ===== */
