@@ -21,7 +21,7 @@ The trigger assigns the owner role only when the email in Supabase Auth exactly 
 3. Copy and run supabase/migrations/20261115000100_initial_schema.sql.
 4. In Authentication → Providers, enable Google and Email. Configure Google OAuth credentials in Supabase and add the callback URL shown in Supabase to the Google Cloud OAuth client's authorized redirect URIs.
 5. In Authentication → URL Configuration, set the production site URL and allowed redirect URLs for the PRIME WEBS AI deployment.
-6. Add the Supabase project URL and publishable/anon key to deployment environment variables only. Keep the service-role key secret and server-side only.
+6. In Vercel → Project → Settings → Environment Variables, add `SUPABASE_URL` (the Project URL) and `SUPABASE_PUBLISHABLE_KEY` (the public `sb_publishable_...` key). These are the only values the browser configuration endpoint may return. Never add a service-role or secret key to browser code or this endpoint.
 
 ## Important status
 This migration is a database schema foundation, not a completed production login integration. The existing app still uses localStorage and has a separate optional GitHub OAuth flow. Do not announce database persistence, Google login, or user isolation as live until application integration is implemented, environment variables are configured, the migration is applied, and end-to-end tests pass.
@@ -31,3 +31,7 @@ This migration is a database schema foundation, not a completed production login
 - Do not enable public table access.
 - Do not delete or overwrite existing local project data during migration. Future sync must import and verify it before switching reads and writes to the database.
 - Test with a non-owner account to verify cross-account reads and writes are denied.
+
+
+## Runtime configuration endpoint
+`/api/supabase-config` returns only `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (or the legacy public `SUPABASE_ANON_KEY`) so the browser can initialize the Supabase client. It never returns service-role or secret keys. The endpoint reports `configured: false` until both public environment variables are present.
