@@ -60,10 +60,10 @@ const DemoAI={mode:'test',
     const hero=s.blocks.find(b=>b.type==='hero');
     const sectionMap=[
       {type:'about',names:['om os','om virksomheden','om firmaet','about']},
-      {type:'services',names:['ydelser','tjenester','services','service']},
-      {type:'features',names:['fordele','hvorfor vælge os','fordelssektion']},
-      {type:'steps',names:['sådan foregår det','arbejdsgang','proces','trin']},
-      {type:'faq',names:['ofte stillede spørgsmål','spørgsmål og svar','faq']},
+      {type:'services',names:['ydelser','ydelsen','ydelse','tjenester','services','service']},
+      {type:'features',names:['fordele','fordelen','fordel','hvorfor vælge os','fordelssektion']},
+      {type:'steps',names:['sådan foregår det','arbejdsgang','processen','proces','trinnet','trin']},
+      {type:'faq',names:['ofte stillede spørgsmål','spørgsmål og svar','spørgsmålet','spørgsmål','faq']},
       {type:'gallery',names:['galleri','billedgalleri','portfolio','portefølje','billeder']},
       {type:'contact',names:['kontakt os','kontaktsektion','kontakt']},
       {type:'cta',names:['call to action','opfordring','cta']}
@@ -102,7 +102,7 @@ const DemoAI={mode:'test',
       else if(/kortere|kort/.test(m)&&hero.text){hero.text=hero.text.split(/(?<=[.!?])\s/)[0];add('Forsidens tekst er gjort kortere')}
     }
     if(hero&&heroButton&&q){hero.cta=q;add('Teksten på forsides knap er ændret')}
-    if(target&&/(tilføj|indsæt|opret|lav|vis)/.test(m)&&!/(ydelse|fordel|spørgsmål|trin)/.test(m)){
+    if(target&&/(tilføj|indsæt|opret|lav|vis)/.test(m)&&!(q&&/(ydelse|fordel|spørgsmål|trin)/.test(m))){
       if(!block){
         const nb=target.type==='gallery'?mk.gallery():mk[target.type](name,'');
         const ci=s.blocks.findIndex(b=>b.type==='contact');
