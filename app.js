@@ -238,7 +238,7 @@ const NAV=[
  ['Lead værktøjer',[['leadfinder','Lead Finder'],['leadhistory','Lead History']]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
- ['Finance',[['finance','Finance'],['stats','Statistik og analyser']]],
+ ['Finance',[['finance','Finance']]],\n ['Statistik og analyser',[['stats','Statistik og analyser']]],
  ['System',[
   ['settings','Indstillinger'],
   ['colors','Udseende og farver'],
@@ -258,14 +258,12 @@ const frame=p=>`<iframe title="Live preview" sandbox="allow-scripts" srcdoc="${e
 
 function vPick(t){const l=Projects.all();return `<h1>${PT[t]||'Vælg hjemmeside'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
 
-function vDash(){const l=Projects.all(),u=Session.user(),currentMonth=monthKey(),previousMonth=monthKey(new Date(new Date().getFullYear(),new Date().getMonth()-1,1)),currentResult=finSum('income',currentMonth)-finSum('expense',currentMonth),previousResult=finSum('income',previousMonth)-finSum('expense',previousMonth),hasComparison=previousResult>0,change=hasComparison?Math.round((currentResult-previousResult)/Math.abs(previousResult)*100):null,trend=currentResult>0?(hasComparison?(change>0?'up':change<0?'down':'flat'):'up'):'down',trendText=currentResult>0?(hasComparison?(change>0?'↗ '+change+'% vs. sidste måned':change<0?'↘ '+Math.abs(change)+'% vs. sidste måned':'→ På niveau med sidste måned'):'↗ Overskud denne måned'):(currentResult<0?'Resultatet er negativt':'Ingen registreret profit'),t=(n,x,extra='')=>`<div class="card dash-kpi"><span class="dash-kpi-label">${x}</span><strong class="dash-kpi-value">${n}</strong>${extra}<span class="dash-kpi-accent" aria-hidden="true"></span></div>`;
-  return `<section class="dash-hero"><div class="dash-hero-copy"><span class="dash-eyebrow"><span class="dash-live-dot"></span> PRIME WEBS AI <span class="dash-eyebrow-sep">/</span> WORKSPACE</span><h1>Godt at se dig igen, ${esc(u.name)}.</h1><p>Alle dine hjemmesider og værktøjer samlet ét sted.</p></div><div class="dash-hero-side"><span class="dash-status-pill"><span class="dash-live-dot"></span> Workspace aktivt</span><div class="dash-hero-mark">PW<span>AI</span></div></div></section>
-  <div class="dash-kpis">${t(l.length,'Hjemmesider')}${t(Customers.all().length,'Kunder')}${t(fmt(currentResult),'Resultat denne måned',`<span class="dash-kpi-trend ${trend}" aria-label="Udvikling sammenlignet med sidste måned">${trendText}</span>`)}${t(Credits.unlimited()?'Ubegrænset':Credits.balance(),'Dine credits')}</div>
-  <div class="dash-actions" style="display:flex;flex-wrap:wrap;gap:.75rem"><button class="btn dash-create-btn" data-act="go" data-v="new">＋ Create a new website</button><button class="btn" data-act="go" data-v="customers">Kundehjemmesider</button></div>
+function vDash(){const l=Projects.all(),u=Session.user();
+ const prompt=String(S.dashPrompt||'');
+ return `<section class="dash-hero"><div class="dash-hero-copy"><span class="dash-eyebrow"><span class="dash-live-dot"></span> PRIME WEBS AI <span class="dash-eyebrow-sep">/</span> WORKSPACE</span><h1>Godt at se dig igen, ${esc(u.name)}.</h1><p>Beskriv din idé, så hjælper AI'en dig med at bygge den.</p></div><div class="dash-hero-side"><span class="dash-status-pill"><span class="dash-live-dot"></span> Workspace aktivt</span><div class="dash-hero-mark">PW<span>AI</span></div></div></section>
+ <section class="dash-prompt-panel"><div class="dash-prompt-heading"><span class="dash-section-kicker">AI WEBSITE BUILDER</span><h2>Hvad skal vi bygge i dag?</h2><p>Beskriv din hjemmeside eller app med dine egne ord. AI'en går i gang med det samme.</p></div><textarea class="dash-prompt-input" data-dash-prompt rows="4" placeholder="Fx: Byg en moderne bookingside til en frisør i Málaga med priser, galleri og kontaktformular...">${esc(prompt)}</textarea><div class="dash-prompt-footer"><span class="mu">Tip: Skriv gerne branche, stil, funktioner og ønsker.</span><button class="btn dash-prompt-submit" data-act="dashGen" ${S.busy?'disabled':''}>${S.busy?'Arbejder…':'✦ Start byggeriet'}</button></div>${S.err?`<p class="err">${esc(S.err)}</p>`:''}</section>
   <div class="dash-section-head"><div><span class="dash-section-kicker">DIT ARBEJDE</span><h3>Dine projekter</h3></div><span class="mu">${l.length} i alt</span></div>
-  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Aktiv':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Opret en hjemmeside, og den vises automatisk her.</p></div>`}
-  <div class="dash-health"><div class="dash-section-head"><div><span class="dash-section-kicker">SYSTEMOVERBLIK</span><h3>Platformens status</h3></div></div><div class="dash-health-grid">${CK.map(([o,x])=>`<div class="ck dash-health-item"><span class="dash-check ${o?'ok':''}">${o?'✓':'○'}</span><span>${x}</span></div>`).join('')}</div></div>`}
-
+  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Aktiv':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Beskriv din idé ovenfor, så opretter vi dit første projekt.</p></div>`}`}
 function vBuilder(){return vEdit()}
 
 function vTpl(){return `<h1>Skabeloner</h1><p class="mu">Start fra en skabelon, og tilpas den bagefter.</p><div class="grid">${TPL.map((t,i)=>`<div class="card"><h3>${t.n}</h3><p class="mu">${t.d}</p><p class="mu">Stil: ${t.s}</p><button class="btn" data-act="tpl" data-i="${i}">Brug skabelon</button></div>`).join('')}</div>`}
@@ -445,7 +443,7 @@ function render0(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>${Credits.unlimited()?'∞ Ubegrænsede credits':Credits.balance()+' credits'}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>Dine credits: ${Storage.get('pw.credits',50)}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${safeView()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
@@ -485,7 +483,7 @@ function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='u
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(ext2(a,b)||ext(a,b))return render();
-  if(a==='gen')return generate();
+  if(a==='gen')return generate();\n  if(a==='dashGen'){const prompt=String(S.dashPrompt||'').trim();if(!prompt){S.err='Beskriv først, hvad du gerne vil bygge.';return render()}const words=prompt.replace(/^(build|create|make|lav|byg|opret)\\s+(a|an|en|et)?\\s*(website|site|hjemmeside|app|applikation)?\\s*(for|til)?\\s*/i,'').trim().split(/\\s+/).slice(0,6).join(' ');S.form={...S.form,name:(words||'Nyt projekt').slice(0,48),desc:prompt,style:'Moderne'};S.err='';return generate()}
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
@@ -495,7 +493,7 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(e.target.matches('[data-dash-prompt]'))S.dashPrompt=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
@@ -601,7 +599,7 @@ function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20"
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
   const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
-    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'){
+    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'||g==='Finance'||g==='Statistik og analyser'){
       const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
     }
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
