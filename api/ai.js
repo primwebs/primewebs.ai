@@ -16,7 +16,7 @@ services: {id,type:"services",title,items:[{t,d},...]} (4-6 concrete services)
 steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
-gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)
+gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
@@ -82,6 +82,8 @@ function sanitizeSite(site) {
     if (["features", "services", "steps", "faq"].includes(b.type)) {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
       out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
+    } else if (b.type === "booking") {
+      out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
       out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
