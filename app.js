@@ -9,14 +9,13 @@ const $=s=>document.querySelector(s);
 // Storage: browseren nu, database (fx Supabase) senere
 const Storage={mem:{},
   get(k,d){try{const v=localStorage.getItem(k);if(!v)return d;const x=JSON.parse(v);return(x==null||Array.isArray(x)!==Array.isArray(d)||typeof x!==typeof d)?d:x}catch(e){return k in this.mem?this.mem[k]:d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
-// Session: én lokal bruger nu, rigtigt login senere
-const Session={user:()=>({id:'local',name:'Ejer',role:'owner',email:Settings.get().ownerEmail}),can:()=>['owner','admin'].includes(Session.user().role)};
-// Credits: lokal tæller nu, regnskab + Stripe senere
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}if(window.PWDB)window.PWDB.persistKey(k,v)}};
+// Session og credits hentes fra Supabase efter login.
+const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,name:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.display_name)||'Bruger',role:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.role)||'user',email:(window.PWDB&&window.PWDB.user&&window.PWDB.user.email)||''}),can:()=>['owner','admin'].includes(Session.user().role)};
 const Credits={cost:{generate:10,edit:1},
-  unlimited:()=>false,
-  balance(){return this.unlimited()?Infinity:Storage.get('pw.credits',50)},
-  spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;Storage.set('pw.credits',b-c);return true}};
+  unlimited:()=>!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
+  balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
+  spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
 const Projects={all:()=>Storage.get('pw.projects',[]).map(fixP).filter(Boolean),save:l=>Storage.set('pw.projects',l)};
 const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
@@ -434,7 +433,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
     else{const j=i+ +d.d;if(j>=0&&j<bl.length)[bl[i],bl[j]]=[bl[j],bl[i]]}});return 1}
   if(a==='exp'){S.out=Renderer.html(Projects.all().find(p=>p.id===id));S.outId=id;return 1}
   if(a==='rdy'){upd(id,q=>{q.status=q.status==='ready'?'draft':'ready'});return 1}
-  if(a==='cadd'){const f=S.cf;if(!f.name.trim()){S.err='Skriv et navn.';return 1}const pl=PLANS.find(p=>p[0]===f.plan)||PLANS[0];Customers.save([{id:uid(),name:f.name.trim(),email:f.email.trim(),plan:pl[0],credits:pl[1],createdAt:Date.now()},...Customers.all()]);S.cf={name:'',email:'',plan:'Gratis'};S.err='';return 1}
+  if(a==='cadd'){const f=S.cf;if(!f.name.trim()){S.err='Skriv et navn.';return 1}const pl=PLANS.find(p=>p[0]===f.plan)||PLANS[0];Customers.save([{id:crypto.randomUUID(),name:f.name.trim(),email:f.email.trim(),plan:pl[0],credits:pl[1],createdAt:Date.now()},...Customers.all()]);S.cf={name:'',email:'',plan:'Gratis'};S.err='';return 1}
   if(a==='cc'){const c=Customers.all(),u=c.find(x=>x.id===id);if(u){u.credits=Math.max(0,u.credits+ +d.n);Customers.save(c)}return 1}
   if(a==='cdel'){if(S.cdel===id){Customers.save(Customers.all().filter(x=>x.id!==id));S.cdel=null}else S.cdel=id;return 1}
   if(a==='bk'){S.out=snap();S.outId='bk';return 1}
@@ -726,7 +725,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
-  try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
-  render()}
-function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Kun ejeren har adgang. Log ind med den GitHub-konto, der har den godkendte e-mail.</p>${location.search.includes('login=denied')?'<p class="err">Den GitHub-konto har ikke adgang, eller login blev afbrudt.</p>':''}<a class="btn" href="/api/auth/login">Log ind med GitHub</a></div></main>`}
+  try{
+    await window.PWDB.ready;
+    if(!window.PWDB.user)return loginScreen();
+    render();
+  }catch(e){
+    $('#app').innerHTML='<main class="main" style="max-width:560px;margin:10vh auto"><div class="card"><h1>Forbindelsen kunne ikke startes</h1><p class="err">'+esc(e.message||'Ukendt fejl')+'</p><p>Kontrollér Supabase-konfigurationen i Vercel, og genindlæs siden.</p></div></main>';
+  }
+}
+function loginScreen(){
+  $('#app').innerHTML='<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind med din e-mail. Vi sender dig et sikkert login-link.</p><form id="pwLoginForm"><label>E-mail<input id="pwLoginEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><button class="btn" type="submit">Send login-link</button><p id="pwLoginMessage" class="mu" aria-live="polite"></p></form></div></main>';
+  const form=$('#pwLoginForm');
+  if(form)form.addEventListener('submit',async e=>{e.preventDefault();const out=$('#pwLoginMessage'),btn=form.querySelector('button');btn.disabled=true;out.textContent='Sender login-link…';try{await window.PWDB.signIn($('#pwLoginEmail').value);out.textContent='Login-link sendt. Tjek din e-mail, og åbn linket på denne enhed.';}catch(err){out.textContent=err.message||'Kunne ikke sende login-link.';}finally{btn.disabled=false;}});
+}
 boot();
