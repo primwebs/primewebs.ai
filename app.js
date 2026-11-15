@@ -728,5 +728,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.targe
 async function boot(){
   try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
   render()}
-function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Kun ejeren har adgang. Log ind med den GitHub-konto, der har den godkendte e-mail.</p>${location.search.includes('login=denied')?'<p class="err">Den GitHub-konto har ikke adgang, eller login blev afbrudt.</p>':''}<a class="btn" href="/api/auth/login">Log ind med GitHub</a></div></main>`}
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='admin-code-form')return;
+  e.preventDefault();
+  const input=e.target.elements.code,button=e.target.querySelector('button'),error=$('#admin-code-error');
+  if(!input||!input.value)return;
+  button.disabled=true;button.textContent='Kontrollerer…';error.hidden=true;
+  try{
+    const r=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:input.value})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.error||'Admin-koden blev afvist.');
+    location.href='/';
+  }catch(err){error.textContent=err.message;error.hidden=false;input.value='';input.focus();button.disabled=false;button.textContent='Åbn admin'}
+});
+function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Dette dashboard er privat. Indtast din personlige admin-kode for at få adgang til dine projekter og admin-panelet.</p><form id="admin-code-form" style="display:grid;gap:12px;margin-top:22px"><label for="admin-code" style="font-weight:650">Admin code</label><input id="admin-code" name="code" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit"><button class="btn" type="submit">Åbn admin</button><p id="admin-code-error" class="err" role="alert" hidden></p></form>${location.search.includes('login=denied')?'<p class="err">Login blev afvist. Kontrollér din kode.</p>':''}</div></main>`}
 boot();
