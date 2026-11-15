@@ -1,7 +1,7 @@
 /* PRIME WEBS AI — Supabase Auth + cloud persistence.
    Only the public publishable key is used in the browser. */
 (function () {
-  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false };
+  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [] };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); }));
   const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
   const local = (key, fallback) => { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (_) { return fallback; } };
@@ -45,6 +45,8 @@
     const freshCustomers = await rows('customers');
     put('pw.projects', freshProjects.map(p=>({id:p.id,name:p.name,status:p.status,domain:p.domain,plan:p.plan,site:p.site,history:p.history,future:p.future,chat:p.chat,createdAt:Date.parse(p.created_at)||Date.now(),updatedAt:Date.parse(p.updated_at)||Date.now()})));
     put('pw.customers', freshCustomers.map(c=>Object.assign({id:c.id,name:c.name,email:c.email||'',phone:c.phone||'',notes:c.notes||'',createdAt:Date.parse(c.created_at)||Date.now()},c.data||{})));
+    state.lastProjects=freshProjects.map(p=>p.id);
+    state.lastCustomers=freshCustomers.map(c=>c.id);
     if (settings.data) put('pw.settings',settings.data.settings||{});
     else if (isOwner) {
       const current=local('pw.settings',{});
@@ -60,12 +62,18 @@
         const list=value.map(p=>{ if(!isUuid(p.id)) p.id=uuid(); return p; });
         put(key,list);
         const payload=list.map(p=>({id:p.id,user_id:user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
+        const currentIds=payload.map(p=>p.id), removed=state.lastProjects.filter(id=>!currentIds.includes(id));
+        if(removed.length){const {error}=await db.from('projects').delete().in('id',removed);if(error)throw error;}
         if(payload.length){const {error}=await db.from('projects').upsert(payload);if(error)throw error;}
+        state.lastProjects=currentIds;
       } else if (key==='pw.customers' && Array.isArray(value)) {
         const list=value.map(c=>{ if(!isUuid(c.id)) c.id=uuid(); return c; });
         put(key,list);
         const payload=list.map(c=>({id:c.id,user_id:user.id,name:c.name||'',email:c.email||null,phone:c.phone||null,notes:c.notes||null,data:{plan:c.plan||'Gratis',credits:c.credits||0,createdAt:c.createdAt||Date.now()}}));
+        const currentIds=payload.map(c=>c.id), removed=state.lastCustomers.filter(id=>!currentIds.includes(id));
+        if(removed.length){const {error}=await db.from('customers').delete().in('id',removed);if(error)throw error;}
         if(payload.length){const {error}=await db.from('customers').upsert(payload);if(error)throw error;}
+        state.lastCustomers=currentIds;
       } else if (key==='pw.settings') {
         const safe={...value}; delete safe.aiCode;
         const {error}=await db.from('user_settings').upsert({user_id:user.id,settings:safe,updated_at:new Date().toISOString()});
