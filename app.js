@@ -763,7 +763,10 @@ function loginScreen(initialMessage){
     if(!adminCode.trim())return;
     btn.disabled=true;adminMsg.textContent='Kontrollerer admin-koden…';
     try{
-      const response=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code:adminCode})});
+      const cfgResponse=await fetch('/api/supabase-config',{cache:'no-store'});
+      const cfg=await cfgResponse.json().catch(()=>({}));
+      if(!cfgResponse.ok||!cfg.supabasePublishableKey)throw new Error('Supabase-konfigurationen kunne ikke indlæses.');
+      const response=await fetch('https://kovinmyvsjzunymapxxm.supabase.co/functions/v1/admin-code-session',{method:'POST',headers:{'Content-Type':'application/json','apikey':cfg.supabasePublishableKey},body:JSON.stringify({code:adminCode})});
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Admin-login kunne ikke gennemføres.');
       if(!result.session||!result.session.access_token||!result.session.refresh_token)throw new Error('Supabase-sessionen blev ikke modtaget.');
