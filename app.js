@@ -742,7 +742,7 @@ function loginScreen(initialMessage){
     $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="err">Login kan ikke indlæses: '+esc(window.__pwInitError||'Supabase-forbindelsen mangler')+'</p><p class="mu">Prøv at genindlæse siden. Hvis fejlen fortsætter, skal hostingens Supabase-konfiguration kontrolleres.</p></div></main>';
     return;
   }
-  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p><div style="border-top:1px solid var(--line,#ddd);margin-top:1.4rem;padding-top:1.2rem"><h2 style="font-size:1.1rem;margin:0 0 .35rem">Admin code</h2><p class="mu" style="margin:.2rem 0 .8rem">Kun til administratoren. Indtast din faste admin-kode her.</p><form id="pwAdminCodeForm"><label>Admin code<input id="pwAdminCode" type="password" required autocomplete="current-password" placeholder="Indtast admin-kode"></label><button class="btn" id="pwAdminCodeSubmit" type="submit" style="margin-top:.8rem">Log ind med Admin code</button><p id="pwAdminCodeMessage" class="mu" aria-live="polite"></p></form></div></div></main>';
+  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p><div style="border-top:1px solid var(--line,#ddd);margin-top:1.4rem;padding-top:1.2rem"><h2 style="font-size:1.1rem;margin:0 0 .35rem">Admin code</h2><p class="mu" style="margin:.2rem 0 .8rem">Kun til administratoren. Indtast din faste admin-kode her.</p><form id="pwAdminCodeForm"><label>Admin code<input id="pwAdminCode" type="password" required autocomplete="current-password" placeholder="Indtast admin-kode"></label><button class="btn" id="pwAdminCodeSubmit" type="submit" style="margin-top:.8rem">Log ind med Admin code</button><div id="pwAdminOtpWrap" hidden style="margin-top:.9rem"><label>6-cifret e-mailkode<input id="pwAdminOtp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label><button class="btn" id="pwAdminOtpVerify" type="button" style="margin-top:.8rem">Bekræft og åbn admin</button></div><p id="pwAdminCodeMessage" class="mu" aria-live="polite"></p></form></div></div></main>';
   const form=$('#pwOtpForm'),email=()=>$('#pwOtpEmail').value.trim().toLowerCase(),code=()=>$('#pwOtpCode').value.trim(),msg=$('#pwOtpMessage');
   $('#pwOtpSend').addEventListener('click',async()=>{
     const btn=$('#pwOtpSend');if(!$('#pwOtpEmail').reportValidity())return;
@@ -763,15 +763,23 @@ function loginScreen(initialMessage){
     if(!adminCode.trim())return;
     btn.disabled=true;adminMsg.textContent='Kontrollerer admin-koden…';
     try{
-      const cfgResponse=await fetch('/api/supabase-config',{cache:'no-store'});
-      const cfg=await cfgResponse.json().catch(()=>({}));
-      if(!cfgResponse.ok||!cfg.supabasePublishableKey)throw new Error('Supabase-konfigurationen kunne ikke indlæses.');
-      const response=await fetch('https://kovinmyvsjzunymapxxm.supabase.co/functions/v1/admin-code-session',{method:'POST',headers:{'Content-Type':'application/json','apikey':cfg.supabasePublishableKey},body:JSON.stringify({code:adminCode})});
+      const response=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code:adminCode})});
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Admin-login kunne ikke gennemføres.');
-      if(!result.session||!result.session.access_token||!result.session.refresh_token)throw new Error('Supabase-sessionen blev ikke modtaget.');
-      const {error:sessionError}=await window.PWDB.client.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});
-      if(sessionError)throw sessionError;
+      await window.PWDB.sendEmailOtp('primewebssupport@gmail.com');
+      $('#pwAdminCode').disabled=true;
+      btn.hidden=true;
+      $('#pwAdminOtpWrap').hidden=false;
+      $('#pwAdminOtp').focus();
+      adminMsg.textContent='Admin-koden er godkendt. En engangskode er sendt til din ejer-e-mail. Indtast den for at åbne dashboardet.';
+    }catch(err){adminMsg.textContent=err.message||'Admin-login kunne ikke gennemføres.';btn.disabled=false;}
+  });
+  $('#pwAdminOtpVerify').addEventListener('click',async()=>{
+    const btn=$('#pwAdminOtpVerify'),token=$('#pwAdminOtp').value.trim();
+    if(!/^\\d{6}$/.test(token)){adminMsg.textContent='Indtast den 6-cifrede kode fra e-mailen.';return;}
+    btn.disabled=true;adminMsg.textContent='Bekræfter ejerkonto…';
+    try{
+      await window.PWDB.verifyEmailOtp('primewebssupport@gmail.com',token);
       await window.PWDB.refresh();
       if(!window.PWDB.user||window.PWDB.user.email.toLowerCase()!=='primewebssupport@gmail.com'||!window.PWDB.profile||window.PWDB.profile.role!=='owner'){
         await window.PWDB.client.auth.signOut();
@@ -780,8 +788,7 @@ function loginScreen(initialMessage){
       S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
       adminMsg.textContent='Du er logget ind som ejer.';
       render();
-    }catch(err){adminMsg.textContent=err.message||'Admin-login kunne ikke gennemføres.';}
-    finally{btn.disabled=false;$('#pwAdminCode').value='';}
+    }catch(err){adminMsg.textContent=err.message||'E-mailkoden kunne ikke bekræftes.';btn.disabled=false;}
   });
   form.addEventListener('submit',async e=>{
     e.preventDefault();
