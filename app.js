@@ -461,7 +461,7 @@ function render0(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>Dine credits: ${Storage.get('pw.credits',50)}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">${esc(String(u.role||'user').toUpperCase())}</span><div>Dine credits: ${Credits.unlimited()?'Ubegrænset':Credits.balance()}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div><button class="btn ghost" data-act="logout" style="margin-top:.6rem">Log ud</button></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${safeView()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
@@ -501,6 +501,7 @@ function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='u
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(ext2(a,b)||ext(a,b))return render();
+  if(a==='logout'){if(window.PWDB)window.PWDB.signOut().catch(err=>banner(err.message));return}
   if(a==='gen')return generate();
   if(a==='dashGen'){const prompt=String(S.dashPrompt||'').trim();if(!prompt){S.err='Beskriv først, hvad du gerne vil bygge.';return render()}const words=prompt.replace(/^(build|create|make|lav|byg|opret)\s+(a|an|en|et)?\s*(website|site|hjemmeside|app|applikation)?\s*(for|til)?\s*/i,'').trim().split(/\s+/).slice(0,6).join(' ');S.form={...S.form,name:(words||'Nyt projekt').slice(0,48),desc:prompt,style:'Moderne'};S.err='';return generate()}
   if(a==='send')return send($('#chatin').value);
@@ -667,7 +668,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="proj"],
   if(d.x==='proj'){S.id=d.id;if(!PB.includes(S.view))S.view='edit';S.err=''}else S.form={...S.form,desc:d.t};render()});
 document.addEventListener('toggle',e=>{if(e.target.dataset&&e.target.dataset.more!==undefined)S.more=e.target.open},true);
 const _vA2=V.admin;
-V.admin=()=>_vA2()+`<div class="card" style="margin-top:1rem;max-width:720px"><h3>Login og adgang</h3><p>${S.auth&&S.auth.enabled?'Login er aktivt. Kun den godkendte e-mail kan åbne dashboardet og bruge AI-generatoren.':'Login er ikke aktiveret endnu. Alle, der kender adressen, kan åbne dashboardet (men dine data ligger kun i din egen browser, og AI-generatoren kræver adgangskode). Se README for opsætning.'}</p>${S.auth&&S.auth.authenticated?`<p class="mu">Logget ind som ${esc(S.auth.email)}</p><a class="btn ghost" href="/api/auth/logout">Log ud</a>`:''}</div>`;
+V.admin=()=>_vA2()+`<div class="card" style="margin-top:1rem;max-width:720px"><h3>Login og adgang</h3><p>Login styres af Supabase Auth med sikre e-mail-links. Projekter, kunder, brugerindstillinger og credits synkroniseres med Supabase.</p>${S.auth&&S.auth.authenticated?`<p class="mu">Logget ind som ${esc(S.auth.email)}</p>`:''}</div>`;
 /* ===== Billeder i hjemmesider ===== */
 const Imgs={all:()=>Storage.get('pw.img',{}),add(id,url){try{const m=this.all();m[id]=url;localStorage.setItem('pw.img',JSON.stringify(m));return true}catch(e){return false}}};
 function imgSrc(r){r=String(r||'');if(r.startsWith('img:'))return Imgs.all()[r.slice(4)]||'';return /^https?:\/\/[^\s"'<>]+$/i.test(r)?r:''}
@@ -728,6 +729,7 @@ async function boot(){
   try{
     await window.PWDB.ready;
     if(!window.PWDB.user)return loginScreen();
+    S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
     render();
   }catch(e){
     $('#app').innerHTML='<main class="main" style="max-width:560px;margin:10vh auto"><div class="card"><h1>Forbindelsen kunne ikke startes</h1><p class="err">'+esc(e.message||'Ukendt fejl')+'</p><p>Kontrollér Supabase-konfigurationen i Vercel, og genindlæs siden.</p></div></main>';
