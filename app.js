@@ -742,7 +742,7 @@ function loginScreen(initialMessage){
     $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="err">Login kan ikke indlæses: '+esc(window.__pwInitError||'Supabase-forbindelsen mangler')+'</p><p class="mu">Prøv at genindlæse siden. Hvis fejlen fortsætter, skal hostingens Supabase-konfiguration kontrolleres.</p></div></main>';
     return;
   }
-  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p></div></main>';
+  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p><div style="border-top:1px solid var(--line,#ddd);margin-top:1.4rem;padding-top:1.2rem"><h2 style="font-size:1.1rem;margin:0 0 .35rem">Admin code</h2><p class="mu" style="margin:.2rem 0 .8rem">Kun til administratoren. Indtast din faste admin-kode her.</p><form id="pwAdminCodeForm"><label>Admin code<input id="pwAdminCode" type="password" required autocomplete="current-password" placeholder="Indtast admin-kode"></label><button class="btn" id="pwAdminCodeSubmit" type="submit" style="margin-top:.8rem">Log ind med Admin code</button><p id="pwAdminCodeMessage" class="mu" aria-live="polite"></p></form></div></div></main>';
   const form=$('#pwOtpForm'),email=()=>$('#pwOtpEmail').value.trim().toLowerCase(),code=()=>$('#pwOtpCode').value.trim(),msg=$('#pwOtpMessage');
   $('#pwOtpSend').addEventListener('click',async()=>{
     const btn=$('#pwOtpSend');if(!$('#pwOtpEmail').reportValidity())return;
@@ -755,6 +755,20 @@ function loginScreen(initialMessage){
       msg.textContent='Hvis e-mailadressen har en aktiv konto, er en kode sendt. Tjek også spam/uønsket post.';
     }catch(err){msg.textContent=err.message||'Kunne ikke sende login-koden.';}
     finally{btn.disabled=false;}
+  });
+  const adminForm=$('#pwAdminCodeForm'),adminMsg=$('#pwAdminCodeMessage');
+  adminForm.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const btn=$('#pwAdminCodeSubmit'),adminCode=$('#pwAdminCode').value;
+    if(!adminCode.trim())return;
+    btn.disabled=true;adminMsg.textContent='Kontrollerer admin-koden…';
+    try{
+      const response=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code:adminCode})});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'Admin-login kunne ikke gennemføres.');
+      adminMsg.textContent='Admin-koden blev godkendt, men administrator-sessionen er endnu ikke koblet til dashboardets Supabase-login. Kontakt support for at færdiggøre opsætningen.';
+    }catch(err){adminMsg.textContent=err.message||'Admin-login kunne ikke gennemføres.';}
+    finally{btn.disabled=false;$('#pwAdminCode').value='';}
   });
   form.addEventListener('submit',async e=>{
     e.preventDefault();
