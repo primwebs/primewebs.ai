@@ -738,36 +738,59 @@ async function boot(){
   }
 }
 function loginScreen(initialMessage){
-  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><button class="btn" id="pwGoogleSignIn" type="button" style="width:100%;margin:.5rem 0 1rem">Fortsæt med Google</button><p class="mu" style="text-align:center">eller log ind med e-mail</p><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p></div></main>';
-  const form=$('#pwOtpForm'),email=()=>$('#pwOtpEmail').value.trim().toLowerCase(),code=()=>$('#pwOtpCode').value.trim(),msg=$('#pwOtpMessage');
+  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><button class="btn" id="pwGoogleSignIn" type="button" style="width:100%;margin:.5rem 0 1rem">Fortsæt med Google</button><p class="mu" style="text-align:center">eller brug e-mail og adgangskode</p><form id="pwEmailForm"><label>E-mail<input id="pwEmail" type="email" required autocomplete="email"></label><label style="display:block;margin-top:.8rem">Adgangskode<input id="pwPassword" type="password" required autocomplete="current-password"></label><div id="pwConfirmWrap" hidden style="margin-top:.8rem"><label>Gentag adgangskode<input id="pwConfirmPassword" type="password" autocomplete="new-password"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwEmailSubmit" type="submit">Log ind</button><button class="btn" id="pwModeToggle" type="button">Opret konto</button></div><button class="btn" id="pwForgotPassword" type="button" style="margin-top:.8rem">Glemt adgangskode?</button><p id="pwAuthMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Ved oprettelse sender vi et bekræftelseslink til din e-mail. Åbn linket for at aktivere kontoen.</p></div></main>';
+  const form=$('#pwEmailForm'),email=()=>$('#pwEmail').value.trim().toLowerCase(),password=()=>$('#pwPassword').value,msg=$('#pwAuthMessage');
+  let mode='login';
+  const confirmWrap=$('#pwConfirmWrap'),submit=$('#pwEmailSubmit'),toggle=$('#pwModeToggle'),forgot=$('#pwForgotPassword');
+  function setMode(next){
+    mode=next;
+    const creating=mode==='signup';
+    confirmWrap.hidden=!creating;
+    $('#pwConfirmPassword').required=creating;
+    $('#pwPassword').autocomplete=creating?'new-password':'current-password';
+    submit.textContent=creating?'Opret konto':'Log ind';
+    toggle.textContent=creating?'Jeg har allerede en konto':'Opret konto';
+    forgot.hidden=creating;
+    msg.textContent=creating?'Opret en konto med din e-mail og adgangskode. Du får derefter et bekræftelseslink på e-mail.':'';
+  }
+  toggle.addEventListener('click',()=>setMode(mode==='login'?'signup':'login'));
   $('#pwGoogleSignIn').addEventListener('click',async()=>{
     const btn=$('#pwGoogleSignIn');btn.disabled=true;msg.textContent='Forbinder til Google…';
     try{await window.PWDB.signInGoogle();}
     catch(err){msg.textContent=err.message||'Google-login kunne ikke startes.';btn.disabled=false;}
   });
-  $('#pwOtpSend').addEventListener('click',async()=>{
-    const btn=$('#pwOtpSend');if(!$('#pwOtpEmail').reportValidity())return;
-    btn.disabled=true;msg.textContent='Sender en engangskode…';
-    try{
-      await window.PWDB.sendEmailOtp(email());
-      $('#pwOtpCodeWrap').hidden=false;
-      $('#pwOtpVerify').hidden=false;
-      $('#pwOtpCode').focus();
-      msg.textContent='Hvis e-mailadressen har en aktiv konto, er en kode sendt. Tjek også spam/uønsket post.';
-    }catch(err){msg.textContent=err.message||'Kunne ikke sende login-koden.';}
-    finally{btn.disabled=false;}
+  forgot.addEventListener('click',async()=>{
+    if(!$('#pwEmail').reportValidity())return;
+    forgot.disabled=true;msg.textContent='Sender link til nulstilling af adgangskode…';
+    try{await window.PWDB.resetPassword(email());msg.textContent='Hvis adressen har en konto, er der sendt et link til nulstilling af adgangskoden.';}
+    catch(err){msg.textContent=err.message||'Kunne ikke sende nulstillingslinket.';}
+    finally{forgot.disabled=false;}
   });
   form.addEventListener('submit',async e=>{
     e.preventDefault();
-    if(!$('#pwOtpCode').reportValidity())return;
-    const btn=$('#pwOtpVerify');btn.disabled=true;msg.textContent='Kontrollerer koden…';
+    if(!form.reportValidity())return;
+    if(mode==='signup' && password()!==$('#pwConfirmPassword').value){msg.textContent='Adgangskoderne er ikke ens.';return;}
+    submit.disabled=true;toggle.disabled=true;
+    msg.textContent=mode==='signup'?'Opretter din konto…':'Logger ind…';
     try{
-      await window.PWDB.verifyEmailOtp(email(),code());
-      await window.PWDB.refresh();
-      S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
-      render();
-    }catch(err){msg.textContent=err.message||'Koden er forkert eller udløbet. Prøv at sende en ny.';}
-    finally{btn.disabled=false;}
+      if(mode==='signup'){
+        const data=await window.PWDB.signUp(email(),password());
+        if(data&&data.session){
+          await window.PWDB.refresh();
+          S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+          render();
+        }else{
+          msg.textContent='Kontoen er oprettet. Tjek din e-mail, og klik på bekræftelseslinket for at aktivere kontoen. Du kan derefter logge ind med din adgangskode.';
+          setMode('login');
+        }
+      }else{
+        await window.PWDB.signInPassword(email(),password());
+        await window.PWDB.refresh();
+        S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+        render();
+      }
+    }catch(err){msg.textContent=err.message||(mode==='signup'?'Kontoen kunne ikke oprettes.':'Login mislykkedes. Kontrollér e-mail og adgangskode.');}
+    finally{submit.disabled=false;toggle.disabled=false;}
   });
 }
 
