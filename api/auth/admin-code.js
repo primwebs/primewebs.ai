@@ -18,7 +18,8 @@ async function callOwnerFunction(action) {
       "Content-Type": "application/json",
       "apikey": key,
       "Authorization": "Bearer " + key,
-      "x-edge-internal-secret": secret
+      "x-edge-internal-secret": secret,
+      "x-client-ip": String(req.headers["x-forwarded-for"] || req.socket && req.socket.remoteAddress || "unknown").split(",")[0].trim()
     },
     body: JSON.stringify({ action })
   });
