@@ -766,7 +766,17 @@ function loginScreen(initialMessage){
       const response=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({code:adminCode})});
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Admin-login kunne ikke gennemføres.');
-      adminMsg.textContent='Admin-koden blev godkendt, men administrator-sessionen er endnu ikke koblet til dashboardets Supabase-login. Kontakt support for at færdiggøre opsætningen.';
+      if(!result.session||!result.session.access_token||!result.session.refresh_token)throw new Error('Supabase-sessionen blev ikke modtaget.');
+      const {error:sessionError}=await window.PWDB.client.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token});
+      if(sessionError)throw sessionError;
+      await window.PWDB.refresh();
+      if(!window.PWDB.user||window.PWDB.user.email.toLowerCase()!=='primewebssupport@gmail.com'||!window.PWDB.profile||window.PWDB.profile.role!=='owner'){
+        await window.PWDB.client.auth.signOut();
+        throw new Error('Kontoen har ikke ejeradgang.');
+      }
+      S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+      adminMsg.textContent='Du er logget ind som ejer.';
+      render();
     }catch(err){adminMsg.textContent=err.message||'Admin-login kunne ikke gennemføres.';}
     finally{btn.disabled=false;$('#pwAdminCode').value='';}
   });
