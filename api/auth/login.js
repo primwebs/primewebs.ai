@@ -3,7 +3,7 @@ const a = require("../_auth");
 
 module.exports = (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!a.enabled()) return res.status(404).send("Login er ikke aktiveret.");
+  if (!a.githubEnabled()) return res.status(404).send("Login er ikke aktiveret.");
   const state = crypto.randomBytes(16).toString("hex");
   res.setHeader("Set-Cookie", a.cookie("pw_state", state, 600));
   const q = new URLSearchParams({
