@@ -119,7 +119,7 @@ module.exports = async (req, res) => {
   }
   if (!token) return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
   try {
-    const verified = await fetch(supabaseUrl.replace(/\\/+$/, "") + "/auth/v1/user", {
+    const verified = await fetch(supabaseUrl + "/auth/v1/user", {
       headers: { apikey: publishableKey, Authorization: "Bearer " + token }
     });
     if (!verified.ok) return res.status(401).json({ error: "Din session er udløbet. Log ind igen." });
