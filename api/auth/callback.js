@@ -9,7 +9,7 @@ const done = (res, where, cookies) => {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!a.enabled()) return res.status(404).send("Login er ikke aktiveret.");
+  if (!a.githubEnabled()) return res.status(404).send("Login er ikke aktiveret.");
   const clear = a.cookie("pw_state", "", 0);
   const url = new URL(req.url, "http://x");
   const code = url.searchParams.get("code"), state = url.searchParams.get("state");
