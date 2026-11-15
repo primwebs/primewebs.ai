@@ -3,7 +3,9 @@
 const crypto = require("crypto");
 
 const env = k => String(process.env[k] || "").trim();
-const enabled = () => Boolean(env("GITHUB_CLIENT_ID") && env("GITHUB_CLIENT_SECRET") && env("ALLOWED_EMAIL") && env("SESSION_SECRET").length >= 32);
+const githubEnabled = () => Boolean(env("GITHUB_CLIENT_ID") && env("GITHUB_CLIENT_SECRET") && env("ALLOWED_EMAIL") && env("SESSION_SECRET").length >= 32);
+const adminCodeEnabled = () => Boolean(env("ADMIN_CODE") && env("ALLOWED_EMAIL") && env("SESSION_SECRET").length >= 32);
+const enabled = () => githubEnabled() || adminCodeEnabled();
 
 const b64 = s => Buffer.from(s).toString("base64url");
 const mac = data => crypto.createHmac("sha256", env("SESSION_SECRET")).update(data).digest("base64url");
@@ -43,4 +45,4 @@ function base(req) {
   return env("PUBLIC_URL").replace(/\/+$/, "") || "https://" + (h["x-forwarded-host"] || h.host);
 }
 
-module.exports = { enabled, sign, verify, cookies, cookie, session, base, env };
+module.exports = { enabled, githubEnabled, adminCodeEnabled, sign, verify, cookies, cookie, session, base, env };
