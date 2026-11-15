@@ -32,12 +32,10 @@ function extractJSON(text) {
   return JSON.parse(cleaned.slice(first, last + 1));
 }
 
-// --- Sikkerhed: adgangskode, begrænsning og validering ---
-const crypto = require("crypto");
-const hits = new Map(); // simpel begrænsning pr. IP (nulstilles, når serverinstansen genstarter)
+// --- Sikkerhed: begrænsning og validering ---
+const hits = new Map();
 const WINDOW_MS = 60 * 1000;
 const MAX_PER_WINDOW = 12;
-
 function rateLimited(ip) {
   const now = Date.now();
   const list = (hits.get(ip) || []).filter(t => now - t < WINDOW_MS);
@@ -45,14 +43,6 @@ function rateLimited(ip) {
   hits.set(ip, list);
   if (hits.size > 5000) hits.clear();
   return list.length > MAX_PER_WINDOW;
-}
-
-function codeOk(given) {
-  const expected = String(process.env.ACCESS_CODE || "");
-  if (!expected) return false;
-  const a = crypto.createHash("sha256").update(String(given || "")).digest();
-  const b = crypto.createHash("sha256").update(expected).digest();
-  return crypto.timingSafeEqual(a, b);
 }
 
 const TEXT_FIELDS = { hero: ["title", "text", "cta"], about: ["title", "text"], cta: ["title", "text", "cta"], contact: ["title", "text", "email", "phone"] };
@@ -120,15 +110,21 @@ module.exports = async (req, res) => {
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "For mange forespørgsler. Vent et minut, og prøv igen." });
   }
-  const auth = require("./_auth");
-  if (auth.enabled() && !auth.session(req)) {
-    return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
+  const supabaseUrl = String(process.env.SUPABASE_URL || "").trim();
+  const publishableKey = String(process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "").trim();
+  const authorization = String((req.headers || {}).authorization || "");
+  const token = authorization.toLowerCase().startsWith("bearer ") ? authorization.slice(7).trim() : "";
+  if (!supabaseUrl || !publishableKey) {
+    return res.status(503).json({ error: "Supabase-serverkonfigurationen mangler i Vercel." });
   }
-  if (!process.env.ACCESS_CODE) {
-    return res.status(503).json({ error: "AI-generatoren er låst, indtil ACCESS_CODE er sat under Vercel → Settings → Environment Variables." });
-  }
-  if (!codeOk((req.headers || {})["x-access-code"])) {
-    return res.status(401).json({ error: "Adgangskoden mangler eller er forkert. Skriv den under Indstillinger → AI-adgangskode." });
+  if (!token) return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
+  try {
+    const verified = await fetch(supabaseUrl + "/auth/v1/user", {
+      headers: { apikey: publishableKey, Authorization: "Bearer " + token }
+    });
+    if (!verified.ok) return res.status(401).json({ error: "Din session er udløbet. Log ind igen." });
+  } catch (_) {
+    return res.status(503).json({ error: "Kunne ikke kontrollere din Supabase-session." });
   }
   if (!process.env.ANTHROPIC_API_KEY) {
     return res.status(503).json({
