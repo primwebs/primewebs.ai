@@ -13,7 +13,6 @@
 1. Importér repositoryet i Vercel (Add New → Project).
 2. Under Settings → Environment Variables tilføjer du:
    - `ANTHROPIC_API_KEY`: din nøgle fra console.anthropic.com
-   - `ACCESS_CODE`: en adgangskode, du selv vælger (lang og svær at gætte)
    - `ANTHROPIC_MODEL` (valgfri): standard er `claude-sonnet-5-5`
 3. Deploy igen. Åbn dashboardet, gå til **Indstillinger**, og skriv samme adgangskode i feltet **AI-adgangskode**.
 
@@ -47,8 +46,4 @@ Ejerkontoen `primewebssupport@gmail.com` får rollen `owner` og ubegrænsede cre
 
 ## AI-server
 
-For rigtig AI-generering skal du selv tilføje følgende hemmelige miljøvariabler i Vercel:
-- `ANTHROPIC_API_KEY`: API-nøgle fra Anthropic Console (må aldrig lægges i GitHub eller browseren).
-- `ACCESS_CODE`: en lang, selvvalgt adgangskode. Den samme kode indtastes i dashboardets AI-indstillinger.
-
-Uden disse to værdier falder AI-generatoren tilbage til demo-tilstand.
+For rigtig AI-generering skal du tilføje `ANTHROPIC_API_KEY` som en hemmelig miljøvariabel i Vercel. Nøglen fra Anthropic Console må aldrig lægges i GitHub eller browseren. Uden nøglen falder AI-generatoren tilbage til demo-tilstand.
