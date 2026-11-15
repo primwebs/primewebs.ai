@@ -31,8 +31,14 @@ Uden nøgle eller adgangskode kører dashboardet i **demo-tilstand** med testgen
 - `website/primewebs.html`, `primewebs.html`: salgssiden
 - `docs/`: projektnoter
 
-## Login: kun én e-mail har adgang (valgfrit)
-Uden login kan alle, der kender adressen, åbne dashboardet. Sådan begrænser du adgangen til én e-mail:
+## Privat admin-login med kode
+Dashboardet kan låses med en personlig admin-kode. Tilføj disse miljøvariabler i Vercel → Settings → Environment Variables:
+- `ADMIN_CODE`: din nye, hemmelige admin-kode (brug ikke en kode, der allerede er delt i chat eller andre steder).
+- `SESSION_SECRET`: en tilfældig hemmelig tekst på mindst 32 tegn.
+Deploy igen. Login-siden viser derefter feltet **Admin code**. En korrekt kode opretter en sikker, httpOnly-sessioncookie i 7 dage. AI-endpointet kræver også denne session.
+
+## Login med GitHub (alternativ)
+Du kan også aktivere GitHub OAuth med én godkendt e-mail:
 
 1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App. Homepage URL: din Vercel-adresse. Callback URL: `<din Vercel-adresse>/api/auth/callback`. Kopiér Client ID, og opret en Client secret.
 2. Vercel → Settings → Environment Variables, tilføj `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SESSION_SECRET` (en tilfældig tekst på mindst 32 tegn), `ALLOWED_EMAIL` (den e-mail, der må logge ind, og som er bekræftet på din GitHub-konto) og helst `PUBLIC_URL`. Deploy igen.
