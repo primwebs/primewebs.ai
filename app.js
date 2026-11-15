@@ -726,6 +726,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.targe
 async function boot(){
   try{
     await window.PWDB.ready;
+    if(new URLSearchParams(window.location.search).get('pw-reset')==='1')return loginScreen('recovery');
     if(!window.PWDB.user)return loginScreen();
     S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
     render();
@@ -733,11 +734,47 @@ async function boot(){
     $('#app').innerHTML='<main class="main" style="max-width:560px;margin:10vh auto"><div class="card"><h1>Forbindelsen kunne ikke startes</h1><p class="err">'+esc(e.message||'Ukendt fejl')+'</p><p>Kontrollér Supabase-konfigurationen i Vercel, og genindlæs siden.</p></div></main>';
   }
 }
-function loginScreen(){
-  $('#app').innerHTML='<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Opret en konto eller log ind med e-mail og adgangskode.</p><form id="pwAuthForm"><label>E-mail<input id="pwAuthEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><label style="display:block;margin-top:.8rem">Adgangskode<input id="pwAuthPassword" type="password" required minlength="8" autocomplete="current-password" placeholder="Mindst 8 tegn"></label><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwSignInBtn" type="submit">Log ind</button><button class="btn" id="pwSignUpBtn" type="button">Opret konto</button></div><p id="pwAuthMessage" class="mu" aria-live="polite"></p></form><div style="text-align:center;margin:1rem 0">eller</div><button class="btn" id="pwGoogleBtn" type="button" style="width:100%">Fortsæt med Google</button><p class="mu" style="font-size:.85rem;margin-top:1rem">Ved oprettelse kan du blive bedt om at bekræfte din e-mail.</p></div></main>';
+function loginScreen(mode){
+  const recovery=mode==='recovery';
+  $('#app').innerHTML='<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">'+(recovery?'Vælg en ny adgangskode til din konto.':'Log ind med e-mail og adgangskode, eller opret en konto.')+'</p><form id="pwAuthForm"><label>E-mail<input id="pwAuthEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com" '+(recovery?'readonly':'')+'></label><label style="display:block;margin-top:.8rem">'+(recovery?'Ny adgangskode':'Adgangskode')+'<input id="pwAuthPassword" type="password" required minlength="8" autocomplete="'+(recovery?'new-password':'current-password')+'" placeholder="Mindst 8 tegn"></label><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwSignInBtn" type="submit">'+(recovery?'Gem ny adgangskode':'Log ind')+'</button>'+(recovery?'':'<button class="btn" id="pwSignUpBtn" type="button">Opret konto</button>')+'</div><p id="pwAuthMessage" class="mu" aria-live="polite"></p></form>'+(recovery?'':'<div style="text-align:center;margin:1rem 0">eller</div><button class="btn" id="pwGoogleBtn" type="button" style="width:100%">Fortsæt med Google</button><button class="btn" id="pwForgotBtn" type="button" style="width:100%;margin-top:.7rem;background:transparent;color:inherit">Glemt adgangskode?</button><p class="mu" style="font-size:.85rem;margin-top:1rem">Ved oprettelse kan du blive bedt om at bekræfte din e-mail.</p>')+'</div></main>';
   const form=$('#pwAuthForm'),msg=$('#pwAuthMessage'),email=()=>$('#pwAuthEmail').value,password=()=>$('#pwAuthPassword').value;
-  form.addEventListener('submit',async e=>{e.preventDefault();const btn=$('#pwSignInBtn');btn.disabled=true;msg.textContent='Logger ind…';try{await window.PWDB.signInPassword(email(),password());msg.textContent='Du er logget ind.';}catch(err){msg.textContent=err.message||'Kunne ikke logge ind.';}finally{btn.disabled=false;}});
-  $('#pwSignUpBtn').addEventListener('click',async()=>{const btn=$('#pwSignUpBtn');if(!form.reportValidity())return;btn.disabled=true;msg.textContent='Opretter konto…';try{const result=await window.PWDB.signUp(email(),password());msg.textContent=result&&result.session?'Konto oprettet. Du er logget ind.':'Konto oprettet. Tjek din e-mail og bekræft kontoen via linket.';}catch(err){msg.textContent=err.message||'Kunne ikke oprette konto.';}finally{btn.disabled=false;}});
-  $('#pwGoogleBtn').addEventListener('click',async()=>{const btn=$('#pwGoogleBtn');btn.disabled=true;msg.textContent='Åbner Google-login…';try{await window.PWDB.signInGoogle();}catch(err){msg.textContent=err.message||'Google-login kunne ikke startes.';btn.disabled=false;}});
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();const btn=$('#pwSignInBtn');btn.disabled=true;
+    msg.textContent=recovery?'Gemmer ny adgangskode…':'Logger ind…';
+    try{
+      if(recovery){
+        await window.PWDB.updatePassword(password());
+        history.replaceState({},document.title,window.location.pathname);
+        await window.PWDB.refresh();
+        S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+        render();
+      }else{
+        await window.PWDB.signInPassword(email(),password());
+        await window.PWDB.refresh();
+        S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+        render();
+      }
+    }catch(err){msg.textContent=err.message|| (recovery?'Kunne ikke ændre adgangskoden.':'Kunne ikke logge ind.');}
+    finally{btn.disabled=false;}
+  });
+  if(!recovery){
+    $('#pwSignUpBtn').addEventListener('click',async()=>{
+      const btn=$('#pwSignUpBtn');if(!form.reportValidity())return;btn.disabled=true;msg.textContent='Opretter konto…';
+      try{const result=await window.PWDB.signUp(email(),password());msg.textContent=result&&result.session?'Konto oprettet. Du er logget ind.':'Konto oprettet. Tjek din e-mail og bekræft kontoen via linket.';}
+      catch(err){msg.textContent=err.message||'Kunne ikke oprette konto.';}
+      finally{btn.disabled=false;}
+    });
+    $('#pwForgotBtn').addEventListener('click',async()=>{
+      const btn=$('#pwForgotBtn');btn.disabled=true;msg.textContent='Sender e-mail til nulstilling…';
+      try{await window.PWDB.resetPassword(email());msg.textContent='E-mail til nulstilling er sendt. Åbn den og vælg en ny adgangskode.';}
+      catch(err){msg.textContent=err.message||'Kunne ikke sende nulstillingsmail.';}
+      finally{btn.disabled=false;}
+    });
+    $('#pwGoogleBtn').addEventListener('click',async()=>{
+      const btn=$('#pwGoogleBtn');btn.disabled=true;msg.textContent='Åbner Google-login…';
+      try{await window.PWDB.signInGoogle();}
+      catch(err){msg.textContent=err.message||'Google-login kunne ikke startes.';btn.disabled=false;}
+    });
+  }
 }
 boot();
