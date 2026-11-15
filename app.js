@@ -738,7 +738,26 @@ async function boot(){
 }
 function loginScreen(){
   S.auth={enabled:false,authenticated:false,email:''};
-  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><h2>Login midlertidigt deaktiveret</h2><p>Vi færdiggør ejerlogin med admin-kode. E-mail-login og admin-kode-login er midlertidigt lukket, så du ikke bliver sendt gennem et loginforløb, der ikke opfylder kravet.</p><p class="mu">Dine eksisterende projekter og data er ikke slettet. Prøv igen, når ejerlogin er færdigtestet.</p></div></main>';
+  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:8vh auto;padding:0 16px"><div class="card"><h1>PRIME WEBS AI</h1><h2>Log ind</h2><p class="mu">Log ind med din e-mail, eller brug ejerens admin-kode.</p><form id="pwEmailLogin" style="display:grid;gap:10px;margin:18px 0"><label>E-mail<input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="Din e-mailadresse" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Send login-kode</button></form><form id="pwOtpLogin" style="display:none;gap:10px;margin:12px 0"><label>6-cifret kode<input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Kode fra din e-mail" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Bekræft e-mailkode</button></form><div style="border-top:1px solid #ddd;margin:22px 0;padding-top:18px"><h3>Ejerlogin</h3><form id="pwAdminLogin" style="display:grid;gap:10px"><label>Admin-kode<input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Log ind som ejer</button></form></div><p id="pwLoginMessage" class="mu" role="status" aria-live="polite"></p></div></main>';
+  const msg=document.getElementById('pwLoginMessage');
+  const busy=on=>document.querySelectorAll('#pwEmailLogin button,#pwOtpLogin button,#pwAdminLogin button').forEach(b=>b.disabled=on);
+  const finish=async()=>{await window.PWDB.refresh();S.auth={enabled:true,authenticated:true,email:window.PWDB.user&&window.PWDB.user.email||''};render();};
+  document.getElementById('pwEmailLogin').addEventListener('submit',async e=>{
+    e.preventDefault();busy(true);msg.textContent='Sender login-kode…';
+    try{await window.PWDB.sendEmailOtp(document.getElementById('pwLoginEmail').value);document.getElementById('pwOtpLogin').style.display='grid';msg.textContent='Koden er sendt. Tjek din e-mail.';}
+    catch(err){msg.textContent=err.message||'Kunne ikke sende login-koden.';}
+    finally{busy(false);}
+  });
+  document.getElementById('pwOtpLogin').addEventListener('submit',async e=>{
+    e.preventDefault();busy(true);msg.textContent='Bekræfter…';
+    try{await window.PWDB.verifyEmailOtp(document.getElementById('pwLoginEmail').value,document.getElementById('pwLoginOtp').value);await finish();}
+    catch(err){msg.textContent=err.message||'E-mailkoden kunne ikke bekræftes.';busy(false);}
+  });
+  document.getElementById('pwAdminLogin').addEventListener('submit',async e=>{
+    e.preventDefault();busy(true);msg.textContent='Logger ejer ind…';
+    try{await window.PWDB.adminCodeLogin(document.getElementById('pwAdminCode').value);await finish();}
+    catch(err){msg.textContent=err.message||'Admin-login kunne ikke gennemføres.';busy(false);}
+  });
 }
 
 boot();
