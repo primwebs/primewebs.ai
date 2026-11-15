@@ -9,14 +9,13 @@ const $=s=>document.querySelector(s);
 // Storage: browseren nu, database (fx Supabase) senere
 const Storage={mem:{},
   get(k,d){try{const v=localStorage.getItem(k);if(!v)return d;const x=JSON.parse(v);return(x==null||Array.isArray(x)!==Array.isArray(d)||typeof x!==typeof d)?d:x}catch(e){return k in this.mem?this.mem[k]:d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}}};
-// Session: én lokal bruger nu, rigtigt login senere
-const Session={user:()=>({id:'local',name:'Ejer',role:'owner',email:Settings.get().ownerEmail}),can:()=>['owner','admin'].includes(Session.user().role)};
-// Credits: lokal tæller nu, regnskab + Stripe senere
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}if(window.PWDB)window.PWDB.persistKey(k,v)}};
+// Session og credits hentes fra Supabase efter login.
+const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,name:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.display_name)||'Bruger',role:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.role)||'user',email:(window.PWDB&&window.PWDB.user&&window.PWDB.user.email)||''}),can:()=>['owner','admin'].includes(Session.user().role)};
 const Credits={cost:{generate:10,edit:1},
-  unlimited:()=>false,
-  balance(){return this.unlimited()?Infinity:Storage.get('pw.credits',50)},
-  spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;Storage.set('pw.credits',b-c);return true}};
+  unlimited:()=>!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
+  balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
+  spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
 const Projects={all:()=>Storage.get('pw.projects',[]).map(fixP).filter(Boolean),save:l=>Storage.set('pw.projects',l)};
 const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
@@ -143,7 +142,7 @@ const DemoAI={mode:'test',
 /* AI-lag: rigtig AI via /api/ai; falder tilbage til demo-tilstand, hvis serveren ikke er sat op */
 const AI={mode:'api',
   async request(action,payload){
-    const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json','x-access-code':Settings.get().aiCode||''},body:JSON.stringify({action,...payload})});
+    const sessionResult=window.PWDB&&window.PWDB.client?await window.PWDB.client.auth.getSession():null;const token=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.access_token;if(!token){const e=new Error('Log ind for at bruge AI-generatoren.');e.status=401;throw e}const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action,...payload})});
     const data=await response.json().catch(()=>({error:'Serveren returnerede et ugyldigt svar.'}));
     if(!response.ok){const e=new Error(data.error||'AI-forbindelsen fejlede ('+response.status+').');e.status=response.status;throw e}
     return data;
@@ -726,20 +725,49 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
-  try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
-  render()}
-document.addEventListener('submit',async e=>{
-  if(e.target.id!=='admin-code-form')return;
-  e.preventDefault();
-  const input=e.target.elements.code,button=e.target.querySelector('button'),error=$('#admin-code-error');
-  if(!input||!input.value)return;
-  button.disabled=true;button.textContent='Kontrollerer…';error.hidden=true;
   try{
-    const r=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:input.value})});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.error||'Admin-koden blev afvist.');
-    location.href='/';
-  }catch(err){error.textContent=err.message;error.hidden=false;input.value='';input.focus();button.disabled=false;button.textContent='Åbn admin'}
-});
-function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Dette dashboard er privat. Indtast din personlige admin-kode for at få adgang til dine projekter og admin-panelet.</p><form id="admin-code-form" style="display:grid;gap:12px;margin-top:22px"><label for="admin-code" style="font-weight:650">Admin code</label><input id="admin-code" name="code" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit"><button class="btn" type="submit">Åbn admin</button><p id="admin-code-error" class="err" role="alert" hidden></p></form>${location.search.includes('login=denied')?'<p class="err">Login blev afvist. Kontrollér din kode.</p>':''}</div></main>`}
+    await window.PWDB.ready;
+    if(!window.PWDB.user) return loginScreen();
+    await window.PWDB.refresh();
+    S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+    render();
+  }catch(e){
+    window.__pwInitError=e&&e.message||'Supabase kunne ikke indlæses';
+    loginScreen();
+  }
+}
+function loginScreen(initialMessage){
+  S.auth={enabled:true,authenticated:false,email:''};
+  if(window.__pwInitError || !window.PWDB || !window.PWDB.client){
+    $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="err">Login kan ikke indlæses: '+esc(window.__pwInitError||'Supabase-forbindelsen mangler')+'</p><p class="mu">Prøv at genindlæse siden. Hvis fejlen fortsætter, skal hostingens Supabase-konfiguration kontrolleres.</p></div></main>';
+    return;
+  }
+  $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p></div></main>';
+  const form=$('#pwOtpForm'),email=()=>$('#pwOtpEmail').value.trim().toLowerCase(),code=()=>$('#pwOtpCode').value.trim(),msg=$('#pwOtpMessage');
+  $('#pwOtpSend').addEventListener('click',async()=>{
+    const btn=$('#pwOtpSend');if(!$('#pwOtpEmail').reportValidity())return;
+    btn.disabled=true;msg.textContent='Sender en engangskode…';
+    try{
+      await window.PWDB.sendEmailOtp(email());
+      $('#pwOtpCodeWrap').hidden=false;
+      $('#pwOtpVerify').hidden=false;
+      $('#pwOtpCode').focus();
+      msg.textContent='Hvis e-mailadressen har en aktiv konto, er en kode sendt. Tjek også spam/uønsket post.';
+    }catch(err){msg.textContent=err.message||'Kunne ikke sende login-koden.';}
+    finally{btn.disabled=false;}
+  });
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!$('#pwOtpCode').reportValidity())return;
+    const btn=$('#pwOtpVerify');btn.disabled=true;msg.textContent='Kontrollerer koden…';
+    try{
+      await window.PWDB.verifyEmailOtp(email(),code());
+      await window.PWDB.refresh();
+      S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
+      render();
+    }catch(err){msg.textContent=err.message||'Koden er forkert eller udløbet. Prøv at sende en ny.';}
+    finally{btn.disabled=false;}
+  });
+}
+
 boot();
