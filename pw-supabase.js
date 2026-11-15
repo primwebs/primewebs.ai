@@ -29,22 +29,22 @@
     // One-time migration of the existing browser-only owner workspace.
     if (isOwner && projects.length===0 && localProjects.length) {
       for (const p of localProjects) if (!isUuid(p.id)) p.id=uuid();
-      const payload=localProjects.map(p=>({id:p.id,user_id:user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
+      const payload=localProjects.map(p=>({id:p.id,user_id:p._userId||user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
       const {error}=await db.from('projects').upsert(payload);
       if(error) throw error;
       put('pw.projects',localProjects);
     }
     if (isOwner && customers.length===0 && localCustomers.length) {
       for (const c of localCustomers) if (!isUuid(c.id)) c.id=uuid();
-      const payload=localCustomers.map(c=>({id:c.id,user_id:user.id,name:c.name||'',email:c.email||null,phone:c.phone||null,notes:c.notes||null,data:{plan:c.plan||'Gratis',credits:c.credits||0,createdAt:c.createdAt||Date.now()}}));
+      const payload=localCustomers.map(c=>({id:c.id,user_id:c._userId||user.id,name:c.name||'',email:c.email||null,phone:c.phone||null,notes:c.notes||null,data:{plan:c.plan||'Gratis',credits:c.credits||0,createdAt:c.createdAt||Date.now()}}));
       const {error}=await db.from('customers').upsert(payload);
       if(error) throw error;
       put('pw.customers',localCustomers);
     }
     const freshProjects = await rows('projects');
     const freshCustomers = await rows('customers');
-    put('pw.projects', freshProjects.map(p=>({id:p.id,name:p.name,status:p.status,domain:p.domain,plan:p.plan,site:p.site,history:p.history,future:p.future,chat:p.chat,createdAt:Date.parse(p.created_at)||Date.now(),updatedAt:Date.parse(p.updated_at)||Date.now()})));
-    put('pw.customers', freshCustomers.map(c=>Object.assign({id:c.id,name:c.name,email:c.email||'',phone:c.phone||'',notes:c.notes||'',createdAt:Date.parse(c.created_at)||Date.now()},c.data||{})));
+    put('pw.projects', freshProjects.map(p=>({id:p.id,_userId:p.user_id,name:p.name,status:p.status,domain:p.domain,plan:p.plan,site:p.site,history:p.history,future:p.future,chat:p.chat,createdAt:Date.parse(p.created_at)||Date.now(),updatedAt:Date.parse(p.updated_at)||Date.now()})));
+    put('pw.customers', freshCustomers.map(c=>Object.assign({id:c.id,_userId:c.user_id,name:c.name,email:c.email||'',phone:c.phone||'',notes:c.notes||'',createdAt:Date.parse(c.created_at)||Date.now()},c.data||{})));
     state.lastProjects=freshProjects.map(p=>p.id);
     state.lastCustomers=freshCustomers.map(c=>c.id);
     if (settings.data) put('pw.settings',settings.data.settings||{});
