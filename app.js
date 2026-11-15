@@ -729,17 +729,79 @@ async function boot(){
   try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
   render()}
 document.addEventListener('submit',async e=>{
-  if(e.target.id!=='admin-code-form')return;
-  e.preventDefault();
-  const input=e.target.elements.code,button=e.target.querySelector('button'),error=$('#admin-code-error');
-  if(!input||!input.value)return;
-  button.disabled=true;button.textContent='Kontrollerer…';error.hidden=true;
-  try{
-    const r=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:input.value})});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.error||'Admin-koden blev afvist.');
-    location.href='/';
-  }catch(err){error.textContent=err.message;error.hidden=false;input.value='';input.focus();button.disabled=false;button.textContent='Åbn admin'}
+  if(e.target.id==='admin-code-form'){
+    e.preventDefault();
+    const input=e.target.elements.code,button=e.target.querySelector('button'),error=$('#admin-code-error');
+    if(!input||!input.value)return;
+    button.disabled=true;button.textContent='Kontrollerer…';error.hidden=true;
+    try{
+      const r=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:input.value})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||'Admin-koden blev afvist.');
+      location.href='/';
+    }catch(err){error.textContent=err.message;error.hidden=false;input.value='';input.focus();button.disabled=false;button.textContent='Åbn admin'}
+    return;
+  }
+  if(e.target.id==='supabase-email-form'){
+    e.preventDefault();
+    const email=e.target.elements.email.value.trim(),button=e.target.querySelector('button'),error=$('#supabase-email-error');
+    button.disabled=true;button.textContent='Sender kode…';error.hidden=true;
+    try{
+      const r=await fetch('/api/auth/supabase-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||'Kunne ikke sende login-koden.');
+      $('#supabase-login-email').value=email;
+      $('#supabase-email-form').hidden=true;
+      $('#supabase-otp-form').hidden=false;
+      $('#supabase-otp-message').textContent='Hvis adressen er godkendt, er der sendt en engangskode. Tjek også spam.';
+      $('#supabase-token').focus();
+    }catch(err){error.textContent=err.message;error.hidden=false}
+    finally{button.disabled=false;button.textContent='Send login-kode'}
+    return;
+  }
+  if(e.target.id==='supabase-otp-form'){
+    e.preventDefault();
+    const email=$('#supabase-login-email').value,token=$('#supabase-token').value.trim(),button=e.target.querySelector('button'),error=$('#supabase-otp-error');
+    button.disabled=true;button.textContent='Kontrollerer kode…';error.hidden=true;
+    try{
+      const r=await fetch('/api/auth/supabase-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,token})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||'Login-koden blev afvist.');
+      location.replace('/');
+    }catch(err){error.textContent=err.message;error.hidden=false;$('#supabase-token').value='';$('#supabase-token').focus();button.disabled=false;button.textContent='Log ind'}
+    return;
+  }
 });
-function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Dette dashboard er privat. Indtast din personlige admin-kode for at få adgang til dine projekter og admin-panelet.</p><form id="admin-code-form" style="display:grid;gap:12px;margin-top:22px"><label for="admin-code" style="font-weight:650">Admin code</label><input id="admin-code" name="code" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit"><button class="btn" type="submit">Åbn admin</button><p id="admin-code-error" class="err" role="alert" hidden></p></form>${location.search.includes('login=denied')?'<p class="err">Login blev afvist. Kontrollér din kode.</p>':''}</div></main>`}
+function loginScreen(){
+  const showSupabase=Boolean(S.auth&&S.auth.supabaseEnabled);
+  $('#app').innerHTML=`<main class="main" style="max-width:480px;margin:7vh auto"><div class="card">
+    <h1>PRIME WEBS AI</h1>
+    <p class="mu">Privat ejerlogin. Log ind med din ejer-e-mail, eller brug din eksisterende admin-kode.</p>
+    ${showSupabase?`<section style="display:grid;gap:12px;margin-top:22px">
+      <h2 style="font-size:1.1rem;margin:0">Ejer-login med e-mail</h2>
+      <form id="supabase-email-form" style="display:grid;gap:12px">
+        <label for="supabase-email" style="font-weight:650">Ejer-e-mail</label>
+        <input id="supabase-email" name="email" type="email" autocomplete="username" required value="primewebssupport@gmail.com" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit">
+        <button class="btn" type="submit">Send login-kode</button>
+        <p id="supabase-email-error" class="err" role="alert" hidden></p>
+      </form>
+      <form id="supabase-otp-form" hidden style="display:grid;gap:12px">
+        <p id="supabase-otp-message" class="mu"></p>
+        <input id="supabase-login-email" type="hidden">
+        <label for="supabase-token" style="font-weight:650">6-cifret kode</label>
+        <input id="supabase-token" name="token" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="Indtast koden" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit">
+        <button class="btn" type="submit">Log ind</button>
+        <p id="supabase-otp-error" class="err" role="alert" hidden></p>
+      </form>
+    </section>`:''}
+    <div style="display:flex;align-items:center;gap:12px;margin:22px 0;color:#7b8494"><span style="height:1px;background:#d9dee7;flex:1"></span><small>ELLER ADMIN-KODE</small><span style="height:1px;background:#d9dee7;flex:1"></span></div>
+    <form id="admin-code-form" style="display:grid;gap:12px">
+      <label for="admin-code" style="font-weight:650">Eksisterende admin-kode</label>
+      <input id="admin-code" name="code" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:14px;border:1px solid #ccd2dc;border-radius:10px;font:inherit">
+      <button class="btn" type="submit">Åbn admin</button>
+      <p id="admin-code-error" class="err" role="alert" hidden></p>
+    </form>
+    ${location.search.includes('login=denied')?'<p class="err">Login blev afvist. Kontrollér dine loginoplysninger.</p>':''}
+  </div></main>`
+}
 boot();
