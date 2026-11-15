@@ -5,7 +5,8 @@ const crypto = require("crypto");
 const env = k => String(process.env[k] || "").trim();
 const githubEnabled = () => Boolean(env("GITHUB_CLIENT_ID") && env("GITHUB_CLIENT_SECRET") && env("ALLOWED_EMAIL") && env("SESSION_SECRET").length >= 32);
 const adminCodeEnabled = () => Boolean(env("ADMIN_CODE") && env("SESSION_SECRET").length >= 32);
-const enabled = () => githubEnabled() || adminCodeEnabled();
+const supabaseEnabled = () => Boolean(env("SUPABASE_URL") && env("SUPABASE_PUBLISHABLE_KEY") && env("SESSION_SECRET").length >= 32);
+const enabled = () => githubEnabled() || adminCodeEnabled() || supabaseEnabled();
 
 const b64 = s => Buffer.from(s).toString("base64url");
 const mac = data => crypto.createHmac("sha256", env("SESSION_SECRET")).update(data).digest("base64url");
@@ -38,11 +39,18 @@ const cookie = (name, value, maxAge) =>
 function session(req) {
   if (!enabled()) return null;
   const p = verify(cookies(req).pw_session);
-  return p && (p.email || p.role === "admin") ? { email: p.email || "Admin", role: p.role || "owner" } : null;
+  return p && (p.email || p.role === "admin") ? {
+    email: p.email || "Admin",
+    role: p.role || "owner",
+    userId: p.userId || null,
+    provider: p.provider || (p.role === "admin" ? "admin-code" : "github"),
+    accessToken: p.accessToken || null,
+    refreshToken: p.refreshToken || null
+  } : null;
 }
 function base(req) {
   const h = req.headers || {};
   return env("PUBLIC_URL").replace(/\/+$/, "") || "https://" + (h["x-forwarded-host"] || h.host);
 }
 
-module.exports = { enabled, githubEnabled, adminCodeEnabled, sign, verify, cookies, cookie, session, base, env };
+module.exports = { enabled, githubEnabled, adminCodeEnabled, supabaseEnabled, sign, verify, cookies, cookie, session, base, env };
