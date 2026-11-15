@@ -726,7 +726,32 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
-  try{const r=await fetch('/api/auth/me',{cache:'no-store'});if(r.ok){S.auth=await r.json();if(S.auth.enabled&&!S.auth.authenticated)return loginScreen()}}catch(e){}
-  render()}
-function loginScreen(){$('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Kun ejeren har adgang. Log ind med den GitHub-konto, der har den godkendte e-mail.</p>${location.search.includes('login=denied')?'<p class="err">Den GitHub-konto har ikke adgang, eller login blev afbrudt.</p>':''}<a class="btn" href="/api/auth/login">Log ind med GitHub</a></div></main>`}
+  try{
+    const r=await fetch('/api/auth/me',{cache:'no-store'});
+    if(!r.ok)throw new Error('Loginserveren kunne ikke bekræfte din adgang.');
+    S.auth=await r.json();
+    if(!S.auth.enabled||!S.auth.authenticated)return loginScreen();
+    window.__pwAuth=S.auth;
+    render();
+  }catch(e){
+    $('#app').innerHTML='<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="err">Login kunne ikke kontrolleres. Dashboardet er låst, indtil forbindelsen virker.</p><button class="btn" onclick="location.reload()">Prøv igen</button></div></main>';
+  }
+}
+function loginScreen(){
+  const adminForm=S.auth&&S.auth.adminCodeEnabled?`<form id="pw-admin-login" class="form" style="margin-top:1.2rem"><label>Admin Code<input name="code" type="password" inputmode="numeric" autocomplete="current-password" required maxlength="128" placeholder="Indtast din Admin Code"></label><button class="btn" type="submit">Log ind som ejer</button><p id="pw-admin-error" class="err" role="alert"></p></form>`:'';
+  const githubLink=S.auth&&S.auth.githubEnabled?'<p class="mu" style="margin-top:1rem">Eller brug din GitHub-konto:</p><a class="btn ghost" href="/api/auth/login">Log ind med GitHub</a>':'';
+  $('#app').innerHTML=`<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Kun ejeren har adgang. Brug din private Admin Code for at fortsætte.</p>${location.search.includes('login=denied')?'<p class="err">GitHub-login blev afvist eller afbrudt.</p>':''}${adminForm}${githubLink}${S.auth&&S.auth.configurationError?'<p class="err">Login er ikke konfigureret korrekt på serveren.</p>':''}</div></main>`;
+  const form=$('#pw-admin-login');
+  if(form)form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const button=form.querySelector('button'),error=$('#pw-admin-error'),code=form.elements.code.value;
+    button.disabled=true;error.textContent='Kontrollerer koden…';
+    try{
+      const r=await fetch('/api/auth/admin-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||'Login mislykkedes. Prøv igen.');
+      location.replace('/');
+    }catch(err){error.textContent=err.message||'Forbindelsen fejlede.';button.disabled=false}
+  });
+}
 boot();
