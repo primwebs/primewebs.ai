@@ -142,7 +142,7 @@ const DemoAI={mode:'test',
 /* AI-lag: rigtig AI via /api/ai; falder tilbage til demo-tilstand, hvis serveren ikke er sat op */
 const AI={mode:'api',
   async request(action,payload){
-    const sessionResult=await window.PWDB.client.auth.getSession();const token=sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.access_token;if(!token){const e=new Error('Log ind igen for at bruge AI-generatoren.');e.status=401;throw e}const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action,...payload})});
+    const sessionResult=window.PWDB&&window.PWDB.client?await window.PWDB.client.auth.getSession():null;const token=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.access_token;if(!token){const e=new Error('AI-serveren kræver stadig en sikker konto; bruger demo-generatoren i gæstetilstand.');e.status=503;throw e}const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action,...payload})});
     const data=await response.json().catch(()=>({error:'Serveren returnerede et ugyldigt svar.'}));
     if(!response.ok){const e=new Error(data.error||'AI-forbindelsen fejlede ('+response.status+').');e.status=response.status;throw e}
     return data;
@@ -666,7 +666,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="proj"],
   if(d.x==='proj'){S.id=d.id;if(!PB.includes(S.view))S.view='edit';S.err=''}else S.form={...S.form,desc:d.t};render()});
 document.addEventListener('toggle',e=>{if(e.target.dataset&&e.target.dataset.more!==undefined)S.more=e.target.open},true);
 const _vA2=V.admin;
-V.admin=()=>_vA2()+`<div class="card" style="margin-top:1rem;max-width:720px"><h3>Login og adgang</h3><p>Login styres af Supabase Auth med sikre e-mail-links. Projekter, kunder, brugerindstillinger og credits synkroniseres med Supabase.</p>${S.auth&&S.auth.authenticated?`<p class="mu">Logget ind som ${esc(S.auth.email)}</p>`:''}</div>`;
+V.admin=()=>_vA2()+`<div class="card" style="margin-top:1rem;max-width:720px"><h3>Adgangstilstand</h3><p>Login er midlertidigt slået fra. Projekter og indstillinger gemmes lokalt i denne browser; cloud-synkronisering kræver senere en sikker kontoløsning.</p></div>`;
 /* ===== Billeder i hjemmesider ===== */
 const Imgs={all:()=>Storage.get('pw.img',{}),add(id,url){try{const m=this.all();m[id]=url;localStorage.setItem('pw.img',JSON.stringify(m));return true}catch(e){return false}}};
 function imgSrc(r){r=String(r||'');if(r.startsWith('img:'))return Imgs.all()[r.slice(4)]||'';return /^https?:\/\/[^\s"'<>]+$/i.test(r)?r:''}
@@ -724,17 +724,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
-  try{
-    await window.PWDB.ready;
-    if(new URLSearchParams(window.location.search).get('pw-reset')==='1')return loginScreen('recovery');
-    if(!window.PWDB.user)return loginScreen();
-    S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
-    render();
-  }catch(e){
-    $('#app').innerHTML='<main class="main" style="max-width:560px;margin:10vh auto"><div class="card"><h1>Forbindelsen kunne ikke startes</h1><p class="err">'+esc(e.message||'Ukendt fejl')+'</p><p>Kontrollér Supabase-konfigurationen i Vercel, og genindlæs siden.</p></div></main>';
-  }
+  try{ await window.PWDB.ready; }
+  catch(e){ window.__pwInitError=e&&e.message||'Supabase kunne ikke indlæses'; }
+  // Midlertidig gæsteadgang: appen starter uden login og gemmer data lokalt i denne browser.
+  S.auth={enabled:false,authenticated:false,email:'Gæst'};
+  render();
 }
 function loginScreen(mode){
+  // Login er midlertidigt slået fra, så ejeren kan åbne arbejdsområdet.
+  S.auth={enabled:false,authenticated:false,email:'Gæst'};
+  render();
+  return;
   const recovery=mode==='recovery';
   $('#app').innerHTML='<main class="main" style="max-width:480px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">'+(recovery?'Vælg en ny adgangskode til din konto.':'Log ind med e-mail og adgangskode, eller opret en konto.')+'</p><form id="pwAuthForm"><label>E-mail<input id="pwAuthEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com" '+(recovery?'readonly':'')+'></label><label style="display:block;margin-top:.8rem">'+(recovery?'Ny adgangskode':'Adgangskode')+'<input id="pwAuthPassword" type="password" required minlength="8" autocomplete="'+(recovery?'new-password':'current-password')+'" placeholder="Mindst 8 tegn"></label><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwSignInBtn" type="submit">'+(recovery?'Gem ny adgangskode':'Log ind')+'</button>'+(recovery?'':'<button class="btn" id="pwSignUpBtn" type="button">Opret konto</button>')+'</div><p id="pwAuthMessage" class="mu" aria-live="polite"></p></form>'+(recovery?'':'<div style="text-align:center;margin:1rem 0">eller</div><button class="btn" id="pwGoogleBtn" type="button" style="width:100%">Fortsæt med Google</button><button class="btn" id="pwForgotBtn" type="button" style="width:100%;margin-top:.7rem;background:transparent;color:inherit">Glemt adgangskode?</button><p class="mu" style="font-size:.85rem;margin-top:1rem">Ved oprettelse kan du blive bedt om at bekræfte din e-mail.</p>')+'</div></main>';
   const form=$('#pwAuthForm'),msg=$('#pwAuthMessage'),email=()=>$('#pwAuthEmail').value,password=()=>$('#pwAuthPassword').value;
