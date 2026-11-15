@@ -31,12 +31,24 @@ Uden nøgle eller adgangskode kører dashboardet i **demo-tilstand** med testgen
 - `website/primewebs.html`, `primewebs.html`: salgssiden
 - `docs/`: projektnoter
 
-## Login: kun én e-mail har adgang (valgfrit)
-Uden login kan alle, der kender adressen, åbne dashboardet. Sådan begrænser du adgangen til én e-mail:
+## Login og database (Supabase)
 
-1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App. Homepage URL: din Vercel-adresse. Callback URL: `<din Vercel-adresse>/api/auth/callback`. Kopiér Client ID, og opret en Client secret.
-2. Vercel → Settings → Environment Variables, tilføj `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SESSION_SECRET` (en tilfældig tekst på mindst 32 tegn), `ALLOWED_EMAIL` (den e-mail, der må logge ind, og som er bekræftet på din GitHub-konto) og helst `PUBLIC_URL`. Deploy igen.
-3. Når alle fire er sat, kræver både dashboardet og AI-generatoren login. Kun en GitHub-konto med den bekræftede e-mail slipper ind.
-4. Kommer du til at låse dig ude: slet en af variablerne i Vercel, og deploy igen. Så er login slået fra.
+Dashboardet bruger Supabase Auth med e-mail-loginlink. Projekter, kunder, brugerindstillinger og credits synkroniseres til Supabase; finansposter og billeddata bliver foreløbigt gemt lokalt i browseren.
 
-E-mailen ligger kun i Vercel og står ikke i koden. Koden i dette repository er offentlig, så login beskytter brugen af siden og AI-generatoren, ikke selve kildekoden.
+Vercel har brug for disse offentlige variabler (de er allerede oprettet på projektet):
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+
+I Supabase → Authentication → URL Configuration skal Site URL sættes til den primære dashboardadresse, og Redirect URLs skal tillade:
+- `https://primewebsai.vercel.app/**`
+- `https://primewebsai-git-feature-supabase-auth-cloud-sync-primwebs.vercel.app/**`
+
+Ejerkontoen `primewebssupport@gmail.com` får rollen `owner` og ubegrænsede credits via database-triggeren. Andre brugere får egne data og en almindelig credit-konto. RLS er aktiveret på tabellerne.
+
+## AI-server
+
+For rigtig AI-generering skal du selv tilføje følgende hemmelige miljøvariabler i Vercel:
+- `ANTHROPIC_API_KEY`: API-nøgle fra Anthropic Console (må aldrig lægges i GitHub eller browseren).
+- `ACCESS_CODE`: en lang, selvvalgt adgangskode. Den samme kode indtastes i dashboardets AI-indstillinger.
+
+Uden disse to værdier falder AI-generatoren tilbage til demo-tilstand.
