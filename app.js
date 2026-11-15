@@ -724,22 +724,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
-  try{
-    await window.PWDB.ready;
-    if(window.PWDB.user){
-      await window.PWDB.refresh();
-      S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
-      render();
-    }else{
-      loginScreen();
-    }
-  }catch(e){
-    console.error('Auth initialization failed:',e);
-    loginScreen('Forbindelsen til login kunne ikke startes: '+((e&&e.message)||'ukendt fejl'));
-  }
+  try{ await window.PWDB.ready; }
+  catch(e){ window.__pwInitError=e&&e.message||'Supabase kunne ikke indlæses'; }
+  // Midlertidig gæsteadgang: appen starter uden login og gemmer data lokalt i denne browser.
+  S.auth={enabled:false,authenticated:false,email:'Gæst'};
+  render();
 }
 function loginScreen(initialMessage){
-  S.auth={enabled:true,authenticated:false,email:''};
+  // Login er midlertidigt slået fra, så arbejdsområdet kan åbnes uden login.
+  S.auth={enabled:false,authenticated:false,email:'Gæst'};
+  render();
+  return;
   $('#app').innerHTML='<main class="main" style="max-width:460px;margin:10vh auto"><div class="card"><h1>PRIME WEBS AI</h1><p class="mu">Log ind sikkert med en engangskode, som vi sender til din e-mail.</p><form id="pwOtpForm"><label>E-mail<input id="pwOtpEmail" type="email" required autocomplete="email" value="primewebssupport@gmail.com"></label><div id="pwOtpCodeWrap" hidden style="margin-top:.9rem"><label>6-cifret kode<input id="pwOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456"></label></div><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem"><button class="btn" id="pwOtpSend" type="button">Send login-kode</button><button class="btn" id="pwOtpVerify" type="submit" hidden>Bekræft kode og log ind</button></div><p id="pwOtpMessage" class="mu" aria-live="polite">'+(initialMessage?esc(initialMessage):'')+'</p></form><p class="mu" style="font-size:.85rem;margin-top:1rem">Koden er kun til engangsbrug og udløber automatisk. Del den aldrig med andre.</p></div></main>';
   const form=$('#pwOtpForm'),email=()=>$('#pwOtpEmail').value.trim().toLowerCase(),code=()=>$('#pwOtpCode').value.trim(),msg=$('#pwOtpMessage');
   $('#pwOtpSend').addEventListener('click',async()=>{
