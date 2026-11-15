@@ -102,6 +102,8 @@
   window.PWDB={
     get client(){return state.client;}, get user(){return state.user;}, get profile(){return state.profile;},
     get credits(){return state.credits;}, get ready(){return state.ready;},
+    async sendEmailOtp(email){const clean=String(email||'').trim().toLowerCase();if(!clean)throw new Error('Skriv din e-mailadresse.');const {error}=await state.client.auth.signInWithOtp({email:clean,options:{shouldCreateUser:false}});if(error)throw error;},
+    async verifyEmailOtp(email,token){const clean=String(email||'').trim().toLowerCase();const code=String(token||'').replace(/\\s+/g,'');if(!/^\\d{6}$/.test(code))throw new Error('Indtast den 6-cifrede kode fra e-mailen.');const {data,error}=await state.client.auth.verifyOtp({email:clean,token:code,type:'email'});if(error)throw error;if(data&&data.user)state.user=data.user;return data;},
     async signInPassword(email,password){const clean=String(email||'').trim().toLowerCase();const {data,error}=await state.client.auth.signInWithPassword({email:clean,password:String(password||'')});if(error)throw error;if(data&&data.user)state.user=data.user;return data;},
     async resetPassword(email){const clean=String(email||'').trim().toLowerCase();const {error}=await state.client.auth.resetPasswordForEmail(clean,{redirectTo:window.location.origin+'/?pw-reset=1'});if(error)throw error;},
     async updatePassword(password){const {data,error}=await state.client.auth.updateUser({password:String(password||'')});if(error)throw error;if(data&&data.user)state.user=data.user;return data;},
