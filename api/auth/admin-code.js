@@ -7,7 +7,7 @@ const safeEqual = (a, b) => {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 };
 
-async function callOwnerFunction(action) {
+async function callOwnerFunction(action, req) {
   const url = env("SUPABASE_URL").replace(/\/+$/, "");
   const key = env("SUPABASE_PUBLISHABLE_KEY");
   const secret = env("EDGE_INTERNAL_SECRET");
@@ -42,12 +42,12 @@ module.exports = async (req, res) => {
   if (!expected) return res.status(503).json({ error: "Admin-login er ikke konfigureret." });
 
   try {
-    await callOwnerFunction("check");
+    await callOwnerFunction("check", req);
     if (!safeEqual(supplied, expected)) {
-      try { await callOwnerFunction("fail"); } catch (_) {}
+      try { await callOwnerFunction("fail", req); } catch (_) {}
       return res.status(401).json({ error: "Admin-koden er forkert." });
     }
-    const session = await callOwnerFunction("login");
+    const session = await callOwnerFunction("login", req);
     if (!session.access_token || !session.refresh_token) {
       return res.status(503).json({ error: "Ejerlogin returnerede ikke en gyldig session." });
     }
