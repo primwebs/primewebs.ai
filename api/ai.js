@@ -117,10 +117,10 @@ module.exports = async (req, res) => {
   if (!supabaseUrl || !publishableKey) {
     return res.status(503).json({ error: "Supabase-serverkonfigurationen mangler i Vercel." });
   }
-  if (!tokenMatch) return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
+  if (!token) return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
   try {
     const verified = await fetch(supabaseUrl + "/auth/v1/user", {
-      headers: { apikey: publishableKey, Authorization: "Bearer " + tokenMatch[1] }
+      headers: { apikey: publishableKey, Authorization: "Bearer " + token }
     });
     if (!verified.ok) return res.status(401).json({ error: "Din session er udløbet. Log ind igen." });
   } catch (_) {
