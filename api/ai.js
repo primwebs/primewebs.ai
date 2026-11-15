@@ -110,16 +110,16 @@ module.exports = async (req, res) => {
   if (rateLimited(ip)) {
     return res.status(429).json({ error: "For mange forespørgsler. Vent et minut, og prøv igen." });
   }
-  const supabaseUrl = String(process.env.SUPABASE_URL || "").replace(/\\/+$/, "");
+  const supabaseUrl = String(process.env.SUPABASE_URL || "").trim();
   const publishableKey = String(process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "").trim();
   const authorization = String((req.headers || {}).authorization || "");
-  const tokenMatch = authorization.match(/^Bearer\\s+(.+)$/i);
+  const token = authorization.toLowerCase().startsWith("bearer ") ? authorization.slice(7).trim() : "";
   if (!supabaseUrl || !publishableKey) {
     return res.status(503).json({ error: "Supabase-serverkonfigurationen mangler i Vercel." });
   }
   if (!token) return res.status(401).json({ error: "Log ind for at bruge AI-generatoren." });
   try {
-    const verified = await fetch(supabaseUrl + "/auth/v1/user", {
+    const verified = await fetch(supabaseUrl.replace(/\\/+$/, "") + "/auth/v1/user", {
       headers: { apikey: publishableKey, Authorization: "Bearer " + token }
     });
     if (!verified.ok) return res.status(401).json({ error: "Din session er udløbet. Log ind igen." });
