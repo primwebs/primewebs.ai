@@ -12,7 +12,7 @@ This document records what is implemented and what still needs a real provider, 
 - Finance entries are currently stored in browser-local storage. They are not bank transactions, payment-provider payouts, or a cloud accounting ledger.
 - No Stripe/Paddle/Lemon Squeezy integration or live payment keys were found in the reviewed project configuration.
 - Customer publishing still needs a secure host-to-project resolver and public-only published-site delivery. Domain fields/UI alone do not publish a customer website.
-- The project-file panel now includes a persistent editable JSON source file (`site.json`) with basic schema checks and project history. The generated HTML output and README remain read-only. A full raw HTML/CSS/JS editor and arbitrary file tree are still missing.
+- The project-file panel includes a persistent editable JSON source file (`site.json`) with basic schema checks and project history. On the current modernization branch, the workspace is extended with editable HTML, CSS and JavaScript source files, export/download support, basic JavaScript/CSS validation, source snapshots, and a sandboxed preview that applies saved CSS/JS. This branch work is not production until reviewed and merged. A full arbitrary file tree, robust language-aware editor/diagnostics, and multi-page source tree are still missing.
 
 ## Current pricing — preserve unless owner approves a change
 
@@ -73,3 +73,28 @@ These are architectural placeholders only; they are not current environment vari
 - Review the SECURITY DEFINER grants on `public.is_primewebs_owner()` and `public.spend_credits(...)` before changing them; they may be intentional backend functions. Verify least privilege and owner checks.
 - Enable leaked-password protection in Supabase Auth after reviewing the Auth settings.
 - Re-run Supabase security and performance advisors after each approved schema/security change.
+
+
+## Work completed on modernization branch (not production)
+
+Branch: `feature/sitedrop-modernization`
+
+- Replaced the plain login presentation with a responsive premium two-panel layout and compact mobile version. Existing email OTP and owner admin-code form IDs, submit handlers, Supabase calls, and auth flow were preserved; no credential or auth logic changed.
+- Added editable `index.html`, `styles.css`, and `script.js` source tabs alongside `site.json`.
+- Added per-project saved source files, a capped source snapshot history, basic JavaScript syntax and CSS brace validation, downloads, and inclusion of saved CSS/JS in the sandboxed preview and HTML export.
+- Added responsive styling for the source workspace.
+- Verified the full `app.js` parses with V8 and verified the login form IDs remain present once each.
+- These changes are on a feature branch only. They have not been deployed to `primewebs.site`.
+
+## Next implementation queue
+
+1. Review and test the new code editor with actual project fixtures, including HTML documents with/without head/body tags, CSS, JavaScript, and malformed inputs.
+2. Add safe AI patch/file operations and reliable rollback for both structured site data and source files.
+3. Improve the workspace shell and dashboard visual hierarchy without duplicating existing navigation or editor capabilities.
+4. Implement multi-page project source and page navigation.
+5. Build secure public publishing and hostname-to-project resolution; never serve unpublished projects.
+6. Add SEO output (metadata, sitemap, robots, canonical URLs) to the publishing pipeline.
+7. Add contact-form submission handling and email-provider adapter; configure only after provider selection and secrets are supplied.
+8. Implement lead-finder provider integration only with a legitimate data source and documented usage limits.
+9. Implement cloud-backed finance records, invoices, subscriptions, checkout and verified webhooks after payment-provider onboarding and explicit live-mode approval.
+10. Complete security review of existing Supabase Auth and database advisor findings before changing policies or grants.
