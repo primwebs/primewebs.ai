@@ -194,11 +194,17 @@ const Renderer={html(p){
   const fg=/^#[0-9a-fA-F]{6}$/.test(t.text)?t.text:(d?'#E8ECF5':'#101828');
   const sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
   const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
+  const meta=s.meta||{},lang=/^[a-z]{2}(?:-[A-Z]{2})?$/.test(meta.lang||'da')?(meta.lang||'da'):'da';
+  const description=String(meta.description||'').trim().slice(0,320),ogImage=/^https:\/\//i.test(meta.ogImage||'')?meta.ogImage:'';
+  const canonical=/^https:\/\/[a-z0-9.-]+(?:\/[^\\s]*)?$/i.test(meta.canonicalUrl||'')?meta.canonicalUrl:'';
+  const seo=(description?'<meta name="description" content="'+esc(description)+'"><meta property="og:description" content="'+esc(description)+'">':'')+
+   '<meta property="og:title" content="'+esc(meta.title)+'"><meta property="og:type" content="website"><meta name="twitter:card" content="'+(ogImage?'summary_large_image':'summary')+'">'+
+   (ogImage?'<meta property="og:image" content="'+esc(ogImage)+'">':'')+(canonical?'<link rel="canonical" href="'+esc(canonical)+'">':'');
   const body=s.blocks.map((b,i)=>{const html=(B[b.type]||(()=>''))(b);return html.replace('<section','<section id="section-'+b.type+'-'+i+'"')}).join('');
   const links=s.blocks.filter(b=>['services','about','features','gallery','contact'].includes(b.type)).map(b=>'<a href="#section-'+b.type+'-'+s.blocks.indexOf(b)+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
   const nav=links?'<nav aria-label="Hovedmenu">'+links+'</nav>':'';
   const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title>${seo}<style>
   *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.65}
   header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem clamp(1rem,4vw,3rem);font-weight:800;background:${bg};border-bottom:1px solid ${ln}}
   header nav{display:flex;flex-wrap:wrap;gap:1rem}header nav a{font-size:.9rem;text-decoration:none;font-weight:650}
