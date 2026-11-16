@@ -292,37 +292,51 @@ function vTpl(){const q=String(S.templateQuery||'').trim().toLowerCase(),cat=S.t
  return `<section class="template-library-hero"><div><span class="dash-section-kicker">PRIME WEBS AI · DESIGNBIBLIOTEK</span><h1>Skabelonbibliotek</h1><p>Start med et professionelt udgangspunkt. Tilpas indhold, farver og sektioner bagefter.</p></div><span class="template-count">${TPL.length} skabeloner</span></section><section class="template-library-tools"><input type="search" data-template-q value="${esc(S.templateQuery||'')}" placeholder="Søg i skabeloner…" aria-label="Søg i skabeloner"><div class="dash-filter-row">${cats.map(c=>`<button class="chip ${cat===c?'is-selected':''}" data-act="templateFilter" data-filter="${esc(c)}" aria-pressed="${cat===c}">${esc(c)}</button>`).join('')}</div></section><div class="template-library-grid">${list.map(t=>`<article class="template-card"><div class="template-card-art template-art-${t.i%6}"><span>${esc(t.n)}</span><small>${esc(t.c)}</small><div class="template-art-lines"><i></i><i></i><i></i></div></div><div class="template-card-body"><div class="template-card-meta"><span>${esc(t.c)}</span><span>Stil: ${esc(t.s)}</span></div><h3>${esc(t.n)}</h3><p>${esc(t.d)}</p><button class="btn" data-act="tpl" data-i="${t.i}">Brug skabelon</button></div></article>`).join('')||'<div class="card"><strong>Ingen skabeloner fundet</strong><p class="mu">Prøv et andet søgeord eller en anden kategori.</p></div>'}</div>`;
 }
 
+function domainSlug(value){
+  return String(value||'website').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48)||'website';
+}
 function vDom(){
-  const l=Projects.all(),q=String(S.domainQuery||'');
-  const ext=['.com','.es','.dk','.net','.org','.io','.ai','.shop'];
-  const prices=[{"tld":".com","reg":"$12.08","renew":"$19.98","note":"25 % rabat på første år"},{"tld":".net","reg":"$12.48","renew":"$18.58","note":"17 % rabat på første år"},{"tld":".org","reg":"$8.48","renew":"$18.98","note":"41 % rabat på første år"},{"tld":".io","reg":"$29.98","renew":"$75.98","note":"55 % rabat på første år"},{"tld":".co","reg":"$19.98","renew":"$45.48","note":"48 % rabat på første år"},{"tld":".ai","reg":"$89.98","renew":"$114.98","note":"Minimum 2 års registrering"}];
+  const projects=Projects.all();
+  const card=p=>{
+    const mode=p.domainMode||(p.domain?'custom':'free');
+    const sub=domainSlug(p.subdomain||p.name);
+    const custom=String(p.domain||'');
+    return `<article class="domain-card domain-managed-card">
+      <div class="domain-card-top"><span class="domain-icon">◎</span><span class="domain-status ${p.status==='ready'?'ready':''}">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</span></div>
+      <h3>${esc(p.name)}</h3><p class="domain-project-note">Vælg webadresse til denne hjemmeside</p>
+      <div class="domain-choice-grid">
+        <label class="domain-choice ${mode==='free'?'selected':''}">
+          <span class="domain-choice-top"><input type="radio" name="domain-${esc(p.id)}" data-dom-mode="${esc(p.id)}" value="free" ${mode==='free'?'checked':''}><strong>Gratis domæne</strong><b>0 €</b></span>
+          <span class="domain-choice-desc">Et gratis underdomæne på PRIME WEBS AI.</span>
+          <span class="domain-free-address"><input data-dom-sub="${esc(p.id)}" value="${esc(sub)}" maxlength="48" aria-label="Gratis domænenavn"><span>.primewebs.site</span></span>
+          <small class="domain-address-preview">https://${esc(sub)}.primewebs.site</small>
+        </label>
+        <label class="domain-choice ${mode==='custom'?'selected':''}">
+          <span class="domain-choice-top"><input type="radio" name="domain-${esc(p.id)}" data-dom-mode="${esc(p.id)}" value="custom" ${mode==='custom'?'checked':''}><strong>Eget domæne</strong><b>.com · .dk · .es</b></span>
+          <span class="domain-choice-desc">Brug et rigtigt domæne, som kunden ejer, eller køb det via domænecenteret, når registrering er aktiveret.</span>
+          <input class="domain-custom-input" data-dom="${esc(p.id)}" value="${esc(custom)}" placeholder="fx mitfirma.com" aria-label="Eget domæne">
+          <small class="domain-address-preview">${custom?'Domænenavn gemmes i projektet – DNS skal forbindes og verificeres.':'Indtast kundens eksisterende domæne.'}</small>
+        </label>
+      </div>
+      <div class="domain-connection"><span class="domain-connection-dot"></span><span>${mode==='free'?'Gratis adresse valgt – aktivering af underdomæne afventer DNS og routing.':custom?'Eget domæne gemt – endnu ikke DNS-verificeret.':'Vælg en domænetype for at fortsætte.'}</span></div>
+    </article>`;
+  };
   return `<section class="domain-store-hero">
     <div class="domain-store-copy"><span class="domain-store-eyebrow"><i></i> PRIME WEBS AI · DOMÆNECENTER</span>
-      <h1>Find dit næste <em>domæne.</em></h1>
-      <p>Find den perfekte adresse til din hjemmeside. Søg, sammenlign og administrér dine domæner – samlet ét sted.</p>
-      <div class="domain-store-trust"><span>✓ Enkel administration</span><span>✓ Klar til DNS & SSL</span><span>✓ Samlet overblik</span></div>
-    </div><div class="domain-store-orbit" aria-hidden="true"><div class="domain-orbit-ring ring-one"></div><div class="domain-orbit-ring ring-two"></div><div class="domain-orbit-core">.com</div><span class="domain-orbit-tag tag-one">.es</span><span class="domain-orbit-tag tag-two">.ai</span></div>
+      <h1>Vælg din hjemmesides <em>domæne.</em></h1>
+      <p>Giv hver hjemmeside en gratis PRIME WEBS AI-adresse eller forbind et rigtigt domæne som .com, .dk eller .es.</p>
+      <div class="domain-store-trust"><span>✓ Gratis underdomæne</span><span>✓ Egne domæner</span><span>✓ Samlet i workspace</span></div>
+    </div><div class="domain-store-orbit" aria-hidden="true"><div class="domain-orbit-ring ring-one"></div><div class="domain-orbit-ring ring-two"></div><div class="domain-orbit-core">.site</div><span class="domain-orbit-tag tag-one">.es</span><span class="domain-orbit-tag tag-two">.com</span></div>
   </section>
-  <section class="domain-search-panel">
-    <div class="domain-search-heading"><div><span class="domain-store-kicker">DOMÆNESØGNING</span><h2>Hvilket navn har du i tankerne?</h2><p>Indtast et navn for at klargøre søgningen.</p></div><span class="domain-search-status"><i></i> Søgetjeneste klargøres</span></div>
-    <form class="domain-search-form" onsubmit="return false">
-      <span class="domain-search-glass">⌕</span><input data-dom-query type="search" value="${esc(q)}" placeholder="Skriv dit ønskede domæne, fx minvirksomhed" aria-label="Søg efter et domæne">
-      <button class="btn domain-search-button" type="button" data-act="domSearch">Søg domæne <span>→</span></button>
-    </form>
-    <div class="domain-tld-row"><span>POPULÆRE ENDELSER</span>${ext.map(x=>`<span class="domain-tld">${x}</span>`).join('')}</div>
-    ${S.domSearched?`<div class="domain-no-results"><span class="domain-no-results-icon">⌕</span><div><strong>Søgning er snart klar</strong><p>Domænesøgning er endnu ikke aktiveret. Der vises derfor ingen ledighed eller priser endnu. Din søgning “${esc(q)}” er ikke sendt til en udbyder.</p><span class="domain-coming-label"><i></i> Kommer snart</span></div></div>`:''}
+  <section class="domain-feature-grid">
+    <article class="domain-feature-card"><span class="domain-feature-icon teal">0 €</span><span class="domain-feature-label">GRATIS</span><h3>Gratis underdomæne</h3><p>Kunden vælger et navn og får fx <strong>mitfirma.primewebs.site</strong>. Ingen separat domænebetaling.</p><span class="domain-feature-state">Valg i dashboardet</span></article>
+    <article class="domain-feature-card"><span class="domain-feature-icon blue">↗</span><span class="domain-feature-label">EGET DOMÆNE</span><h3>Rigtigt domæne</h3><p>Brug et domæne kunden allerede ejer, eller køb et gennem domænecenteret, når en registrar og betaling er tilsluttet.</p><span class="domain-feature-state">Forbindelse under opbygning</span></article>
+    <article class="domain-feature-card"><span class="domain-feature-icon purple">◎</span><span class="domain-feature-label">ADMINISTRATION</span><h3>Alt samlet ét sted</h3><p>Domænevalg gemmes på det enkelte projekt. DNS-verifikation, routing og SSL skal aktiveres før adresserne virker offentligt.</p><span class="domain-feature-state">Projektindstillinger</span></article>
   </section>
-  <div class="domain-store-section-head"><div><span class="domain-store-kicker">KOMMER TIL DOMÆNECENTERET</span><h2>Alt til dine domæner</h2><p>De vigtigste værktøjer er gjort klar til aktivering.</p></div></div>
-  <div class="domain-feature-grid">
-    <article class="domain-feature-card"><span class="domain-feature-icon purple">⌕</span><span class="domain-feature-label">SØG & FIND</span><h3>Find dit domæne</h3><p>Søg efter navne og sammenlign forskellige domæneendelser, når søgetjenesten aktiveres.</p><span class="domain-feature-state">Klargjort til senere</span></article>
-    <article class="domain-feature-card"><span class="domain-feature-icon blue">＋</span><span class="domain-feature-label">REGISTRERING</span><h3>Køb et domæne</h3><p>Et samlet købsflow med pris, registreringsperiode og fornyelse bliver tilsluttet senere.</p><button class="btn domain-buy-button" type="button" disabled title="Domænekøb aktiveres senere">Køb domæne <span>↗</span></button></article>
-    <article class="domain-feature-card"><span class="domain-feature-icon teal">◎</span><span class="domain-feature-label">ADMINISTRATION</span><h3>Administrér domæner</h3><p>Hold styr på ejerskab, fornyelsesdatoer, DNS-indstillinger og SSL-status.</p><span class="domain-feature-state">Klargjort til senere</span></article>
-  </div>
-<section class="domain-price-section"><div class="domain-store-section-head"><div><span class="domain-store-kicker">PRISOVERSIGT · NAMECHEAP</span><h2>Populære domænepriser</h2><p>Offentlige referencepriser – registrering og fornyelse vist hver for sig.</p></div><span class="domain-price-currency">USD / ÅR</span></div><div class="domain-price-grid"><article class="domain-price-card"><div class="domain-price-card-top"><strong>.com</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$12.08</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$19.98</strong></div><p>25 % rabat på første år</p><button class="btn domain-buy-button" type="button" disabled>Køb .com <span>↗</span></button></article><article class="domain-price-card"><div class="domain-price-card-top"><strong>.net</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$12.48</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$18.58</strong></div><p>17 % rabat på første år</p><button class="btn domain-buy-button" type="button" disabled>Køb .net <span>↗</span></button></article><article class="domain-price-card"><div class="domain-price-card-top"><strong>.org</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$8.48</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$18.98</strong></div><p>41 % rabat på første år</p><button class="btn domain-buy-button" type="button" disabled>Køb .org <span>↗</span></button></article><article class="domain-price-card"><div class="domain-price-card-top"><strong>.io</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$29.98</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$75.98</strong></div><p>55 % rabat på første år</p><button class="btn domain-buy-button" type="button" disabled>Køb .io <span>↗</span></button></article><article class="domain-price-card"><div class="domain-price-card-top"><strong>.co</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$19.98</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$45.48</strong></div><p>48 % rabat på første år</p><button class="btn domain-buy-button" type="button" disabled>Køb .co <span>↗</span></button></article><article class="domain-price-card"><div class="domain-price-card-top"><strong>.ai</strong><span class="domain-price-ref">Prisreference</span></div><div class="domain-price-reg"><span>Første år</span><strong>$89.98</strong></div><div class="domain-price-renew"><span>Fornyelse pr. år</span><strong>$114.98</strong></div><p>Minimum 2 års registrering</p><button class="btn domain-buy-button" type="button" disabled>Køb .ai <span>↗</span></button></article></div><p class="domain-price-disclaimer">Priserne er hentet fra Namecheaps offentlige prisliste og vises kun som reference. De er i USD, kan ændres, kan være kampagnepriser og er ikke et live tilbud fra PRIME WEBS AI. Tilgængelighed, moms og endelig pris skal bekræftes ved aktivering.</p></section>
-    <section class="domain-managed-section"><div class="domain-store-section-head"><div><span class="domain-store-kicker">DIT WORKSPACE</span><h2>Dine hjemmesider</h2><p>Domæner og projekter samlet i dit workspace.</p></div><span class="domain-managed-count">${l.length} ${l.length===1?'projekt':'projekter'}</span></div>
-    ${l.length?`<div class="domains-grid">${l.map(p=>`<article class="domain-card domain-managed-card"><div class="domain-card-top"><span class="domain-icon">◎</span><span class="domain-status ${p.status==='ready'?'ready':''}">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</span></div><h3>${esc(p.name)}</h3><p class="domain-project-note">Hjemmeside · projekt</p><label class="domain-field">Dit domæne<input data-dom="${p.id}" placeholder="fx minvirksomhed.dk" value="${esc(p.domain||'')}"></label><div class="domain-connection"><span class="domain-connection-dot"></span><span>${p.domain?'Domænenavn gemt · ikke tilsluttet':'Intet domæne tilføjet endnu'}</span></div><div class="domain-card-actions"><button class="btn ghost" data-act="rdy" data-id="${p.id}">${p.status==='ready'?'Sæt tilbage til kladde':'Markér klar til udgivelse'}</button></div></article>`).join('')}</div>`:`<div class="domain-empty"><span>◎</span><h3>Dine projekter vises her</h3><p>Opret en hjemmeside, og administrér dens domæne fra dette område.</p><button class="btn" data-act="go" data-v="new">Opret hjemmeside</button></div>`}
+  <section class="domain-managed-section"><div class="domain-store-section-head"><div><span class="domain-store-kicker">DIT WORKSPACE</span><h2>Domæner til dine hjemmesider</h2><p>Vælg gratis adresse eller eget domæne for hvert projekt.</p></div><span class="domain-managed-count">${projects.length} ${projects.length===1?'projekt':'projekter'}</span></div>
+    ${projects.length?`<div class="domains-grid">${projects.map(card).join('')}</div>`:`<div class="domain-empty"><span>◎</span><h3>Dine projekter vises her</h3><p>Opret en hjemmeside, og vælg dens domæne her.</p><button class="btn" data-act="go" data-v="new">Opret hjemmeside</button></div>`}
   </section>
-  <div class="domain-store-note"><span>ⓘ</span><div><strong>Designet er klar – forbindelserne aktiveres senere</strong><p>Domænesøgning, betaling, registrering, DNS-verifikation og SSL er endnu ikke tilsluttet. Prisoversigten er kun en offentlig reference – der foretages ingen søgninger eller køb i denne version.</p></div></div>`;
+  <div class="domain-store-note"><span>ⓘ</span><div><strong>Domænevalget gemmes – offentlig aktivering mangler stadig</strong><p>Dette trin gemmer kundens valg på projektet. Gratis underdomæner kræver wildcard-DNS og routing til den rigtige hjemmeside. Rigtige domæner kræver DNS-verifikation og SSL. Køb af domæner direkte i platformen kræver en domæneregistrator og betalingsintegration. Ingen køb eller betaling foretages i denne version.</p></div></div>`;
 }
 function vCred(){return `<h1>Credits og abonnementer</h1><div class="card" style="margin-bottom:1rem"><span class="badge">OWNER / ADMIN</span><h3 style="margin-top:.6rem">Din konto: ubegrænsede credits</h3><p class="mu">Intet trækkes, når du selv genererer, tester eller redigerer.</p></div><h3>Credit-forbrug for kunder</h3><table><tr><th>Handling</th><th>Credits</th></tr><tr><td>Generér hjemmeside</td><td>${Credits.cost.generate}</td></tr><tr><td>Chat-ændring</td><td>${Credits.cost.edit}</td></tr></table><h3 style="margin-top:1.5rem">Abonnementer (udkast)</h3><table><tr><th>Plan</th><th>Credits pr. måned</th></tr>${PLANS.map(([n,c])=>`<tr><td>${n}</td><td>${c}</td></tr>`).join('')}</table><p class="mu">Der er ikke tilsluttet nogen betaling. Priser og betalingssystem tilføjes først, når du har godkendt det.</p>`}
 
@@ -514,7 +528,7 @@ async function generate(){
   catch(error){S.busy=false;S.err=error.message||'AI-generatoren kunne ikke kontaktes.';return render()}
   const site=result.site;
   Credits.spend('generate');
-  const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
+  const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,name:f.name.trim(),status:'draft',domain:null,domainMode:'free',subdomain:domainSlug(f.name.trim()),plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
   S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='mini';S.miniTab='edit';S.id=p.id;render();
@@ -553,7 +567,7 @@ document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[d
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined){const arr=Array.isArray(b[d.k])?b[d.k]:b.items;if(d.ik)arr[+d.i][d.ik]=v;else arr[+d.i]=v}else b[d.k]=v})}
-  else if(d.dom)upd(d.dom,q=>{q.domain=v.trim()||null});
+  else if(d.domMode)upd(d.domMode,q=>{q.domainMode=v;if(v==='free'){q.domain=null;q.subdomain=domainSlug(q.subdomain||q.name)}else{q.subdomain=''}});\n  else if(d.domSub)upd(d.domSub,q=>{q.subdomain=domainSlug(v)});\n  else if(d.dom)upd(d.dom,q=>{q.domain=v.trim().toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'')||null;q.domainMode='custom'});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
   else if(d.cu){const c=Customers.all(),u=c.find(x=>x.id===d.cu);if(u){u[d.cf]=v;Customers.save(c)}}
   else if(d.s)Settings.set(d.s,v);
