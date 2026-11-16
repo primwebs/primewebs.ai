@@ -442,7 +442,7 @@ const LeadStore={
   remove(id){this.save(this.all().filter(x=>x.id!==id))}
 };
 S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};
-const leadPhone=x=>String(x&&x.phone||'').replace(/[^\\d+]/g,'');
+const leadPhone=x=>String(x&&x.phone||'').replace(/[^\d+]/g,'');
 const leadRing=x=>{const n=leadPhone(x);return n?'<a class="btn ghost" href="tel:'+esc(n)+'">☎ Ring</a>':'<button class="btn ghost" type="button" disabled>☎ Ring</button>'};
 function vLeadFinder(){
  const f=S.leadForm||{},leads=LeadStore.all();
