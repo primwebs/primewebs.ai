@@ -194,11 +194,17 @@ const Renderer={html(p){
   const fg=/^#[0-9a-fA-F]{6}$/.test(t.text)?t.text:(d?'#E8ECF5':'#101828');
   const sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
   const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
+  const meta=s.meta||{},lang=/^[a-z]{2}(?:-[A-Z]{2})?$/.test(meta.lang||'da')?(meta.lang||'da'):'da';
+  const description=String(meta.description||'').trim().slice(0,320),ogImage=/^https:\/\/[a-z0-9.-]+(?:\/[^\s]*)?$/i.test(meta.ogImage||'')?meta.ogImage:'';
+  const canonical=/^https:\/\/[a-z0-9.-]+(?:\/[^\s]*)?$/i.test(meta.canonicalUrl||'')?meta.canonicalUrl:'';
+  const seo=(description?'<meta name="description" content="'+esc(description)+'"><meta property="og:description" content="'+esc(description)+'">':'')+
+   '<meta property="og:title" content="'+esc(meta.title)+'"><meta property="og:type" content="website"><meta name="twitter:card" content="'+(ogImage?'summary_large_image':'summary')+'">'+
+   (ogImage?'<meta property="og:image" content="'+esc(ogImage)+'">':'')+(canonical?'<link rel="canonical" href="'+esc(canonical)+'">':'');
   const body=s.blocks.map((b,i)=>{const html=(B[b.type]||(()=>''))(b);return html.replace('<section','<section id="section-'+b.type+'-'+i+'"')}).join('');
   const links=s.blocks.filter(b=>['services','about','features','gallery','contact'].includes(b.type)).map(b=>'<a href="#section-'+b.type+'-'+s.blocks.indexOf(b)+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
   const nav=links?'<nav aria-label="Hovedmenu">'+links+'</nav>':'';
   const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title>${seo}<style>
   *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.65}
   header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem clamp(1rem,4vw,3rem);font-weight:800;background:${bg};border-bottom:1px solid ${ln}}
   header nav{display:flex;flex-wrap:wrap;gap:1rem}header nav a{font-size:.9rem;text-decoration:none;font-weight:650}
@@ -267,7 +273,15 @@ const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'
 const nEdits=p=>p.chat.filter(m=>m.r==='u').length;
 const snap=()=>JSON.stringify({app:'primewebs',v:1,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),images:Imgs.all(),credits:Storage.get('pw.credits',50)},null,1);
 // Forhåndsvisningen ligger i en afskærmet ramme (srcdoc). Uden <base> sender et #-link rammen til dashboardets egen adresse, og rammen bliver hvid.
-function previewDoc(p){return Renderer.html(p).replace('<head>','<head><base href="about:srcdoc">')}
+function projectHtml(p){
+ const src=p&&p.sourceFiles||{};
+ let html=typeof src.html==='string'&&src.html.trim()?src.html:Renderer.html(p);
+ const css=typeof src.css==='string'?src.css:'',js=typeof src.js==='string'?src.js:'';
+ if(css.trim()){const tag='<style>\n'+css.replace(/<\/style/gi,'<\\/style')+'\n</style>';html=/<\/head>/i.test(html)?html.replace(/<\/head>/i,tag+'</head>'):tag+html}
+ if(js.trim()){const tag='<script>\n'+js.replace(/<\/script/gi,'<\\/script')+'\n</script>';html=/<\/body>/i.test(html)?html.replace(/<\/body>/i,tag+'</body>'):html+tag}
+ return html;
+}
+function previewDoc(p){return projectHtml(p).replace('<head>','<head><base href="about:srcdoc">')}
 const frame=p=>`<iframe title="Live preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe>`;
 
 function vPick(t){const l=Projects.all();return `<h1>${PT[t]||'Vælg hjemmeside'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
@@ -285,7 +299,7 @@ function vBuilder(){const p=getP();if(!p)return vPick('builder');const blocks=p.
  const itemFields=(bi,items)=>items.map((it,ii)=>`<div class="block-item-fields"><span class="block-item-number">${ii+1}</span><div>${field(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)}${field(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)}</div></div>`).join('');
  const cards=blocks.map((b,bi)=>`<article class="block-editor-card"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type'].includes(k)).map(k=>Array.isArray(b[k])?(b[k].length&&typeof b[k][0]==='object'?itemFields(bi,b[k]):b[k].map((it,ii)=>`<label class="block-field">${k==='images'?'Billede URL':'Element'}<input data-b="${bi}" data-k="${k}" data-i="${ii}" value="${esc(it)}" placeholder="https://..."></label>`).join('')):field(bi,k,b[k])).join('')}</div></article>`).join('');
  const addTypes=['features','services','about','steps','faq','cta','gallery','booking'];
- return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">VISUEL WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Redigér sektioner direkte, flyt dem rundt, og se ændringerne i live-preview.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div><div class="builder-workspace"><section class="builder-controls"><div class="builder-add-panel"><strong>Tilføj sektion</strong><p class="mu">Vælg indhold, der skal føjes til hjemmesiden.</p><div class="builder-add-grid">${addTypes.filter(t=>!blocks.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">＋ ${BT[t]||t}</button>`).join('')||'<span class="mu">Alle sektioner er allerede tilføjet.</span>'}</div></div><div class="block-editor-list">${cards}</div></section><section class="builder-preview"><div class="builder-preview-head"><strong>Live preview</strong><div class="row"><button class="chip ${S.device==='desktop'?'is-selected':''}" data-act="dev" data-d="desktop">Computer</button><button class="chip ${S.device==='mobile'?'is-selected':''}" data-act="dev" data-d="mobile">Mobil</button></div></div><div class="pv"><iframe class="${S.device}" title="Live website preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></div></section></div>`;
+ return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">VISUEL WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Redigér sektioner direkte, flyt dem rundt, og se ændringerne i live-preview.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div><section class="seo-settings-panel"><div><span class="dash-section-kicker">SEO & SOCIAL PREVIEW</span><strong>Sådan vises din hjemmeside i søgeresultater og delinger</strong><p class="mu">Udfyld oplysningerne, så genereres relevante metadata i HTML-eksporten.</p></div><div class="seo-settings-grid"><label>Meta-beskrivelse<textarea data-seo="description" maxlength="320" rows="2" placeholder="Kort beskrivelse af virksomheden og hjemmesiden…">${esc(p.site.meta.description||'')}</textarea></label><label>Sidens sprog<input data-seo="lang" maxlength="5" value="${esc(p.site.meta.lang||'da')}" placeholder="da eller es"></label><label>Socialt delingsbillede (HTTPS)<input data-seo="ogImage" type="url" value="${esc(p.site.meta.ogImage||'')}" placeholder="https://…"></label><label>Kanonisk URL (HTTPS)<input data-seo="canonicalUrl" type="url" value="${esc(p.site.meta.canonicalUrl||'')}" placeholder="https://ditdomæne.dk/"></label></div></section><div class="builder-workspace"><section class="builder-controls"><div class="builder-add-panel"><strong>Tilføj sektion</strong><p class="mu">Vælg indhold, der skal føjes til hjemmesiden.</p><div class="builder-add-grid">${addTypes.filter(t=>!blocks.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">＋ ${BT[t]||t}</button>`).join('')||'<span class="mu">Alle sektioner er allerede tilføjet.</span>'}</div></div><div class="block-editor-list">${cards}</div></section><section class="builder-preview"><div class="builder-preview-head"><strong>Live preview</strong><div class="row"><button class="chip ${S.device==='desktop'?'is-selected':''}" data-act="dev" data-d="desktop">Computer</button><button class="chip ${S.device==='mobile'?'is-selected':''}" data-act="dev" data-d="mobile">Mobil</button></div></div><div class="pv"><iframe class="${S.device}" title="Live website preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></div></section></div>`;
 }
 
 function vTpl(){const q=String(S.templateQuery||'').trim().toLowerCase(),cat=S.templateCategory||'Alle',cats=['Alle',...new Set(TPL.map(t=>t.c))],list=TPL.map((t,i)=>({...t,i})).filter(t=>(cat==='Alle'||t.c===cat)&&(!q||[t.n,t.d,t.c,t.industry].join(' ').toLowerCase().includes(q)));
@@ -415,6 +429,7 @@ function vFin(){const p=S.fp||'m6',f=S.ff,cs=Customers.all(),months=p==='m1'?1:p
  <p class="finance-foot">Alle beløb vises i EUR. Tallene bygger på manuelle registreringer i denne browser – ikke på faktiske kundeopkrævninger, bankdata eller betalingsudbetalinger.</p>`}
 
 
+document.addEventListener('change',e=>{const key=e.target.dataset.seo;if(!key||!S.id)return;const value=String(e.target.value||'').trim();if((key==='ogImage'||key==='canonicalUrl')&&value&&!/^https:\/\//i.test(value)){banner('SEO-links skal begynde med https://');return}if(key==='lang'&&value&&!/^[a-z]{2}(?:-[A-Z]{2})?$/.test(value)){banner('Sprog skal skrives som fx da eller es-ES.');return}upd(S.id,p=>{p.history=[...(p.history||[]),structuredClone(p.site)].slice(-30);p.future=[];p.site.meta[key]=value});render()});
 document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 
@@ -449,11 +464,14 @@ function vLeadHistory(){
 
 function vFiles(){
  const p=getP();if(!p)return vPick('files');
- const tab=S.fileTab||'index.html',files=[['index.html','HTML','Den færdige hjemmeside, som kan eksporteres.'],['site.json','JSON','Redigerbar kilde til hjemmesideindhold og design.'],['README.md','DOCS','Kort projektbeskrivelse og filoversigt.']];
- const html=Renderer.html(p),data=tab==='index.html'?html:tab==='site.json'?JSON.stringify(p.site,null,2):'# '+p.name+'\\n\\nDette projekt er oprettet i PRIME WEBS AI.\\n\\n- index.html – genereret hjemmeside.\\n- site.json – redigerbar struktur, sektioner og designtema.\\n- Projektet kan redigeres i AI Chat, Visuel editor og JSON-kildeeditor.\\n';
- const ext=tab.split('.').pop(),editable=tab==='site.json';
- return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · FILES</span><h1>'+esc(p.name)+' / Filer</h1><p class="mu">Redigér og gem hjemmesidens JSON-kilde. HTML-filen er det genererede output; fuld HTML/CSS/JS-editor kommer senere.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">'+(editable?'JSON SOURCE · EDITABLE':'READ ONLY')+'</span></header><textarea class="code file-code" '+(editable?'':'readonly')+' spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+(S.fileError?' · '+esc(S.fileError):'')+'</span>'+(editable?'<button class="btn" data-act="fileSave">Gem ændringer</button>':'')+'<button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button></footer></section></div>';
+ const tab=S.fileTab||'index.html',src=p.sourceFiles||{};
+ const files=[['index.html','HTML','Redigér HTML-kilden til hjemmesiden.'],['styles.css','CSS','Tilføj egne styles til hjemmesiden.'],['script.js','JS','Tilføj interaktioner og JavaScript.'],['site.json','JSON','Redigér struktureret indhold og design.'],['README.md','DOCS','Projektbeskrivelse og filoversigt.']];
+ const html=projectHtml(p),readme='# '+p.name+'\n\nProjekt oprettet i PRIME WEBS AI.\n\n- index.html – HTML-kilde.\n- styles.css – brugerdefineret CSS.\n- script.js – brugerdefineret JavaScript.\n- site.json – struktureret indhold og design.\n';
+ const data=tab==='index.html'?html:tab==='styles.css'?(src.css||'/* Skriv dine egne CSS-regler her. */\n'):tab==='script.js'?(src.js||'// Skriv din JavaScript-kode her.\n'):tab==='site.json'?JSON.stringify(p.site,null,2):readme;
+ const ext=tab.split('.').pop(),editable=['index.html','styles.css','script.js','site.json'].includes(tab);
+ return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · SOURCE CODE</span><h1>'+esc(p.name)+' / Kodeeditor</h1><p class="mu">Redigér HTML, CSS og JavaScript. Gemte filer bruges i projektets isolerede live-preview.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">'+(editable?'SOURCE · EDITABLE':'READ ONLY')+'</span></header><textarea class="code file-code" '+(editable?'':'readonly')+' spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+(S.fileError?' · '+esc(S.fileError):'')+'</span>'+(editable?'<button class="btn" data-act="fileSave">Gem ændringer</button>':'')+(editable&&tab!=='site.json'&&p.fileHistory&&p.fileHistory.length?'<button class="btn ghost" data-act="fileRestore">Gendan forrige kilde</button>':'')+'<button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button></footer></section></div>';
 }
+
 const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadhistory:vLeadHistory};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
@@ -466,13 +484,18 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='dashReset'){S.dashSearch='';S.dashFilter='all';return 1}
   if(a==='templateFilter'){S.templateCategory=d.filter||'Alle';return 1}
   if(a==='fileTab'){S.fileTab=d.file||'index.html';S.fileError='';return 1}
-  if(a==='fileSave'){const p=getP(),editor=document.querySelector('.file-code');if(!p||!editor)return 1;const raw=editor.value;if(raw.length>500000){S.fileError='Filen er for stor (maks. 500 KB).';return 1}try{const next=JSON.parse(raw);if(!next||typeof next!=='object'||!next.meta||typeof next.meta.title!=='string'||!Array.isArray(next.blocks)||next.blocks.some(block=>!block||typeof block!=='object'||!B[block.type]))throw new Error('Kontrollér JSON-formatet, meta.title og de understøttede bloktyper.');upd(p.id,q=>{q.history=[...(q.history||[]),structuredClone(q.site)].slice(-30);q.future=[];q.site=next});S.fileError='Gemt – preview og projekt er opdateret.'}catch(error){S.fileError='Kunne ikke gemme: '+error.message}return 1}
-  if(a==='fileDownload'){const p=getP();if(!p)return 1;const tab=d.file||'index.html',content=tab==='index.html'?Renderer.html(p):tab==='site.json'?JSON.stringify(p.site,null,2):'# '+p.name+'\n\nGenereret i PRIME WEBS AI.\n\n- index.html: hjemmeside\n- site.json: struktureret indhold og design\n';const blob=new Blob([content],{type:tab.endsWith('.html')?'text/html;charset=utf-8':tab.endsWith('.json')?'application/json;charset=utf-8':'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=tab;a.click();URL.revokeObjectURL(url);return 1}
+  if(a==='fileSave'){const p=getP(),editor=document.querySelector('.file-code'),tab=S.fileTab||'index.html';if(!p||!editor)return 1;const raw=editor.value;if(raw.length>500000){S.fileError='Filen er for stor (maks. 500 KB).';return 1}try{
+   if(tab==='site.json'){const next=JSON.parse(raw);if(!next||typeof next!=='object'||!next.meta||typeof next.meta.title!=='string'||!Array.isArray(next.blocks)||next.blocks.some(block=>!block||typeof block!=='object'||!B[block.type]))throw new Error('Kontrollér JSON-formatet, meta.title og de understøttede bloktyper.');upd(p.id,q=>{q.history=[...(q.history||[]),structuredClone(q.site)].slice(-30);q.future=[];q.site=next})}
+   else{if(!raw.trim())throw new Error('Filen må ikke være tom.');if(tab==='script.js')new Function(raw);if(tab==='styles.css'&&(raw.match(/{/g)||[]).length!==(raw.match(/}/g)||[]).length)throw new Error('CSS har ulige antal { og }-klammer.');upd(p.id,q=>{q.fileHistory=[...(q.fileHistory||[]),{at:Date.now(),sourceFiles:structuredClone(q.sourceFiles||{})}].slice(-30);q.sourceFiles={...(q.sourceFiles||{}),[tab==='index.html'?'html':tab==='styles.css'?'css':'js']:raw}})}
+   S.fileError='Gemt – projekt og live-preview er opdateret.';
+ }catch(error){S.fileError='Kunne ikke gemme: '+(error.message||'Kontrollér koden.')}return 1}
+  if(a==='fileRestore'){const p=getP(),tab=S.fileTab||'index.html';if(!p||!p.fileHistory||!p.fileHistory.length)return 1;const last=p.fileHistory[p.fileHistory.length-1];upd(p.id,q=>{q.sourceFiles=structuredClone(last.sourceFiles||{});q.fileHistory=q.fileHistory.slice(0,-1)});S.fileError='Forrige kildeversion er gendannet.';return 1}
+  if(a==='fileDownload'){const p=getP();if(!p)return 1;const tab=d.file||'index.html',src=p.sourceFiles||{},content=tab==='index.html'?projectHtml(p):tab==='styles.css'?(src.css||''):tab==='script.js'?(src.js||''):tab==='site.json'?JSON.stringify(p.site,null,2):'# '+p.name+'\n\nGenereret i PRIME WEBS AI.\n\n- index.html: HTML-kilde\n- styles.css: CSS\n- script.js: JavaScript\n- site.json: struktureret indhold\n';const blob=new Blob([content],{type:tab.endsWith('.html')?'text/html;charset=utf-8':tab.endsWith('.json')?'application/json;charset=utf-8':tab.endsWith('.css')?'text/css;charset=utf-8':tab.endsWith('.js')?'text/javascript;charset=utf-8':'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=tab;a.click();URL.revokeObjectURL(url);return 1}
   if(a==='bmove'||a==='brem'||a==='badd'){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks,i=+d.i;
     if(a==='badd'){const ci=bl.findIndex(x=>x.type==='contact'),nb=mk[d.t](q.site.meta.title,'');(d.t!=='contact'&&ci>-1)?bl.splice(ci,0,nb):bl.push(nb)}
     else if(a==='brem'){if(bl[i].type!=='hero')bl.splice(i,1)}
     else{const j=i+ +d.d;if(j>=0&&j<bl.length)[bl[i],bl[j]]=[bl[j],bl[i]]}});return 1}
-  if(a==='exp'){S.out=Renderer.html(Projects.all().find(p=>p.id===id));S.outId=id;return 1}
+  if(a==='exp'){S.out=projectHtml(Projects.all().find(p=>p.id===id));S.outId=id;return 1}
   if(a==='rdy'){upd(id,q=>{q.status=q.status==='ready'?'draft':'ready'});return 1}
   if(a==='cadd'){const f=S.cf;if(!f.name.trim()){S.err='Skriv et navn.';return 1}const pl=PLANS.find(p=>p[0]===f.plan)||PLANS[0];Customers.save([{id:uid(),name:f.name.trim(),email:f.email.trim(),plan:pl[0],credits:pl[1],createdAt:Date.now()},...Customers.all()]);S.cf={name:'',email:'',plan:'Gratis'};S.err='';return 1}
   if(a==='cc'){const c=Customers.all(),u=c.find(x=>x.id===id);if(u){u.credits=Math.max(0,u.credits+ +d.n);Customers.save(c)}return 1}
@@ -780,7 +803,54 @@ async function boot(){
 }
 function loginScreen(){
   S.auth={enabled:false,authenticated:false,email:''};
-  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:8vh auto;padding:0 16px"><div class="card"><h1>PRIME WEBS AI</h1><h2>Log ind</h2><p class="mu">Log ind med din e-mail, eller brug ejerens admin-kode.</p><form id="pwEmailLogin" style="display:grid;gap:10px;margin:18px 0"><label>E-mail<input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="Din e-mailadresse" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Send login-kode</button></form><form id="pwOtpLogin" style="display:none;gap:10px;margin:12px 0"><label>6-cifret kode<input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Kode fra din e-mail" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Bekræft e-mailkode</button></form><div style="border-top:1px solid #ddd;margin:22px 0;padding-top:18px"><h3>Ejerlogin</h3><form id="pwAdminLogin" style="display:grid;gap:10px"><label>Admin-kode<input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Log ind som ejer</button></form></div><p id="pwLoginMessage" class="mu" role="status" aria-live="polite"></p></div></main>';
+  $('#app').innerHTML=`<main class="login-shell">
+    <div class="login-orb login-orb-one"></div><div class="login-orb login-orb-two"></div>
+    <section class="login-layout" aria-label="PRIME WEBS AI login">
+      <div class="login-brand-panel">
+        <a class="login-brand" href="/" aria-label="PRIME WEBS AI home"><span class="login-brand-mark">P</span><span>PRIME WEBS <b>AI</b></span></a>
+        <div class="login-brand-copy">
+          <span class="login-kicker"><i></i> YOUR CREATIVE WORKSPACE</span>
+          <h1>Build something<br><em>remarkable.</em></h1>
+          <p>One workspace for your websites, ideas and next big launch.</p>
+        </div>
+        <div class="login-preview-card" aria-hidden="true">
+          <div class="login-preview-top"><span></span><span></span><span></span><small>LIVE WORKSPACE</small></div>
+          <div class="login-preview-content"><div class="login-preview-side"><b></b><i></i><i></i><i></i></div><div class="login-preview-main"><small>YOUR NEXT PROJECT</small><strong>Made to stand out.</strong><div class="login-preview-lines"><i></i><i></i><i></i></div><div class="login-preview-tiles"><b></b><b></b><b></b></div></div></div>
+        </div>
+        <div class="login-footnote"><span>✦</span> Design. Build. Launch. All in one place.</div>
+      </div>
+      <div class="login-form-panel">
+        <div class="login-form-inner">
+          <div class="login-mobile-brand"><span class="login-brand-mark">P</span><span>PRIME WEBS <b>AI</b></span></div>
+          <span class="login-kicker login-form-kicker">WELCOME BACK</span>
+          <h2>Sign in to your workspace</h2>
+          <p class="login-subtitle">Pick up right where you left off.</p>
+          <form id="pwEmailLogin" class="login-form">
+            <label for="pwLoginEmail">Email address</label>
+            <input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+            <button class="btn login-primary" type="submit">Continue with email <span>→</span></button>
+          </form>
+          <form id="pwOtpLogin" class="login-form login-otp-form" style="display:none">
+            <label for="pwLoginOtp">6-digit verification code</label>
+            <input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter your email code">
+            <button class="btn login-primary" type="submit">Verify email code <span>→</span></button>
+          </form>
+          <div class="login-divider"><span>OR</span></div>
+          <div class="login-admin-block">
+            <div class="login-admin-heading"><span class="login-lock">⌑</span><div><strong>Owner access</strong><small>Secure administrator sign in</small></div></div>
+            <form id="pwAdminLogin" class="login-form">
+              <label for="pwAdminCode">Admin code</label>
+              <input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Enter your admin code">
+              <button class="btn login-secondary" type="submit">Sign in as owner <span>→</span></button>
+            </form>
+          </div>
+          <p id="pwLoginMessage" class="login-message" role="status" aria-live="polite"></p>
+          <p class="login-legal">Protected workspace · <span>PRIME WEBS AI</span></p>
+        </div>
+      </div>
+    </section>
+  </main>`;
+
   const msg=document.getElementById('pwLoginMessage');
   const busy=on=>document.querySelectorAll('#pwEmailLogin button,#pwOtpLogin button,#pwAdminLogin button').forEach(b=>b.disabled=on);
   const finish=async()=>{await window.PWDB.refresh();S.auth={enabled:true,authenticated:true,email:window.PWDB.user&&window.PWDB.user.email||''};render();};
