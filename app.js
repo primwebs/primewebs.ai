@@ -198,7 +198,10 @@ const Renderer={html(p){
   const links=s.blocks.filter(b=>['services','about','features','gallery','contact'].includes(b.type)).map(b=>'<a href="#section-'+b.type+'-'+s.blocks.indexOf(b)+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
   const nav=links?'<nav aria-label="Hovedmenu">'+links+'</nav>':'';
   const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
-  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(s.meta.title)}</title><style>
+  const hero=s.blocks.find(b=>b.type==='hero')||{},about=s.blocks.find(b=>b.type==='about')||{},contact=s.blocks.find(b=>b.type==='contact')||{};
+  const metaDesc=String(hero.text||about.text||('Læs mere om '+(s.meta.title||p.name)+'. Se vores ydelser og kontakt os.')).replace(/\\s+/g,' ').trim().slice(0,300);
+  const businessSchema={ '@context':'https://schema.org','@type':'LocalBusiness',name:String(s.meta.title||p.name),description:metaDesc,...(contact.phone?{telephone:contact.phone}:{}),...(contact.email?{email:contact.email}:{})};
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${esc(metaDesc)}"><meta property="og:type" content="website"><meta property="og:title" content="${esc(s.meta.title||p.name)}"><meta property="og:description" content="${esc(metaDesc)}"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="${a}"><script type="application/ld+json">${JSON.stringify(businessSchema).replace(/</g,'\\u003c')}</script><title>${esc(s.meta.title||p.name)}</title><style>
   *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:${f};background:${bg};color:${fg};line-height:1.65}
   header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem clamp(1rem,4vw,3rem);font-weight:800;background:${bg};border-bottom:1px solid ${ln}}
   header nav{display:flex;flex-wrap:wrap;gap:1rem}header nav a{font-size:.9rem;text-decoration:none;font-weight:650}
