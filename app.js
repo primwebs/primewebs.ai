@@ -49,6 +49,7 @@ const mk={
     {t:'Kan jeg få rettet noget bagefter?',d:'Ja, sig til, hvis noget skal justeres, så kigger vi på det sammen.'}]}),
   cta:n=>({id:uid(),type:'cta',title:'Klar til at komme i gang?',text:'Kontakt '+n+' i dag, og hør, hvordan vi kan hjælpe dig. Samtalen er uforpligtende.',cta:'Kontakt os nu'}),
   gallery:()=>({id:uid(),type:'gallery',title:'Galleri',images:[]}),
+  booking:()=>({id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'}),
   contact:()=>({id:uid(),type:'contact',title:'Kontakt',text:'Skriv eller ring, så vender vi hurtigt tilbage.',email:Settings.get().email,phone:Settings.get().phone})};
 const DemoAI={mode:'test',
   async generate(input){await wait(500);return smartSite(input)},
@@ -217,7 +218,7 @@ const Renderer={html(p){
 }};
 
 /* ===== Lag 4: UI ===== */
-let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,form:{name:'',desc:'',style:'Moderne'}};
+let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:null,device:'desktop',busy:false,err:'',del:null,dashSearch:'',dashFilter:'all',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
 const getP=()=>Projects.all().find(p=>p.id===S.id);
 const upd=(id,fn)=>{const l=Projects.all(),i=l.findIndex(p=>p.id===id);if(i<0)return;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l)};
 
@@ -246,9 +247,22 @@ const NAV=[
   ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
  ]]
 ];
-const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
+const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri',booking:'Booking'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50,0],['Starter',120,29],['Pro',250,67],['Business',500,126]];
-const TPL=[{n:'Restaurant',s:'Elegant',d:'Hyggelig restaurant med lokale råvarer og sæsonens menu.'},{n:'Håndværker',s:'Moderne',d:'Pålidelig håndværker til nybyg, renovering og service.'},{n:'Frisør',s:'Frisk',d:'Frisørsalon med fokus på klip, farve og personlig rådgivning.'},{n:'Konsulent',s:'Mørk',d:'Selvstændig konsulent, der hjælper virksomheder med strategi og vækst.'}];
+const TPL=[
+ {n:'Restaurant',s:'Elegant',d:'Restaurant med menu, bordforespørgsler, galleri og kontakt.',c:'Mad & drikke',industry:'Restaurant/café'},
+ {n:'Café & bageri',s:'Natur',d:'Varm café eller bager med sortiment, åbningstider og lokation.',c:'Mad & drikke',industry:'Restaurant/café'},
+ {n:'Håndværker',s:'Moderne',d:'Professionel håndværkerside med ydelser, arbejdsproces og tilbudsforespørgsel.',c:'Lokale services',industry:'Håndværker'},
+ {n:'Malerfirma',s:'Premium',d:'Eksklusiv malerside med serviceoversigt, før/efter-galleri og tilbud.',c:'Lokale services',industry:'Håndværker'},
+ {n:'Frisør & barber',s:'Frisk',d:'Moderne salon med behandlinger, priser, galleri og tidsbestilling.',c:'Skønhed',industry:'Frisør/skønhed'},
+ {n:'Skønhedsklinik',s:'Rosa',d:'Elegant klinik med behandlinger, personale, FAQ og booking.',c:'Skønhed',industry:'Frisør/skønhed'},
+ {n:'Konsulent',s:'Mørk',d:'Professionel rådgivningsside med ekspertise, ydelser og kontakt.',c:'Professionelle',industry:'Konsulent/rådgiver'},
+ {n:'Ejendomsmægler',s:'Premium',d:'Premium ejendomsside med boligpræsentation, områder og kontakt.',c:'Professionelle',industry:'Konsulent/rådgiver'},
+ {n:'Webshop',s:'Moderne',d:'Produktside med kategorier, produktfordele, levering og kundeservice.',c:'Handel',industry:'Webshop/butik'},
+ {n:'Fitness & træning',s:'Hav',d:'Træningsside med hold, medlemsfordele, instruktører og tilmelding.',c:'Sundhed',industry:'Sundhed/træning'},
+ {n:'Klinik',s:'Natur',d:'Tryg klinikside med behandlinger, praktisk info og kontakt.',c:'Sundhed',industry:'Sundhed/træning'},
+ {n:'Portfolio',s:'Lavendel',d:'Personlig portfolio med projekter, kompetencer og kontakt.',c:'Kreative',industry:'Konsulent/rådgiver'}
+];
 const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'Live preview og chat-redigering'],[1,'Bygger med direkte redigering af blokke'],[1,'Ejer/admin med creditforbrug registreret pr. AI-handling'],[1,'Kunder med egne credits (manuelt)'],[1,'Sikkerhedskopi og gendannelse'],[1,'Adgangskode, begrænsning og validering på AI-serveren'],[1,'Demo-tilstand, hvis AI-serveren ikke er sat op'],[0,'Login og database'],[0,'Rigtig publicering og egne domæner'],[0,'Betaling og abonnementer (kræver din godkendelse)']];
 const nEdits=p=>p.chat.filter(m=>m.r==='u').length;
 const snap=()=>JSON.stringify({app:'primewebs',v:1,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),images:Imgs.all(),credits:Storage.get('pw.credits',50)},null,1);
@@ -258,15 +272,25 @@ const frame=p=>`<iframe title="Live preview" sandbox="allow-scripts" srcdoc="${e
 
 function vPick(t){const l=Projects.all();return `<h1>${PT[t]||'Vælg hjemmeside'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
 
-function vDash(){const l=Projects.all(),u=Session.user();
+function vDash(){const all=Projects.all(),u=Session.user(),q=String(S.dashSearch||'').trim().toLowerCase(),filter=S.dashFilter||'all';
+ const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const prompt=String(S.dashPrompt||'');
  return `<section class="dash-hero"><div class="dash-hero-copy"><span class="dash-eyebrow"><span class="dash-live-dot"></span> PRIME WEBS AI <span class="dash-eyebrow-sep">/</span> WORKSPACE</span><h1>Godt at se dig igen, ${esc(u.name)}.</h1><p>Beskriv din idé, så hjælper AI'en dig med at bygge den.</p></div><div class="dash-hero-side"><span class="dash-status-pill"><span class="dash-live-dot"></span> Workspace aktivt</span><div class="dash-hero-mark">PW<span>AI</span></div></div></section>
  <section class="dash-prompt-panel"><div class="dash-prompt-heading"><span class="dash-section-kicker">AI WEBSITE BUILDER</span><h2>Hvad skal vi bygge i dag?</h2><p>Beskriv din hjemmeside eller app med dine egne ord. AI'en går i gang med det samme.</p></div><textarea class="dash-prompt-input" data-dash-prompt rows="4" placeholder="Fx: Byg en moderne bookingside til en frisør i Málaga med priser, galleri og kontaktformular...">${esc(prompt)}</textarea><div class="dash-prompt-footer"><span class="mu">Tip: Skriv gerne branche, stil, funktioner og ønsker.</span><button class="btn dash-prompt-submit" data-act="dashGen" ${S.busy?'disabled':''}>${S.busy?'Arbejder…':'✦ Start byggeriet'}</button></div>${S.err?`<p class="err">${esc(S.err)}</p>`:''}</section>
-  <div class="dash-section-head"><div><span class="dash-section-kicker">DIT ARBEJDE</span><h3>Dine projekter</h3></div><span class="mu">${l.length} i alt</span></div>
-  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Aktiv':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Beskriv din idé ovenfor, så opretter vi dit første projekt.</p></div>`}`}
-function vBuilder(){return vEdit()}
+  <div class="dash-section-head"><div><span class="dash-section-kicker">DIT ARBEJDE</span><h3>Dine projekter</h3></div><span class="mu">${all.length} i alt</span></div>
+  ${all.length?`<section class="dash-project-tools"><input data-dash-search type="search" value="${esc(S.dashSearch||'')}" placeholder="Søg efter et projekt…" aria-label="Søg efter et projekt"><div class="dash-filter-row">${[['all','Alle'],['published','Udgivet'],['ready','Klar'],['draft','Kladder']].map(([v,t])=>`<button class="chip ${filter===v?'is-selected':''}" data-act="dashFilter" data-filter="${v}" aria-pressed="${filter===v}">${t}</button>`).join('')}</div></section>`:''}
+  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Udgivet':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:all.length?`<div class="card dash-empty"><strong>Ingen projekter matcher søgningen</strong><p class="mu">Prøv et andet navn eller vælg et andet filter.</p><button class="btn ghost" data-act="dashReset">Nulstil søgning</button></div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Beskriv din idé ovenfor, så opretter vi dit første projekt.</p></div>`}`}
+function vBuilder(){const p=getP();if(!p)return vPick('builder');const blocks=p.site.blocks||[];
+ const field=(bi,k,v,extra='')=>`<label class="block-field">${LBL[k]||k}<input data-b="${bi}" data-k="${k}" ${extra} value="${esc(v??'')}"></label>`;
+ const itemFields=(bi,items)=>items.map((it,ii)=>`<div class="block-item-fields"><span class="block-item-number">${ii+1}</span><div>${field(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)}${field(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)}</div></div>`).join('');
+ const cards=blocks.map((b,bi)=>`<article class="block-editor-card"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type'].includes(k)).map(k=>Array.isArray(b[k])?itemFields(bi,b[k]):field(bi,k,b[k])).join('')}</div></article>`).join('');
+ const addTypes=['features','services','about','steps','faq','cta','gallery','booking'];
+ return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">VISUEL WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Redigér sektioner direkte, flyt dem rundt, og se ændringerne i live-preview.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div><div class="builder-workspace"><section class="builder-controls"><div class="builder-add-panel"><strong>Tilføj sektion</strong><p class="mu">Vælg indhold, der skal føjes til hjemmesiden.</p><div class="builder-add-grid">${addTypes.filter(t=>!blocks.some(b=>b.type===t)).map(t=>`<button class="btn ghost" data-act="badd" data-t="${t}">＋ ${BT[t]||t}</button>`).join('')||'<span class="mu">Alle sektioner er allerede tilføjet.</span>'}</div></div><div class="block-editor-list">${cards}</div></section><section class="builder-preview"><div class="builder-preview-head"><strong>Live preview</strong><div class="row"><button class="chip ${S.device==='desktop'?'is-selected':''}" data-act="dev" data-d="desktop">Computer</button><button class="chip ${S.device==='mobile'?'is-selected':''}" data-act="dev" data-d="mobile">Mobil</button></div></div><div class="pv"><iframe class="${S.device}" title="Live website preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></div></section></div>`;
+}
 
-function vTpl(){return `<h1>Skabeloner</h1><p class="mu">Start fra en skabelon, og tilpas den bagefter.</p><div class="grid">${TPL.map((t,i)=>`<div class="card"><h3>${t.n}</h3><p class="mu">${t.d}</p><p class="mu">Stil: ${t.s}</p><button class="btn" data-act="tpl" data-i="${i}">Brug skabelon</button></div>`).join('')}</div>`}
+function vTpl(){const q=String(S.templateQuery||'').trim().toLowerCase(),cat=S.templateCategory||'Alle',cats=['Alle',...new Set(TPL.map(t=>t.c))],list=TPL.map((t,i)=>({...t,i})).filter(t=>(cat==='Alle'||t.c===cat)&&(!q||[t.n,t.d,t.c,t.industry].join(' ').toLowerCase().includes(q)));
+ return `<section class="template-library-hero"><div><span class="dash-section-kicker">PRIME WEBS AI · DESIGNBIBLIOTEK</span><h1>Skabelonbibliotek</h1><p>Start med et professionelt udgangspunkt. Tilpas indhold, farver og sektioner bagefter.</p></div><span class="template-count">${TPL.length} skabeloner</span></section><section class="template-library-tools"><input type="search" data-template-q value="${esc(S.templateQuery||'')}" placeholder="Søg i skabeloner…" aria-label="Søg i skabeloner"><div class="dash-filter-row">${cats.map(c=>`<button class="chip ${cat===c?'is-selected':''}" data-act="templateFilter" data-filter="${esc(c)}" aria-pressed="${cat===c}">${esc(c)}</button>`).join('')}</div></section><div class="template-library-grid">${list.map(t=>`<article class="template-card"><div class="template-card-art template-art-${t.i%6}"><span>${esc(t.n)}</span><small>${esc(t.c)}</small><div class="template-art-lines"><i></i><i></i><i></i></div></div><div class="template-card-body"><div class="template-card-meta"><span>${esc(t.c)}</span><span>Stil: ${esc(t.s)}</span></div><h3>${esc(t.n)}</h3><p>${esc(t.d)}</p><button class="btn" data-act="tpl" data-i="${t.i}">Brug skabelon</button></div></article>`).join('')||'<div class="card"><strong>Ingen skabeloner fundet</strong><p class="mu">Prøv et andet søgeord eller en anden kategori.</p></div>'}</div>`;
+}
 
 function vDom(){
   const l=Projects.all(),q=String(S.domainQuery||'');
@@ -426,7 +450,10 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='build'){S.view='mini';S.miniTab='edit';S.id=id;return 1}
-  if(a==='tpl'){const t=TPL[+d.i];S.form={name:'',desc:t.d,style:t.s};S.view='new';S.err='';return 1}
+  if(a==='tpl'){const t=TPL[+d.i];if(!t)return 1;S.form={name:'',desc:t.d,style:t.s,ind:t.industry||'',svc:'',tone:'Professionel'};S.view='new';S.err='';return 1}
+  if(a==='dashFilter'){S.dashFilter=d.filter||'all';return 1}
+  if(a==='dashReset'){S.dashSearch='';S.dashFilter='all';return 1}
+  if(a==='templateFilter'){S.templateCategory=d.filter||'Alle';return 1}
   if(a==='bmove'||a==='brem'||a==='badd'){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks,i=+d.i;
     if(a==='badd'){const ci=bl.findIndex(x=>x.type==='contact'),nb=mk[d.t](q.site.meta.title,'');(d.t!=='contact'&&ci>-1)?bl.splice(ci,0,nb):bl.push(nb)}
     else if(a==='brem'){if(bl[i].type!=='hero')bl.splice(i,1)}
@@ -512,7 +539,8 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(e.target.matches('[data-dash-prompt]'))S.dashPrompt=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.f)S.form[d.f]=e.target.value;if(e.target.matches('[data-dash-prompt]'))S.dashPrompt=e.target.value;if(e.target.matches('[data-dash-search]'))S.dashSearch=e.target.value;if(e.target.matches('[data-template-q]'))S.templateQuery=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[data-template-q]')){const selector=e.target.matches('[data-dash-search]')?'[data-dash-search]':'[data-template-q]',value=e.target.value,at=e.target.selectionStart;render();const next=document.querySelector(selector);if(next){next.focus();try{next.setSelectionRange(at,at)}catch(_){}}}});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined)b.items[+d.i][d.ik]=v;else b[d.k]=v})}
