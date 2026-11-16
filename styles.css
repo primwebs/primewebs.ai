@@ -707,3 +707,9 @@ input[type=file]{padding:.5rem;font-size:.88rem}
 .file-viewer>footer{border-top:1px solid var(--ln)}
 .file-viewer>footer .mu{margin:0;font-size:.75rem}
 @media(max-width:700px){.file-workspace{grid-template-columns:1fr}.file-tree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem}.file-tree>strong,.file-tree>small{grid-column:1/-1}.file-tree-item{font-size:.74rem;justify-content:center;flex-direction:column;gap:.25rem;overflow-wrap:anywhere}.file-code{min-height:55vh}.file-viewer>footer{align-items:flex-start;flex-direction:column}}
+
+
+/* Inline project rename controls */
+.dash-rename-inline{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin:.25rem 0}
+.dash-rename-inline input{flex:1;min-width:150px;max-width:280px;margin:0}
+.dash-rename-inline .btn{font-size:.84rem;padding:.42rem .72rem}
