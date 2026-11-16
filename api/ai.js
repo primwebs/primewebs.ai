@@ -6,7 +6,7 @@ const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
 The JSON must have this shape:
-{"site":{"v":1,"meta":{"title":"...","theme":{"accent":"#2540D9","font":"sans","mode":"light"}},"blocks":[...]}, "reply":"short Danish explanation"}
+{"site":{"v":1,"meta":{"title":"...","language":"da","theme":{"accent":"#2540D9","font":"sans","mode":"light"}},"blocks":[...]}, "reply":"short Danish explanation"}
 Allowed block types:
 hero: {id,type:"hero",title,text,cta}
 features: {id,type:"features",title,items:[{t,d},{t,d},{t,d}]}
@@ -51,13 +51,21 @@ const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 // Sikrer, at AI'ens svar kun indeholder kendte blokke og gyldige værdier.
 const imgRef = v => { const s = String(v || ""); return (/^img:[a-z0-9]{3,12}$/.test(s) || /^https?:\/\/[^\s"'<>]{1,500}$/i.test(s)) ? s : ""; };
 
-function sanitizeSite(site) {
+function normalizeLanguage(value, fallback) {
+  const raw = String(value || fallback || "da").trim().toLowerCase();
+  const aliases = { dansk: "da", danish: "da", english: "en", español: "es", spanish: "es", deutsch: "de", german: "de", français: "fr", french: "fr" };
+  const code = aliases[raw] || raw;
+  return ["da", "en", "es", "de", "fr"].includes(code) ? code : "da";
+}
+
+function sanitizeSite(site, fallbackLanguage) {
   const meta = site.meta || {};
   const t = meta.theme || {};
   const out = {
     v: 1,
     meta: {
       title: str(meta.title, 160),
+      language: normalizeLanguage(meta.language, fallbackLanguage),
       theme: {
         accent: /^#[0-9a-fA-F]{6}$/.test(t.accent) ? t.accent : "#2540D9",
         font: t.font === "serif" ? "serif" : "sans",
@@ -176,7 +184,7 @@ module.exports = async (req, res) => {
       throw new Error("AI'en returnerede en ufuldstændig hjemmeside.");
     }
     return res.status(200).json({
-      site: sanitizeSite(parsed.site),
+      site: sanitizeSite(parsed.site, action === "generate" ? body.language : (body.site && body.site.meta && body.site.meta.language)),
       reply: String(parsed.reply || (action === "generate" ? "Din hjemmeside er genereret. Fortæl mig, hvad du vil ændre." : "Ændringerne er udført.")).slice(0, 1000)
     });
   } catch (error) {
