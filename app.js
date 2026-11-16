@@ -300,7 +300,7 @@ function vDom(){
   const card=p=>{
     const mode=p.domainMode||(p.domain?(String(p.domain).endsWith('.primewebs.site')?'free':'custom'):'free');
     const sub=domainSlug(p.subdomain||(String(p.domain||'').endsWith('.primewebs.site')?String(p.domain).split('.')[0]:p.name));
-    const custom=String(p.domain||'');
+    const custom=mode==='custom'?String(p.domain||''):'';
     return `<article class="domain-card domain-managed-card">
       <div class="domain-card-top"><span class="domain-icon">◎</span><span class="domain-status ${p.status==='ready'?'ready':''}">${p.status==='ready'?'Klar til udgivelse':'Kladde'}</span></div>
       <h3>${esc(p.name)}</h3><p class="domain-project-note">Vælg webadresse til denne hjemmeside</p>
