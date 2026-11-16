@@ -241,7 +241,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit');
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
- ['Lead værktøjer',[['leadfinder','Leads'],['leadhistory','Lead History']]],
+ ['Lead værktøjer',[['leadfinder','Opret lead'],['leadhistory','Lead History'],['leadring','Ring']]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
  ['Finance',[['finance','Finance']]],
@@ -506,7 +506,7 @@ function vFiles(){
  const ext=tab.split('.').pop();
  return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · FILES</span><h1>'+esc(p.name)+' / Filer</h1><p class="mu">Se, gennemgå og eksportér hjemmesidens filer. ZIP-eksporten indeholder HTML, JSON, billeder og en SEO-tjekliste.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn" data-act="zipDownload">Download komplet ZIP</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">READ ONLY</span></header><textarea class="code file-code" readonly spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+'</span><button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button><button class="btn" data-act="zipDownload">Download ZIP</button></footer></section></div>';
 }
-const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadhistory:vLeadHistory};
+function vLeadRing(){const leads=LeadStore.all().filter(x=>leadPhone(x));return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Ring</h1><p>Tryk på Ring ud for en virksomhed for at åbne opkaldet direkte på din telefon.</p></div><div class="settings-hero-icon" aria-hidden="true">☎</div></section><div class="settings-card"><div class="settings-card-head"><div><h2>Virksomheder med telefonnummer</h2><p>'+leads.length+' leads klar til opkald</p></div><button class="btn ghost" style="margin-left:auto" data-act="go" data-v="leadfinder">＋ Opret lead</button></div>'+(leads.length?'<div style="display:grid;gap:10px">'+leads.map(x=>'<article style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><div style="flex:1;min-width:190px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'—')+'</div><div class="mu">'+esc(x.phone)+'</div></div>'+leadRing(x)+'</article>').join('')+'</div>':'<p class="mu">Der er endnu ingen gemte leads med telefonnummer. Opret et lead og tilføj et telefonnummer først.</p>')+'</div></section>';}\nconst V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadhistory:vLeadHistory,leadring:vLeadRing};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
@@ -690,7 +690,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);if(d.th==='background'){const n=parseInt(e.target.value.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;setTheme('surface',bright>155?'#FFFFFF':'#252A35');setTheme('text',bright>155?'#111111':'#FFFFFF');}render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
 const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280','Lead værktøjer':'#7B3FD1'};
-const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B',leadfinder:'#7B3FD1',leadhistory:'#0E9AA7'};
+const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B',leadfinder:'#7B3FD1',leadhistory:'#0E9AA7',leadring:'#1E8E5A'};
 const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length,leadfinder:()=>LeadStore.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
@@ -714,6 +714,7 @@ const NAV_ICONS={
   admin:'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z"/>',
   leadfinder:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/>',
   leadhistory:'<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  leadring:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.7L7.2 9.8a16 16 0 0 0 7 7l1.7-1.7a2 2 0 0 1 1.7-.6l2.7.4a2 2 0 0 1 1.7 2Z"/>
   group:'<path d="M4 5h16M4 12h16M4 19h16"/>'
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
