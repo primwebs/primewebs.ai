@@ -83,7 +83,7 @@ Branch: `feature/sitedrop-modernization`
 - Added editable `index.html`, `styles.css`, and `script.js` source tabs alongside `site.json`.
 - Added per-project saved source files, a capped source snapshot history, a rollback action, basic JavaScript syntax and CSS brace validation, downloads, and inclusion of saved CSS/JS in the sandboxed preview and HTML export. Extended the existing Supabase project JSONB serialization to round-trip source files/history without a database schema migration; reserved transport keys are stripped from the editor-facing site JSON.
 - Added responsive styling for the source workspace.
-- Added SEO output metadata support in generated HTML: language, description, Open Graph title/description/image, Twitter card, and optional canonical URL.
+- Added editable SEO controls in the visual builder and generated HTML metadata: language, description, Open Graph title/description/image, Twitter card, and optional canonical URL. URL fields accept HTTPS only.
 - Verified the full `app.js` parses with V8 and verified the login form IDs remain present once each.
 - These changes are on a feature branch only. They have not been deployed to `primewebs.site`.
 
