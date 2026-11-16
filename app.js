@@ -780,7 +780,54 @@ async function boot(){
 }
 function loginScreen(){
   S.auth={enabled:false,authenticated:false,email:''};
-  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:8vh auto;padding:0 16px"><div class="card"><h1>PRIME WEBS AI</h1><h2>Log ind</h2><p class="mu">Log ind med din e-mail, eller brug ejerens admin-kode.</p><form id="pwEmailLogin" style="display:grid;gap:10px;margin:18px 0"><label>E-mail<input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="Din e-mailadresse" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Send login-kode</button></form><form id="pwOtpLogin" style="display:none;gap:10px;margin:12px 0"><label>6-cifret kode<input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Kode fra din e-mail" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Bekræft e-mailkode</button></form><div style="border-top:1px solid #ddd;margin:22px 0;padding-top:18px"><h3>Ejerlogin</h3><form id="pwAdminLogin" style="display:grid;gap:10px"><label>Admin-kode<input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Log ind som ejer</button></form></div><p id="pwLoginMessage" class="mu" role="status" aria-live="polite"></p></div></main>';
+  $('#app').innerHTML=`<main class="login-shell">
+    <div class="login-orb login-orb-one"></div><div class="login-orb login-orb-two"></div>
+    <section class="login-layout" aria-label="PRIME WEBS AI login">
+      <div class="login-brand-panel">
+        <a class="login-brand" href="/" aria-label="PRIME WEBS AI home"><span class="login-brand-mark">P</span><span>PRIME WEBS <b>AI</b></span></a>
+        <div class="login-brand-copy">
+          <span class="login-kicker"><i></i> YOUR CREATIVE WORKSPACE</span>
+          <h1>Build something<br><em>remarkable.</em></h1>
+          <p>One workspace for your websites, ideas and next big launch.</p>
+        </div>
+        <div class="login-preview-card" aria-hidden="true">
+          <div class="login-preview-top"><span></span><span></span><span></span><small>LIVE WORKSPACE</small></div>
+          <div class="login-preview-content"><div class="login-preview-side"><b></b><i></i><i></i><i></i></div><div class="login-preview-main"><small>YOUR NEXT PROJECT</small><strong>Made to stand out.</strong><div class="login-preview-lines"><i></i><i></i><i></i></div><div class="login-preview-tiles"><b></b><b></b><b></b></div></div></div>
+        </div>
+        <div class="login-footnote"><span>✦</span> Design. Build. Launch. All in one place.</div>
+      </div>
+      <div class="login-form-panel">
+        <div class="login-form-inner">
+          <div class="login-mobile-brand"><span class="login-brand-mark">P</span><span>PRIME WEBS <b>AI</b></span></div>
+          <span class="login-kicker login-form-kicker">WELCOME BACK</span>
+          <h2>Sign in to your workspace</h2>
+          <p class="login-subtitle">Pick up right where you left off.</p>
+          <form id="pwEmailLogin" class="login-form">
+            <label for="pwLoginEmail">Email address</label>
+            <input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+            <button class="btn login-primary" type="submit">Continue with email <span>→</span></button>
+          </form>
+          <form id="pwOtpLogin" class="login-form login-otp-form" style="display:none">
+            <label for="pwLoginOtp">6-digit verification code</label>
+            <input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter your email code">
+            <button class="btn login-primary" type="submit">Verify email code <span>→</span></button>
+          </form>
+          <div class="login-divider"><span>OR</span></div>
+          <div class="login-admin-block">
+            <div class="login-admin-heading"><span class="login-lock">⌑</span><div><strong>Owner access</strong><small>Secure administrator sign in</small></div></div>
+            <form id="pwAdminLogin" class="login-form">
+              <label for="pwAdminCode">Admin code</label>
+              <input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Enter your admin code">
+              <button class="btn login-secondary" type="submit">Sign in as owner <span>→</span></button>
+            </form>
+          </div>
+          <p id="pwLoginMessage" class="login-message" role="status" aria-live="polite"></p>
+          <p class="login-legal">Protected workspace · <span>PRIME WEBS AI</span></p>
+        </div>
+      </div>
+    </section>
+  </main>`;
+
   const msg=document.getElementById('pwLoginMessage');
   const busy=on=>document.querySelectorAll('#pwEmailLogin button,#pwOtpLogin button,#pwAdminLogin button').forEach(b=>b.disabled=on);
   const finish=async()=>{await window.PWDB.refresh();S.auth={enabled:true,authenticated:true,email:window.PWDB.user&&window.PWDB.user.email||''};render();};
