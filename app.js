@@ -13,7 +13,7 @@ const Storage={mem:{},
 // Session og credits hentes fra Supabase efter login.
 const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,name:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.display_name)||'Bruger',role:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.role)||'user',email:(window.PWDB&&window.PWDB.user&&window.PWDB.user.email)||''}),can:()=>['owner','admin'].includes(Session.user().role)};
 const Credits={cost:{generate:10,edit:1},
-  unlimited:()=>!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
+  unlimited:()=>Session.can()||!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
   balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
   spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
@@ -386,7 +386,7 @@ function vFin(){const p=S.fp||'m6',f=S.ff,cs=Customers.all(),months=p==='m1'?1:p
  <article class="finance-business-card"><span class="finance-business-icon">▧</span><div><small>Hjemmesider og projekter</small><strong>${Projects.all().length}</strong><span>Oprettede projekter i alt</span></div></article>
  <article class="finance-business-card"><span class="finance-business-icon">♙</span><div><small>Kunder</small><strong>${cs.length}</strong><span>Registrerede kunder</span></div></article>
  <article class="finance-business-card"><span class="finance-business-icon">⌕</span><div><small>Gemte leads</small><strong>${Storage.get('pw.leads',[]).length}</strong><span>Leads i Lead History</span></div></article>
- <article class="finance-business-card"><span class="finance-business-icon">✦</span><div><small>Tilgængelige AI-credits</small><strong>${Credits.balance()}</strong><span>Credits på denne konto</span></div></article>
+ <article class="finance-business-card"><span class="finance-business-icon">✦</span><div><small>Tilgængelige AI-credits</small><strong>${Credits.unlimited()?'Ubegrænsede':Credits.balance()}</strong><span>Credits på denne konto</span></div></article>
  </div></section>
  <section class="finance-insights-grid">
  <div class="finance-panel finance-breakdown-panel"><div class="finance-panel-head"><div><span class="finance-section-kicker">INDTÆGTER OG UDGIFTER</span><h2>Fordeling efter kategori</h2><p class="mu">Baseret på registrerede posteringer i perioden.</p></div></div>
@@ -497,7 +497,7 @@ function render0(){
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
   {const ac=Settings.get().accent,rs=document.documentElement.style;if(/^#[0-9a-fA-F]{6}$/.test(ac||'')){rs.setProperty('--ac',ac);rs.setProperty('--ai',lum(ac)>150?'#0E1320':'#fff');rs.setProperty('--so',ac+'26')}else['--ac','--ai','--so'].forEach(k=>rs.removeProperty(k))}
   const u=Session.user();
-  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>Dine credits: ${Storage.get('pw.credits',50)}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
+  const nav=`<aside class="side"><div class="logo">PRIME WEBS AI</div><input class="ms" data-q placeholder="Søg i menu…" aria-label="Søg i menu" value="${esc(S.q||'')}">${navHtml()}<div class="who"><strong>${esc(u.name)}</strong> <span class="badge">OWNER / ADMIN</span><div>Dine credits: ${Credits.unlimited()?'Ubegrænsede':Credits.balance()}</div><div class="tag">AI: ${AI.mode==='api'?'AI-server':'demo (testgenerator)'}</div></div></aside>`;
   $('#app').innerHTML=`<div class="shell">${nav}<main class="main">${safeView()}</main></div>`;
   const c=$('.msgs');if(c)c.scrollTop=c.scrollHeight;
   const i=$('#chatin');if(i&&!S.busy)i.focus();
