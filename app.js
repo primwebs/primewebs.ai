@@ -443,7 +443,7 @@ const LeadStore={
 };
 S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};
 const leadPhone=x=>String(x&&x.phone||'').replace(/[^\d+]/g,'');
-const leadRing=x=>{const n=leadPhone(x);return n?'<a class="btn ghost" href="tel:'+esc(n)+'">☎ Ring</a>':'<button class="btn ghost" type="button" disabled>☎ Ring</button>'};
+const leadRing=x=>{const n=leadPhone(x);return n?'<a class="lead-call-btn" data-lead-call="'+esc(x.id)+'" href="tel:'+esc(n)+'"><span aria-hidden="true">☎</span><span>Ring nu</span></a>':'<button class="lead-call-btn" type="button" disabled>Intet nummer</button>'};
 function vLeadFinder(){
  const f=S.leadForm||{},leads=LeadStore.all();
  const field=(k,label,placeholder='',type='text')=>'<label style="display:grid;gap:6px;font-weight:650">'+label+'<input data-lf="'+k+'" type="'+type+'" value="'+esc(f[k]||'')+'" placeholder="'+placeholder+'" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit"></label>';
@@ -459,11 +459,14 @@ function vLeadFinder(){
 }
 function vLeadHistory(){
  const leads=LeadStore.all(),q=String(S.leadQuery||'').toLowerCase().trim(),list=leads.filter(x=>[x.name,x.industry,x.city,x.address,x.website,x.email,x.phone].join(' ').toLowerCase().includes(q));
- return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Lead History</h1><p>Her finder du alle gemte virksomheder, kan søge i dem og ringe direkte.</p></div><div class="settings-hero-icon" aria-hidden="true">◷</div></div></section>'+
- '<div class="settings-card"><div class="settings-card-head"><div><h2>Leadliste</h2><p>'+leads.length+' i alt · '+list.length+' vist</p></div><button class="btn" style="margin-left:auto" data-act="go" data-v="leadfinder">＋ Tilføj lead</button></div>'+
- '<input data-lead-query type="search" value="'+esc(S.leadQuery||'')+'" placeholder="Søg efter virksomhed, branche, by eller adresse…" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;margin:8px 0 16px;background:var(--card,#fff);color:inherit">'+
- (list.length?'<div style="display:grid;gap:10px">'+list.map(x=>'<article style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><div style="flex:1;min-width:220px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'—')+'</div>'+(x.address?'<div class="mu">'+esc(x.address)+'</div>':'')+(x.website?'<div><a href="'+esc(x.website)+'" target="_blank" rel="noopener">'+esc(x.website)+'</a></div>':'')+(x.phone?'<div>'+esc(x.phone)+'</div>':'')+(x.email?'<div>'+esc(x.email)+'</div>':'')+'<div class="mu">Tilføjet '+new Date(x.createdAt).toLocaleDateString('da-DK')+'</div></div>'+leadRing(x)+'<button class="btn ghost" data-act="leadDelete" data-id="'+esc(x.id)+'">'+(S.leadDelete===x.id?'Bekræft sletning':'Slet')+'</button></article>').join(''):'<p class="mu">'+(leads.length?'Ingen leads matcher søgningen.':'Ingen leads gemt endnu. Tilføj virksomheder under Leads.')+'</p>')+'</div></section>';
+ const calls=list.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0);
+ return '<section class="lead-page"><div class="lead-hero"><div><span class="lead-kicker">PRIME WEBS AI · LEAD MANAGEMENT</span><h1>Lead History</h1><p>Alle dine leads, kontaktoplysninger og tidligere opkald samlet ét sted.</p></div><div class="lead-hero-mark">◷</div></div>'+
+ '<div class="lead-stats"><div><small>Gemte leads</small><strong>'+leads.length+'</strong></div><div><small>Opkaldsforsøg</small><strong>'+calls+'</strong></div><div><small>Med telefonnummer</small><strong>'+leads.filter(x=>leadPhone(x)).length+'</strong></div></div>'+
+ '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Alle leads</h2><p>'+list.length+' vist</p></div><button class="btn" data-act="go" data-v="leadfinder">＋ Opret lead</button></div>'+
+ '<input class="lead-search" data-lead-query type="search" value="'+esc(S.leadQuery||'')+'" placeholder="Søg virksomhed, branche, by eller telefonnummer…">'+
+ (list.length?'<div class="lead-list">'+list.map(x=>{const h=Array.isArray(x.callHistory)?x.callHistory:[],last=h[0];return '<article class="lead-row"><div class="lead-avatar">'+esc(String(x.name||'?').trim().slice(0,1).toUpperCase())+'</div><div class="lead-main"><strong>'+esc(x.name)+'</strong><span>'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'Virksomhed')+'</span><small>'+esc(x.phone||'Intet telefonnummer')+' · '+(last?'Seneste opkaldsforsøg '+new Date(last.at).toLocaleString('da-DK'):'Ikke ringet endnu')+'</small></div>'+leadRing(x)+'<button class="btn ghost" data-act="leadDelete" data-id="'+esc(x.id)+'">'+(S.leadDelete===x.id?'Bekræft':'Slet')+'</button></article>'}).join('')+'</div>':'<p class="lead-empty">'+(leads.length?'Ingen leads matcher søgningen.':'Ingen leads gemt endnu. Opret dit første lead for at komme i gang.')+'</p>')+'</div></section>';
 }
+
 function projectSeoAudit(p){
  const blocks=p.site.blocks||[],types=new Set(blocks.map(b=>b.type)),contact=blocks.find(b=>b.type==='contact')||{},hero=blocks.find(b=>b.type==='hero')||{};
  const checks=[
@@ -506,7 +509,18 @@ function vFiles(){
  const ext=tab.split('.').pop();
  return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · FILES</span><h1>'+esc(p.name)+' / Filer</h1><p class="mu">Se, gennemgå og eksportér hjemmesidens filer. ZIP-eksporten indeholder HTML, JSON, billeder og en SEO-tjekliste.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn" data-act="zipDownload">Download komplet ZIP</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">READ ONLY</span></header><textarea class="code file-code" readonly spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+'</span><button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button><button class="btn" data-act="zipDownload">Download ZIP</button></footer></section></div>';
 }
-function vLeadRing(){const leads=LeadStore.all().filter(x=>leadPhone(x));return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Ring</h1><p>Tryk på Ring ud for en virksomhed for at åbne opkaldet direkte på din telefon.</p></div><div class="settings-hero-icon" aria-hidden="true">☎</div></div></section><div class="settings-card"><div class="settings-card-head"><div><h2>Virksomheder med telefonnummer</h2><p>'+leads.length+' leads klar til opkald</p></div><button class="btn ghost" style="margin-left:auto" data-act="go" data-v="leadfinder">＋ Opret lead</button></div>'+(leads.length?'<div style="display:grid;gap:10px">'+leads.map(x=>'<article style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><div style="flex:1;min-width:190px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'—')+'</div><div class="mu">'+esc(x.phone)+'</div></div>'+leadRing(x)+'</article>').join('')+'</div>':'<p class="mu">Der er endnu ingen gemte leads med telefonnummer. Opret et lead og tilføj et telefonnummer først.</p>')+'</div></section>';}
+function vLeadRing(){
+ const all=LeadStore.all(),leads=all.filter(x=>leadPhone(x)),q=String(S.ringQuery||'').trim().toLowerCase(),list=leads.filter(x=>[x.name,x.industry,x.city,x.phone].join(' ').toLowerCase().includes(q));
+ const attempts=all.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0);
+ const recent=all.flatMap(x=>(Array.isArray(x.callHistory)?x.callHistory:[]).map(c=>({...c,leadName:x.name,leadId:x.id}))).sort((a,b)=>b.at-a.at).slice(0,6);
+ return '<section class="lead-page"><div class="lead-hero lead-call-hero"><div><span class="lead-kicker">PRIME WEBS AI · CALL CENTER</span><h1>Ring til leads</h1><p>Et enkelt opkaldspanel. Tryk på Ring nu for at åbne telefonens opkaldsskærm.</p><div class="lead-hero-actions"><button class="btn" data-act="go" data-v="leadfinder">＋ Opret lead</button><button class="btn ghost" data-act="go" data-v="leadhistory">Se Lead History</button></div></div><div class="lead-hero-mark">☎</div></div>'+
+ '<div class="lead-stats"><div><small>Leads klar til opkald</small><strong>'+leads.length+'</strong></div><div><small>Opkaldsforsøg registreret</small><strong>'+attempts+'</strong></div><div><small>Uden telefonnummer</small><strong>'+(all.length-leads.length)+'</strong></div></div>'+
+ '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Opkaldsliste</h2><p>Vælg en virksomhed og ring direkte</p></div><span class="lead-live-label"><i></i> KLAR TIL OPKALD</span></div>'+
+ '<input class="lead-search" data-ring-query type="search" value="'+esc(S.ringQuery||'')+'" placeholder="Find virksomhed eller telefonnummer…">'+
+ (list.length?'<div class="lead-list">'+list.map(x=>{const h=Array.isArray(x.callHistory)?x.callHistory:[],last=h[0];return '<article class="lead-row lead-call-row"><div class="lead-avatar">'+esc(String(x.name||'?').trim().slice(0,1).toUpperCase())+'</div><div class="lead-main"><strong>'+esc(x.name)+'</strong><span>'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'Lead')+'</span><small>'+esc(x.phone)+'</small><em>'+(last?'Sidst forsøgt '+new Date(last.at).toLocaleString('da-DK'):'Ikke ringet endnu')+'</em></div>'+leadRing(x)+'</article>'}).join('')+'</div>':'<p class="lead-empty">'+(leads.length?'Ingen leads matcher din søgning.':'Ingen leads med telefonnummer endnu. Opret et lead og tilføj telefonnummer.')+'</p>')+'</div>'+
+ '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Seneste opkaldsforsøg</h2><p>Historik over tryk på Ring nu</p></div></div>'+(recent.length?'<div class="lead-call-log">'+recent.map(c=>'<div class="lead-log-row"><span class="lead-log-icon">☎</span><div><strong>'+esc(c.leadName)+'</strong><small>Opkald åbnet · '+new Date(c.at).toLocaleString('da-DK')+'</small></div><span class="lead-log-status">Startet</span></div>').join('')+'</div>':'<p class="lead-empty">Dine opkaldsforsøg vises her, når du trykker på Ring nu.</p>')+'</div></section>';
+}
+
 const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadhistory:vLeadHistory,leadring:vLeadRing};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
@@ -535,6 +549,21 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='rs'){if(!S.rc){S.rc=1;S.msg='';return 1}S.rc=0;
     try{const x=JSON.parse(S.rv||'');if(x.app!=='primewebs'||!Array.isArray(x.projects))throw 0;Projects.save(x.projects);Customers.save(x.customers||[]);if(Array.isArray(x.leads))Storage.set('pw.leads',x.leads.filter(v=>v&&typeof v==='object'&&!Array.isArray(v)).slice(0,5000));Storage.set('pw.settings',{...(x.settings||{}),aiCode:Settings.get().aiCode});Fin.save(Array.isArray(x.finance)?x.finance:[]);{const im={};Object.entries(x.images||{}).forEach(([k,v])=>{if(/^[a-z0-9]{3,12}$/.test(k)&&/^data:image\/(jpeg|png|webp|gif);base64,/.test(v))im[k]=v});Storage.set('pw.img',im)}if(x.credits!=null)Storage.set('pw.credits',x.credits);S.rv='';S.msg='Gendannet: '+x.projects.length+' hjemmesider.'}catch(e){S.msg='Fejl: kopien kunne ikke læses.'}return 1}
 }
+
+
+// Record that the tel: action was initiated; the browser cannot confirm whether a call connected.
+document.addEventListener('click',e=>{
+ const link=e.target.closest&&e.target.closest('[data-lead-call]');
+ if(!link)return;
+ const id=link.getAttribute('data-lead-call'),items=LeadStore.all(),lead=items.find(x=>String(x.id)===String(id));
+ if(!lead)return;
+ lead.callHistory=Array.isArray(lead.callHistory)?lead.callHistory:[];
+ lead.callHistory.unshift({at:Date.now()});lead.callHistory=lead.callHistory.slice(0,100);
+ LeadStore.save(items);
+});
+document.addEventListener('input',e=>{
+ if(e.target.matches('[data-ring-query]')){S.ringQuery=e.target.value;const pos=e.target.selectionStart;render();const el=document.querySelector('[data-ring-query]');if(el){el.focus();el.setSelectionRange(pos,pos)}}
+});
 
 function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
