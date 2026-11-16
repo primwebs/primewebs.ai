@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827"><title>Prime Webs CRM</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--panel2:#18263a;--line:#26364d;--muted:#91a2b8;--text:#f4f7fb;--blue:#5b9cff;--green:#39c58a;--red:#ff6b75}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:11px 15px;background:var(--blue);color:#071426;font-weight:750}button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button.danger{background:#49232d;color:#ffdce0}button.good{background:#173e35;color:#baf5dd}.wrap{max-width:1050px;margin:auto;padding:22px 16px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}.brand{font-weight:850;letter-spacing:.08em}.brand span{color:var(--blue)}.nav{display:flex;gap:8px;margin-bottom:20px}.nav button{flex:1}.nav button.active{background:var(--blue);color:#071426}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:15px}.muted{color:var(--muted)}h1{font-size:25px;margin:0 0 4px}h2{font-size:18px;margin:0 0 14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.stat{background:var(--panel2);border-radius:14px;padding:14px}.stat strong{display:block;font-size:25px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}label{font-size:12px;color:var(--muted)}input,textarea,select{width:100%;background:#0d1726;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px;min-width:0}textarea{min-height:72px;resize:vertical}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.lead{padding:14px 0;border-bottom:1px solid var(--line)}.lead:last-child{border:0}.leadtop{display:flex;justify-content:space-between;gap:12px}.leadname{font-weight:800;font-size:16px}.pill{font-size:11px;padding:4px 8px;border-radius:20px;background:var(--panel2);color:var(--muted);white-space:nowrap}.leadlinks{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}.leadlinks a{color:#9bc4ff;text-decoration:none;font-weight:700}.leadlinks a.phone{color:#8ce2bd}.small{font-size:13px}.searchrow{display:flex;gap:8px;margin-bottom:12px}.searchrow input{flex:1}.hidden{display:none!important}.empty{text-align:center;padding:26px;color:var(--muted)}.calendaritem{padding:12px 0;border-bottom:1px solid var(--line)}.calendaritem:last-child{border:0}.notice{background:#332c19;color:#f8dfa0;padding:12px;border-radius:12px;font-size:13px;margin-bottom:14px}.footer{font-size:12px;color:var(--muted);text-align:center;margin-top:25px}
+@media(max-width:560px){.wrap{padding:16px 12px 40px}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.stats{gap:7px}.stat{padding:11px}.stat strong{font-size:21px}.top{align-items:flex-start}.panel{padding:15px}.leadtop{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div><div class="brand">PRIME <span>WEBS</span></div><div class="muted small">Dit enkle lead-dashboard</div></div><button class="secondary" id="lockBtn">Lås</button></header>
+<div id="authNotice" class="notice hidden"></div>
+<nav class="nav"><button class="active" data-page="dashboard">Dashboard</button><button class="secondary" data-page="call">Call</button><button class="secondary" data-page="calendar">Kalender</button></nav>
+<main id="app" class="hidden">
+<section id="dashboard">
+<div><h1>Dashboard</h1><div class="muted">Tilføj og hold styr på dine virksomheder.</div></div>
+<div class="stats"><div class="stat"><span class="muted small">Alle leads</span><strong id="totalCount">0</strong></div><div class="stat"><span class="muted small">Skal ringes op</span><strong id="todoCount">0</strong></div><div class="stat"><span class="muted small">Callbacks</span><strong id="callbackCount">0</strong></div></div>
+<div class="panel"><h2>Tilføj nyt lead</h2><form id="leadForm" class="formgrid">
+<div class="field"><label for="name">Kontaktperson / navn</label><input id="name" required placeholder="Fx Juan"></div>
+<div class="field"><label for="company">Virksomhed</label><input id="company" required placeholder="Fx Malaga Auto"></div>
+<div class="field"><label for="phone">Telefonnummer</label><input id="phone" type="tel" placeholder="+34 ..."></div>
+<div class="field"><label for="email">E-mail</label><input id="email" type="email" placeholder="navn@firma.com"></div>
+<div class="field full"><label for="website">Hjemmeside</label><input id="website" type="url" placeholder="https://..."></div>
+<div class="field full"><label for="notes">Noter</label><textarea id="notes" placeholder="Hvad skal du huske om virksomheden?"></textarea></div>
+<div class="field full"><button type="submit">＋ Gem lead</button></div>
+</form></div>
+<div class="panel"><h2>Find virksomheder på Google Maps</h2><div class="muted small" style="margin-bottom:10px">Søg fx efter malere i Málaga. Åbn Maps, find en virksomhed, og tilføj dens oplysninger i formularen ovenfor.</div><div class="searchrow"><input id="mapQuery" placeholder="Fx frisører i Fuengirola"><button id="mapsBtn">Åbn Maps</button></div><div class="muted small">Direkte Google Maps API-import kan tilføjes senere. Den kræver en Google Places API-nøgle; denne version bruger Maps-søgning uden API-nøgle.</div></div>
+<div class="panel"><div class="leadtop"><h2>Seneste leads</h2><span class="pill" id="recentLabel">0 leads</span></div><div id="recentLeads"></div></div>
+</section>
+<section id="call" class="hidden"><h1>Call</h1><div class="muted" style="margin-bottom:15px">Tryk på telefonnummeret for at ringe fra din egen telefon.</div><div class="panel"><div class="searchrow"><input id="callSearch" placeholder="Søg efter virksomhed eller navn"></div><div id="callLeads"></div></div></section>
+<section id="calendar" class="hidden"><h1>Kalender</h1><div class="muted" style="margin-bottom:15px">Planlæg hvornår du skal ringe tilbage.</div><div class="panel"><h2>Ny callback</h2><form id="callbackForm" class="formgrid"><div class="field full"><label for="callbackLead">Virksomhed</label><select id="callbackLead" required></select></div><div class="field"><label for="callbackDate">Dato</label><input id="callbackDate" type="date" required></div><div class="field"><label for="callbackTime">Tidspunkt</label><input id="callbackTime" type="time" required></div><div class="field full"><label for="callbackNote">Note</label><input id="callbackNote" placeholder="Fx ring efter kl. 15"></div><div class="field full"><button type="submit">＋ Tilføj callback</button></div></form></div><div class="panel"><h2>Kommende callbacks</h2><div id="calendarList"></div></div></section>
+</main>
+<div id="blocked" class="panel hidden"><h2>Admin-login kræves</h2><p class="muted">CRM'et er låst. Log ind på Prime Webs AI med din admin-kode først. Når din sikre admins-session er aktiv, kan du åbne CRM'et.</p><a href="/" style="color:#9bc4ff">Gå til Prime Webs-login →</a></div>
+<div class="footer">Prime Webs CRM · Gemmer dine leads lokalt i denne browser</div>
+</div>
+<script>
+const KEY='primewebs_crm_v1', LOCK='primewebs_crm_locked';
+let leads=[],callbacks=[],page='dashboard';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const phoneHref=p=>'tel:'+String(p||'').replace(/[^+\\d*#;,]/g,'');
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');leads=x.leads||[];callbacks=x.callbacks||[]}catch(e){leads=[];callbacks=[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify({leads,callbacks}));render()}
+function statusName(s){return ({new:'Ny',called:'Ringet op',callback:'Ring tilbage',notInterested:'Ikke interesseret'})[s]||'Ny'}
+function card(l,withActions=true){return '<article class="lead"><div class="leadtop"><div><div class="leadname">'+esc(l.company)+'</div><div class="muted small">'+esc(l.name||'')+'</div></div><span class="pill">'+statusName(l.status)+'</span></div><div class="leadlinks">'+(l.phone?'<a class="phone" href="'+phoneHref(l.phone)+'">☎ '+esc(l.phone)+'</a>':'')+(l.email?'<a href="mailto:'+encodeURIComponent(l.email)+'">✉ '+esc(l.email)+'</a>':'')+(l.website?'<a href="'+esc(l.website)+'" target="_blank" rel="noopener">Hjemmeside ↗</a>':'')+'</div>'+(l.notes?'<p class="muted small">'+esc(l.notes)+'</p>':'')+(withActions?'<div class="actions"><button class="good" data-act="called" data-id="'+l.id+'">Ringet op</button><button class="secondary" data-act="callback" data-id="'+l.id+'">Ring tilbage</button><button class="danger" data-act="notInterested" data-id="'+l.id+'">Ikke interesseret</button></div>':'')+'</article>'}
+function render(){ $('totalCount').textContent=leads.length;$('todoCount').textContent=leads.filter(x=>!['called','notInterested'].includes(x.status)).length;$('callbackCount').textContent=callbacks.length;
+const recent=[...leads].reverse().slice(0,5);$('recentLabel').textContent=leads.length+' leads';$('recentLeads').innerHTML=recent.length?recent.map(x=>card(x,false)).join(''):'<div class="empty">Du har ikke tilføjet leads endnu.</div>';
+const q=$('callSearch').value.toLowerCase();const filtered=leads.filter(x=>x.status!=='notInterested'&&[x.name,x.company,x.phone,x.email].join(' ').toLowerCase().includes(q));$('callLeads').innerHTML=filtered.length?filtered.map(x=>card(x)).join(''):'<div class="empty">Ingen leads fundet.</div>';
+$('callbackLead').innerHTML='<option value="">Vælg virksomhed</option>'+leads.filter(x=>x.status!=='notInterested').map(x=>'<option value="'+x.id+'">'+esc(x.company)+'</option>').join('');
+const sorted=[...callbacks].sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));$('calendarList').innerHTML=sorted.length?sorted.map(c=>{const l=leads.find(x=>x.id===c.leadId);return '<div class="calendaritem"><strong>'+esc(l?l.company:'Lead slettet')+'</strong><div class="muted small">'+esc(c.date)+' kl. '+esc(c.time)+(c.note?' · '+esc(c.note):'')+'</div><div class="actions"><button class="secondary" data-cbdel="'+c.id+'">Fjern</button>'+(l&&l.phone?'<a class="phone" style="align-self:center;color:#8ce2bd" href="'+phoneHref(l.phone)+'">☎ Ring</a>':'')+'</div></div>'}).join(''):'<div class="empty">Ingen callbacks planlagt.</div>'}
+function showPage(p){page=p;document.querySelectorAll('[data-page]').forEach(b=>{b.classList.toggle('active',b.dataset.page===p);b.classList.toggle('secondary',b.dataset.page!==p)});['dashboard','call','calendar'].forEach(x=>$(x).classList.toggle('hidden',x!==p));}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+$('leadForm').addEventListener('submit',e=>{e.preventDefault();leads.push({id:crypto.randomUUID(),name:$('name').value.trim(),company:$('company').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim(),website:$('website').value.trim(),notes:$('notes').value.trim(),status:'new',created:new Date().toISOString()});e.target.reset();save();showPage('dashboard')});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b){const l=leads.find(x=>x.id===b.dataset.id);if(l){l.status=b.dataset.act;save()}}const d=e.target.closest('[data-cbdel]');if(d){callbacks=callbacks.filter(x=>x.id!==d.dataset.cbdel);save()}});
+$('callbackForm').addEventListener('submit',e=>{e.preventDefault();callbacks.push({id:crypto.randomUUID(),leadId:$('callbackLead').value,date:$('callbackDate').value,time:$('callbackTime').value,note:$('callbackNote').value.trim()});const l=leads.find(x=>x.id===$('callbackLead').value);if(l)l.status='callback';e.target.reset();save()});
+$('callSearch').addEventListener('input',render);
+$('mapsBtn').addEventListener('click',()=>{const q=$('mapQuery').value.trim();if(q)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank','noopener')});
+$('lockBtn').addEventListener('click',()=>{sessionStorage.removeItem('crm_unlocked');location.reload()});
+async function start(){load();try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});const a=await r.json();if(!a.enabled||!a.authenticated){$('blocked').classList.remove('hidden');document.querySelector('.nav').classList.add('hidden');return}}catch(e){$('blocked').classList.remove('hidden');document.querySelector('.nav').classList.add('hidden');return}
+$('app').classList.remove('hidden');render();showPage('dashboard')}
+start();
+</script>
+</body></html>
