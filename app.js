@@ -15,7 +15,7 @@ const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,
 const Credits={cost:{generate:10,edit:1},
   unlimited:()=>!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
   balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
-  spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
+  async spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits){const ok=await window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a);if(!ok)return false;}else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
 const Projects={all:()=>Storage.get('pw.projects',[]).map(fixP).filter(Boolean),save:l=>Storage.set('pw.projects',l)};
 const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
@@ -513,7 +513,7 @@ async function generate(){
   try { result=await AI.generate({name:f.name.trim(),description:f.desc.trim(),style:f.style,industry:f.ind||'',city:(f.city||'').trim(),services:(f.svc||'').trim(),tone:f.tone||'Professionel',language:f.lang||'Dansk',color:f.color||'',background:f.background||'',phone:(f.phone||'').trim()||(f.desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone,email:(f.email||'').trim()||(f.desc.match(RX_MAIL)||[''])[0]||Settings.get().email}); }
   catch(error){S.busy=false;S.err=error.message||'AI-generatoren kunne ikke kontaktes.';return render()}
   const site=result.site;
-  Credits.spend('generate');
+  try{const charged=await Credits.spend('generate');if(!charged){S.busy=false;S.err='Dine credits kunne ikke bekræftes. Hjemmesiden blev ikke oprettet.';return render();}}catch(error){S.busy=false;S.err='Credits kunne ikke opdateres: '+(error.message||'ukendt fejl');return render();}
   const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
@@ -526,7 +526,8 @@ async function send(t){
   S.busy=true;render();
   try {
     const r=await AI.edit(p.site,t);keepImages(p.site,r.site);
-    upd(p.id,q=>{if(r.site){q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=r.site;Credits.spend('edit')}q.chat.push({r:'ai',t:r.reply||'Ændringerne er udført.'})});
+    if(r.site){const charged=await Credits.spend('edit');if(!charged)throw new Error('Dine credits kunne ikke bekræftes. Ændringen blev ikke gemt.');}
+    upd(p.id,q=>{if(r.site){q.history=[...q.history,q.site].slice(-30);q.future=[];q.site=r.site}q.chat.push({r:'ai',t:r.reply||'Ændringerne er udført.'})});
   } catch(error) {
     upd(p.id,q=>q.chat.push({r:'ai',t:'AI-fejl: '+(error.message||'Kunne ikke kontakte AI-generatoren.')}));
   }
@@ -775,7 +776,7 @@ async function boot(){
 }
 function loginScreen(){
   S.auth={enabled:false,authenticated:false,email:''};
-  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:8vh auto;padding:0 16px"><div class="card"><h1>PRIME WEBS AI</h1><h2>Log ind</h2><p class="mu">Log ind med din e-mail, eller brug ejerens admin-kode.</p><form id="pwEmailLogin" style="display:grid;gap:10px;margin:18px 0"><label>E-mail<input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="Din e-mailadresse" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Send login-kode</button></form><form id="pwOtpLogin" style="display:none;gap:10px;margin:12px 0"><label>6-cifret kode<input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Kode fra din e-mail" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Bekræft e-mailkode</button></form><div style="border-top:1px solid #ddd;margin:22px 0;padding-top:18px"><h3>Ejerlogin</h3><form id="pwAdminLogin" style="display:grid;gap:10px"><label>Admin-kode<input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Log ind som ejer</button></form></div><p id="pwLoginMessage" class="mu" role="status" aria-live="polite"></p></div></main>';
+  $('#app').innerHTML='<main class="main" style="max-width:520px;margin:8vh auto;padding:0 16px"><div class="card"><h1>PRIME WEBS AI</h1><h2>Log ind eller opret konto</h2><p class="mu">Brug din e-mail for at få en sikker login-kode. Nye kunder får automatisk oprettet deres egen konto. Ejerlogin er separat.</p><form id="pwEmailLogin" style="display:grid;gap:10px;margin:18px 0"><label>E-mail<input id="pwLoginEmail" type="email" autocomplete="email" required placeholder="Din e-mailadresse" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Fortsæt med e-mail</button></form><form id="pwOtpLogin" style="display:none;gap:10px;margin:12px 0"><label>6-cifret kode<input id="pwLoginOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Kode fra din e-mail" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Bekræft e-mailkode</button></form><div style="border-top:1px solid #ddd;margin:22px 0;padding-top:18px"><h3>Ejerlogin</h3><form id="pwAdminLogin" style="display:grid;gap:10px"><label>Admin-kode<input id="pwAdminCode" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Indtast admin-kode" style="width:100%;padding:12px;border:1px solid #bbb;border-radius:8px"></label><button class="btn" type="submit">Log ind som ejer</button></form></div><p id="pwLoginMessage" class="mu" role="status" aria-live="polite"></p></div></main>';
   const msg=document.getElementById('pwLoginMessage');
   const busy=on=>document.querySelectorAll('#pwEmailLogin button,#pwOtpLogin button,#pwAdminLogin button').forEach(b=>b.disabled=on);
   const finish=async()=>{await window.PWDB.refresh();S.auth={enabled:true,authenticated:true,email:window.PWDB.user&&window.PWDB.user.email||''};render();};
