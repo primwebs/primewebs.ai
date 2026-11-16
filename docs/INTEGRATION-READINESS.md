@@ -12,7 +12,7 @@ This document records what is implemented and what still needs a real provider, 
 - Finance entries are currently stored in browser-local storage. They are not bank transactions, payment-provider payouts, or a cloud accounting ledger.
 - No Stripe/Paddle/Lemon Squeezy integration or live payment keys were found in the reviewed project configuration.
 - Customer publishing still needs a secure host-to-project resolver and public-only published-site delivery. Domain fields/UI alone do not publish a customer website.
-- The current project-file panel is a generated read-only file viewer; it is not yet a persistent source-code editor.
+- The project-file panel now includes a persistent editable JSON source file (`site.json`) with basic schema checks and project history. The generated HTML output and README remain read-only. A full raw HTML/CSS/JS editor and arbitrary file tree are still missing.
 
 ## Current pricing — preserve unless owner approves a change
 
