@@ -230,7 +230,7 @@ const upd=(id,fn)=>{const l=Projects.all(),i=l.findIndex(p=>p.id===id);if(i<0)re
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="build" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="build" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
 function vEdit(){const p=getP();if(!p)return vPick('edit');
@@ -278,6 +278,19 @@ const frame=p=>`<iframe title="Live preview" sandbox="allow-scripts" srcdoc="${e
 
 function vPick(t){const l=Projects.all();return `<h1>${PT[t]||'Vælg hjemmeside'}</h1><p class="mu">Vælg en hjemmeside at arbejde på.</p>`+(l.length?`<div class="grid">${l.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><button class="btn" data-act="pick" data-t="${t}" data-id="${p.id}">Vælg</button></div>`).join('')}</div>`:`<p>Du har ingen hjemmesider endnu.</p><button class="btn" data-act="go" data-v="new">Opret ny hjemmeside</button>`)}
 
+function duplicateProject(id){
+ const source=Projects.all().find(p=>p.id===id);
+ if(!source){banner('Projektet kunne ikke findes.');return}
+ const copy=structuredClone(source),now=Date.now();
+ copy.id=uid();copy.name=(String(source.name||'Hjemmeside').trim()+' (kopi)').slice(0,80);
+ copy.status='draft';copy.domain=null;copy.createdAt=now;copy.updatedAt=now;
+ copy.history=[];copy.future=[];copy.chat=[{r:'ai',t:'Kopi oprettet fra '+String(source.name||'det oprindelige projekt')+'. Originalen er bevaret uændret.'}];
+ copy.customerId=null;copy.customer=null;copy.isPublished=false;delete copy.publishedAt;delete copy.publishedUrl;delete copy.liveUrl;
+ if(copy.site&&Array.isArray(copy.site.blocks))copy.site.blocks=copy.site.blocks.map(b=>({...b,id:uid()}));
+ Projects.save([copy,...Projects.all()]);
+ S.id=copy.id;S.view='mini';S.miniTab='edit';S.err='';
+ banner('Projektet er kopieret. Originalen er uændret.');
+}
 function vDash(){const all=Projects.all(),u=Session.user(),q=String(S.dashSearch||'').trim().toLowerCase(),filter=S.dashFilter||'all';
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const prompt=String(S.dashPrompt||'');
@@ -285,7 +298,7 @@ function vDash(){const all=Projects.all(),u=Session.user(),q=String(S.dashSearch
  <section class="dash-prompt-panel"><div class="dash-prompt-heading"><span class="dash-section-kicker">AI WEBSITE BUILDER</span><h2>Hvad skal vi bygge i dag?</h2><p>Beskriv din hjemmeside eller app med dine egne ord. AI'en går i gang med det samme.</p></div><textarea class="dash-prompt-input" data-dash-prompt rows="4" placeholder="Fx: Byg en moderne bookingside til en frisør i Málaga med priser, galleri og kontaktformular...">${esc(prompt)}</textarea><div class="dash-prompt-footer"><span class="mu">Tip: Skriv gerne branche, stil, funktioner og ønsker.</span><button class="btn ghost" data-act="go" data-v="templates">Se skabeloner</button><button class="btn dash-prompt-submit" data-act="dashGen" ${S.busy?'disabled':''}>${S.busy?'Arbejder…':'✦ Start byggeriet'}</button></div>${S.err?`<p class="err">${esc(S.err)}</p>`:''}</section>
   <div class="dash-section-head"><div><span class="dash-section-kicker">DIT ARBEJDE</span><h3>Dine projekter</h3></div><span class="mu">${all.length} i alt</span></div>
   ${all.length?`<section class="dash-project-tools"><input data-dash-search type="search" value="${esc(S.dashSearch||'')}" placeholder="Søg efter et projekt…" aria-label="Søg efter et projekt"><div class="dash-filter-row">${[['all','Alle'],['published','Udgivet'],['ready','Klar'],['draft','Kladder']].map(([v,t])=>`<button class="chip ${filter===v?'is-selected':''}" data-act="dashFilter" data-filter="${v}" aria-pressed="${filter===v}">${t}</button>`).join('')}</div></section>`:''}
-  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Udgivet':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button></article>`}).join('')}</div>`:all.length?`<div class="card dash-empty"><strong>Ingen projekter matcher søgningen</strong><p class="mu">Prøv et andet navn eller vælg et andet filter.</p><button class="btn ghost" data-act="dashReset">Nulstil søgning</button></div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Beskriv din idé ovenfor, så opretter vi dit første projekt.</p></div>`}`}
+  ${l.length?`<div class="grid dash-projects">${l.map(p=>{const active=p.status==='published'||p.isPublished===true||!!p.publishedAt;const status=active?'Udgivet':p.status==='ready'?'Klar til udgivelse':'Kladde';return `<article class="card dash-project-card"><div class="dash-project-symbol">✦</div><div class="dash-project-info"><div class="dash-project-name">${esc(p.name)}</div><span class="dash-project-meta"><span class="dash-project-status ${active?'is-active':''}">${status}</span><span>Opdateret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</span></span></div><div class="row dash-project-actions"><button class="btn dash-open-project" data-act="build" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}" aria-label="Kopiér ${esc(p.name)}">Kopiér</button></div></article>`}).join('')}</div>`:all.length?`<div class="card dash-empty"><strong>Ingen projekter matcher søgningen</strong><p class="mu">Prøv et andet navn eller vælg et andet filter.</p><button class="btn ghost" data-act="dashReset">Nulstil søgning</button></div>`:`<div class="card dash-empty"><div class="dash-empty-symbol">✦</div><strong>Din første hjemmeside starter her</strong><p class="mu">Beskriv din idé ovenfor, så opretter vi dit første projekt.</p></div>`}`}
 function vBuilder(){const p=getP();if(!p)return vPick('builder');const blocks=p.site.blocks||[];
  const field=(bi,k,v,extra='')=>`<label class="block-field">${LBL[k]||k}<input data-b="${bi}" data-k="${k}" ${extra} value="${esc(v??'')}"></label>`;
  const itemFields=(bi,items)=>items.map((it,ii)=>`<div class="block-item-fields"><span class="block-item-number">${ii+1}</span><div>${field(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)}${field(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)}</div></div>`).join('');
@@ -582,6 +595,7 @@ function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='u
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(ext2(a,b)||ext(a,b))return render();
+  if(a==='duplicate'){duplicateProject(id);return render()}
   if(a==='gen')return generate();
   if(a==='dashGen'){const prompt=String(S.dashPrompt||'').trim();if(!prompt){S.err='Beskriv først, hvad du gerne vil bygge.';return render()}const words=prompt.replace(/^(build|create|make|lav|byg|opret)\s+(a|an|en|et)?\s*(website|site|hjemmeside|app|applikation)?\s*(for|til)?\s*/i,'').trim().split(/\s+/).slice(0,6).join(' ');S.form={...S.form,name:(words||'Nyt projekt').slice(0,48),desc:prompt,style:'Moderne'};S.err='';return generate()}
   if(a==='send')return send($('#chatin').value);
