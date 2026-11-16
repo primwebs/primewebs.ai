@@ -567,7 +567,9 @@ document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[d
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined){const arr=Array.isArray(b[d.k])?b[d.k]:b.items;if(d.ik)arr[+d.i][d.ik]=v;else arr[+d.i]=v}else b[d.k]=v})}
-  else if(d.domMode)upd(d.domMode,q=>{q.domainMode=v;if(v==='free'){q.subdomain=domainSlug(q.subdomain||q.name);q.domain=q.subdomain+'.primewebs.site'}else{q.domain=null;q.subdomain=''}});\n  else if(d.domSub)upd(d.domSub,q=>{q.subdomain=domainSlug(v);q.domain=q.subdomain+'.primewebs.site';q.domainMode='free'});\n  else if(d.dom)upd(d.dom,q=>{q.domain=v.trim().toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'')||null;q.domainMode='custom'});
+  else if(d.domMode)upd(d.domMode,q=>{q.domainMode=v;if(v==='free'){q.subdomain=domainSlug(q.subdomain||q.name);q.domain=q.subdomain+'.primewebs.site'}else{q.domain=null;q.subdomain=''}});
+  else if(d.domSub)upd(d.domSub,q=>{q.subdomain=domainSlug(v);q.domain=q.subdomain+'.primewebs.site';q.domainMode='free'});
+  else if(d.dom)upd(d.dom,q=>{q.domain=v.trim().toLowerCase().replace(/^https?:\\/\\//,'').replace(/\\/$/,'')||null;q.domainMode='custom'});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
   else if(d.cu){const c=Customers.all(),u=c.find(x=>x.id===d.cu);if(u){u[d.cf]=v;Customers.save(c)}}
   else if(d.s)Settings.set(d.s,v);
