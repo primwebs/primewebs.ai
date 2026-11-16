@@ -41,7 +41,7 @@ const KEY='primewebs_crm_v1', LOCK='primewebs_crm_locked';
 let leads=[],callbacks=[],page='dashboard';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const phoneHref=p=>'tel:'+String(p||'').replace(/[^+\\d*#;,]/g,'');
+const phoneHref=p=>'tel:'+String(p||'').replace(/[^+\d*#;,]/g,'');
 function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'{}');leads=x.leads||[];callbacks=x.callbacks||[]}catch(e){leads=[];callbacks=[]}}
 function save(){localStorage.setItem(KEY,JSON.stringify({leads,callbacks}));render()}
 function statusName(s){return ({new:'Ny',called:'Ringet op',callback:'Ring tilbage',notInterested:'Ikke interesseret'})[s]||'Ny'}
@@ -58,7 +58,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(
 $('callbackForm').addEventListener('submit',e=>{e.preventDefault();callbacks.push({id:crypto.randomUUID(),leadId:$('callbackLead').value,date:$('callbackDate').value,time:$('callbackTime').value,note:$('callbackNote').value.trim()});const l=leads.find(x=>x.id===$('callbackLead').value);if(l)l.status='callback';e.target.reset();save()});
 $('callSearch').addEventListener('input',render);
 $('mapsBtn').addEventListener('click',()=>{const q=$('mapQuery').value.trim();if(q)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank','noopener')});
-$('lockBtn').addEventListener('click',()=>{sessionStorage.removeItem('crm_unlocked');location.reload()});
+$('lockBtn').addEventListener('click',()=>{fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).finally(()=>location.href='/')});
 async function start(){load();try{const r=await fetch('/api/auth/me',{credentials:'same-origin',cache:'no-store'});const a=await r.json();if(!a.enabled||!a.authenticated){$('blocked').classList.remove('hidden');document.querySelector('.nav').classList.add('hidden');return}}catch(e){$('blocked').classList.remove('hidden');document.querySelector('.nav').classList.add('hidden');return}
 $('app').classList.remove('hidden');render();showPage('dashboard')}
 start();
