@@ -29,7 +29,7 @@
     // One-time migration of the existing browser-only owner workspace.
     if (isOwner && projects.length===0 && localProjects.length) {
       for (const p of localProjects) if (!isUuid(p.id)) p.id=uuid();
-      const payload=localProjects.map(p=>({id:p.id,user_id:p._userId||user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
+      const payload=localProjects.map(p=>({id:p.id,user_id:p._userId||user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:packProject(p).site,history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
       const {error}=await db.from('projects').upsert(payload);
       if(error) throw error;
       put('pw.projects',localProjects);
@@ -43,7 +43,7 @@
     }
     const freshProjects = await rows('projects');
     const freshCustomers = await rows('customers');
-    put('pw.projects', freshProjects.map(p=>({id:p.id,_userId:p.user_id,name:p.name,status:p.status,domain:p.domain,plan:p.plan,site:p.site,history:p.history,future:p.future,chat:p.chat,createdAt:Date.parse(p.created_at)||Date.now(),updatedAt:Date.parse(p.updated_at)||Date.now()})));
+    put('pw.projects', freshProjects.map(p=>unpackProject({id:p.id,_userId:p.user_id,name:p.name,status:p.status,domain:p.domain,plan:p.plan,site:p.site,history:p.history,future:p.future,chat:p.chat,createdAt:Date.parse(p.created_at)||Date.now(),updatedAt:Date.parse(p.updated_at)||Date.now()})));
     put('pw.customers', freshCustomers.map(c=>Object.assign({id:c.id,_userId:c.user_id,name:c.name,email:c.email||'',phone:c.phone||'',notes:c.notes||'',createdAt:Date.parse(c.created_at)||Date.now()},c.data||{})));
     state.lastProjects=freshProjects.map(p=>p.id);
     state.lastCustomers=freshCustomers.map(c=>c.id);
@@ -54,6 +54,22 @@
       if(error) throw error;
     } else put('pw.settings',{});
   }
+  // Store builder source files inside the existing projects.site JSONB payload.
+  // Keep reserved transport keys out of the editor-facing site schema.
+  const packProject = p => {
+    const site={...(p.site||{})};
+    site.__primewebs_source_files=p.sourceFiles||{};
+    site.__primewebs_file_history=p.fileHistory||[];
+    return {...p,site};
+  };
+  const unpackProject = p => {
+    const site={...(p.site||{})};
+    const sourceFiles=site.__primewebs_source_files||{};
+    const fileHistory=site.__primewebs_file_history||[];
+    delete site.__primewebs_source_files;
+    delete site.__primewebs_file_history;
+    return {...p,site,sourceFiles,fileHistory};
+  };
   const persist = async (key, value) => {
     if (!state.client || !state.user || state.busy) return;
     const db=state.client, user=state.user;
@@ -61,7 +77,7 @@
       if (key==='pw.projects' && Array.isArray(value)) {
         const list=value.map(p=>{ if(!isUuid(p.id)) p.id=uuid(); return p; });
         put(key,list);
-        const payload=list.map(p=>({id:p.id,user_id:user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
+        const payload=list.map(p=>({id:p.id,user_id:user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:packProject(p).site,history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
         const currentIds=payload.map(p=>p.id), removed=state.lastProjects.filter(id=>!currentIds.includes(id));
         if(removed.length){const {error}=await db.from('projects').delete().in('id',removed);if(error)throw error;}
         if(payload.length){const {error}=await db.from('projects').upsert(payload);if(error)throw error;}
