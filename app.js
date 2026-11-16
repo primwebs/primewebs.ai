@@ -196,7 +196,7 @@ const Renderer={html(p){
   const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
   const meta=s.meta||{},lang=/^[a-z]{2}(?:-[A-Z]{2})?$/.test(meta.lang||'da')?(meta.lang||'da'):'da';
   const description=String(meta.description||'').trim().slice(0,320),ogImage=/^https:\/\//i.test(meta.ogImage||'')?meta.ogImage:'';
-  const canonical=/^https:\/\/[a-z0-9.-]+(?:\/[^\\s]*)?$/i.test(meta.canonicalUrl||'')?meta.canonicalUrl:'';
+  const canonical=/^https:\/\/[a-z0-9.-]+(?:\/[^\s]*)?$/i.test(meta.canonicalUrl||'')?meta.canonicalUrl:'';
   const seo=(description?'<meta name="description" content="'+esc(description)+'"><meta property="og:description" content="'+esc(description)+'">':'')+
    '<meta property="og:title" content="'+esc(meta.title)+'"><meta property="og:type" content="website"><meta name="twitter:card" content="'+(ogImage?'summary_large_image':'summary')+'">'+
    (ogImage?'<meta property="og:image" content="'+esc(ogImage)+'">':'')+(canonical?'<link rel="canonical" href="'+esc(canonical)+'">':'');
