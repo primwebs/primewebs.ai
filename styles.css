@@ -744,3 +744,35 @@ input[type=file]{padding:.5rem;font-size:.88rem}
   .block-field,.block-field input{min-width:0;max-width:100%}
   .builder-controls,.builder-workspace,.block-editor-list{min-width:0;width:100%}
 }
+
+/* Correct dashboard project actions on narrow screens */
+@media(max-width:650px){
+  .dash-project-card{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+  .dash-project-card > .dash-project-actions,
+  .dash-project-card > .row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:.55rem;
+    width:100%;
+    min-width:0;
+    margin:.75rem 0 0;
+    box-sizing:border-box;
+  }
+  .dash-project-card > .dash-project-actions .btn,
+  .dash-project-card > .row .btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    margin:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    box-sizing:border-box;
+  }
+}
