@@ -1,9 +1,9 @@
 /* PRIME WEBS AI — Supabase Auth + cloud persistence.
    Only the public publishable key is used in the browser. */
 (function () {
-  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [] };
-  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); }));
-  const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
+  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[]}, settingsData: {}, writeQueue: Promise.resolve() };
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return c==='x'?r:(r&3|8); }));
+  const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(String(v||''));
   const local = (key, fallback) => { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (_) { return fallback; } };
   const put = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {} };
   const rows = async (table) => {
@@ -11,6 +11,19 @@
     if (error) throw error;
     return data || [];
   };
+  const leadKey = x => String(x&&x.name||'').trim().toLocaleLowerCase()+'|'+String(x&&x.phone||'').replace(/[^\\d+]/g,'');
+  function mergeLeads(primary, secondary) {
+    const out=Array.isArray(primary)?primary.slice():[], seen=new Set(out.map(leadKey));
+    for(const item of (Array.isArray(secondary)?secondary:[])){const k=leadKey(item);if(k!=='|'&&!seen.has(k)){out.push(item);seen.add(k);}}
+    return out;
+  }
+  async function saveWorkspaceData() {
+    if(!state.client||!state.user||state.profile?.role!=='owner')return;
+    const next={...state.settingsData,finance:state.workspaceData.finance,leads:state.workspaceData.leads};
+    const {error}=await state.client.from('user_settings').upsert({user_id:state.user.id,settings:next,updated_at:new Date().toISOString()});
+    if(error)throw error;
+    state.settingsData=next;
+  }
   async function loadCloud() {
     const db=state.client, user=state.user;
     if (!user) return;
@@ -26,20 +39,15 @@
     const isOwner = state.profile.role === 'owner';
     const localProjects = local('pw.projects',[]);
     const localCustomers = local('pw.customers',[]);
-    // One-time migration of the existing browser-only owner workspace.
     if (isOwner && projects.length===0 && localProjects.length) {
       for (const p of localProjects) if (!isUuid(p.id)) p.id=uuid();
       const payload=localProjects.map(p=>({id:p.id,user_id:p._userId||user.id,name:p.name||'Nyt projekt',status:p.status||'draft',domain:p.domain||null,plan:p.plan||null,site:p.site||{},history:p.history||[],future:p.future||[],chat:p.chat||[],updated_at:new Date(p.updatedAt||Date.now()).toISOString()}));
-      const {error}=await db.from('projects').upsert(payload);
-      if(error) throw error;
-      put('pw.projects',localProjects);
+      const {error}=await db.from('projects').upsert(payload); if(error) throw error;
     }
     if (isOwner && customers.length===0 && localCustomers.length) {
       for (const c of localCustomers) if (!isUuid(c.id)) c.id=uuid();
       const payload=localCustomers.map(c=>({id:c.id,user_id:c._userId||user.id,name:c.name||'',email:c.email||null,phone:c.phone||null,notes:c.notes||null,data:{plan:c.plan||'Gratis',credits:c.credits||0,createdAt:c.createdAt||Date.now()}}));
-      const {error}=await db.from('customers').upsert(payload);
-      if(error) throw error;
-      put('pw.customers',localCustomers);
+      const {error}=await db.from('customers').upsert(payload); if(error) throw error;
     }
     const freshProjects = await rows('projects');
     const freshCustomers = await rows('customers');
@@ -47,17 +55,35 @@
     put('pw.customers', freshCustomers.map(c=>Object.assign({id:c.id,_userId:c.user_id,name:c.name,email:c.email||'',phone:c.phone||'',notes:c.notes||'',createdAt:Date.parse(c.created_at)||Date.now()},c.data||{})));
     state.lastProjects=freshProjects.map(p=>p.id);
     state.lastCustomers=freshCustomers.map(c=>c.id);
-    if (settings.data) put('pw.settings',settings.data.settings||{});
-    else if (isOwner) {
-      const current=local('pw.settings',{});
-      const {error}=await db.from('user_settings').upsert({user_id:user.id,settings:current,updated_at:new Date().toISOString()});
-      if(error) throw error;
-    } else put('pw.settings',{});
+    if(isOwner){
+      const stored=settings.data&&settings.data.settings&&typeof settings.data.settings==='object'?settings.data.settings:{};
+      state.settingsData={...stored};
+      const cloudFinance=Array.isArray(stored.finance)?stored.finance:[];
+      const cloudLeads=Array.isArray(stored.leads)?stored.leads:[];
+      const localFinance=local('pw.finance',[]);
+      const localLeads=local('pw.leads',[]);
+      // First-login migration: keep phone-entered Finance records and Ring leads.
+      state.workspaceData.finance=cloudFinance.length?cloudFinance:(Array.isArray(localFinance)?localFinance:[]);
+      // Merge browser-only imports into the owner-wide list without duplicates.
+      state.workspaceData.leads=mergeLeads(cloudLeads,localLeads);
+      put('pw.finance',state.workspaceData.finance);
+      put('pw.leads',state.workspaceData.leads);
+      const cleanSettings={...stored};delete cleanSettings.finance;delete cleanSettings.leads;
+      put('pw.settings',cleanSettings);
+      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||state.workspaceData.leads.length!==cloudLeads.length||!cloudFinance.length&&localFinance.length) await saveWorkspaceData();
+    } else {
+      state.settingsData={};
+      put('pw.settings',settings.data&&settings.data.settings||{});
+      state.workspaceData={finance:[],leads:[]};
+      put('pw.finance',[]);put('pw.leads',[]);
+    }
   }
-  const persist = async (key, value) => {
-    if (!state.client || !state.user || state.busy) return;
-    const db=state.client, user=state.user;
-    try {
+  const persist = (key, value) => {
+    put(key,value);
+    if (!state.client || !state.user) return;
+    state.writeQueue=state.writeQueue.then(async()=>{
+      const db=state.client,user=state.user;
+      if(!user)return;
       if (key==='pw.projects' && Array.isArray(value)) {
         const list=value.map(p=>{ if(!isUuid(p.id)) p.id=uuid(); return p; });
         put(key,list);
@@ -74,12 +100,19 @@
         if(removed.length){const {error}=await db.from('customers').delete().in('id',removed);if(error)throw error;}
         if(payload.length){const {error}=await db.from('customers').upsert(payload);if(error)throw error;}
         state.lastCustomers=currentIds;
-      } else if (key==='pw.settings') {
-        const safe={...value}; delete safe.aiCode;
-        const {error}=await db.from('user_settings').upsert({user_id:user.id,settings:safe,updated_at:new Date().toISOString()});
-        if(error)throw error;
+      } else if(key==='pw.settings') {
+        const safe={...value};delete safe.aiCode;delete safe.finance;delete safe.leads;
+        state.settingsData={...state.settingsData,...safe};
+        await saveWorkspaceData();
+      } else if(key==='pw.finance'&&Array.isArray(value)) {
+        state.workspaceData.finance=value;
+        await saveWorkspaceData();
+      } else if(key==='pw.leads'&&Array.isArray(value)) {
+        state.workspaceData.leads=value;
+        await saveWorkspaceData();
       }
-    } catch(e) { console.error('Supabase sync error:',e); window.__pwCloudError=e.message||'Cloud sync failed'; }
+    }).catch(e=>{console.error('Supabase sync error:',e);window.__pwCloudError=e.message||'Cloud sync failed';if(window.render)window.render();});
+    return state.writeQueue;
   };
   state.ready = (async()=>{
     const cfgRes=await fetch('/api/supabase-config',{cache:'no-store'});
@@ -95,7 +128,7 @@
     state.client.auth.onAuthStateChange((event,session)=>{
       state.user=session&&session.user||null;
       if(event==='SIGNED_IN' && state.user) loadCloud().then(()=>{ if(window.render) window.render(); }).catch(e=>{window.__pwCloudError=e.message; if(window.render)window.render();});
-      if(event==='SIGNED_OUT'){state.profile=null;state.credits=null;['pw.projects','pw.customers','pw.settings'].forEach(k=>localStorage.removeItem(k)); if(window.loginScreen)window.loginScreen();}
+      if(event==='SIGNED_OUT'){state.profile=null;state.credits=null;['pw.projects','pw.customers','pw.settings','pw.finance','pw.leads'].forEach(k=>localStorage.removeItem(k)); if(window.loginScreen)window.loginScreen();}
     });
     return state;
   })();
