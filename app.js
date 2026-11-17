@@ -171,7 +171,7 @@ const B={
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="#section-features-1">Se ydelser</a></div></section>`,
   gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
-  contact:b=>`<section id="kontakt" class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div></section>`};
+  contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div></section>`};
 const bookingRuntime=site=>{
   const contact=site.blocks.find(b=>b.type==='contact')||{};
   const services=site.blocks.find(b=>b.type==='services');
@@ -196,7 +196,7 @@ const Renderer={html(p){
   const sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
   const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
   const hasBooking=s.blocks.some(b=>b.type==='booking');
-  const body=s.blocks.map((b,i)=>{const block={...b};if(['hero','cta'].includes(block.type)&&/book|bestil|tid/i.test(String(block.cta||''))&&hasBooking)block.actionHref='#booking';const html=(B[block.type]||(()=>''))(block);return html.replace('<section','<section id="section-'+block.type+'-'+i+'"')}).join('');
+  const body=s.blocks.map((b,i)=>{const block={...b};if(['hero','cta'].includes(block.type)&&/book|bestil|tid/i.test(String(block.cta||''))&&hasBooking)block.actionHref='#booking';const html=(B[block.type]||(()=>''))(block);const anchor=block.type==='contact'?'kontakt':'section-'+block.type+'-'+i;return html.replace('<section','<section id="'+anchor+'"')}).join('');
   const links=s.blocks.filter(b=>['services','about','features','gallery','contact','faq'].includes(b.type)).map(b=>'<a href="#'+(b.type==='contact'?'kontakt':'section-'+b.type+'-'+s.blocks.indexOf(b))+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
   const nav=links?'<nav aria-label="Hovedmenu">'+links+'<a class="nav-cta" href="#kontakt">Kontakt os</a></nav>':'';
   const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
