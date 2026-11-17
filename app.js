@@ -526,7 +526,7 @@ function vLeadRing(){
 function vOnlyCall(){
  const all=LeadStore.all(),queue=all.filter(x=>leadPhone(x)&&x.status!=='not_interested');
  let idx=queue.findIndex(x=>String(x.id)===String(S.onlyCallId));
- if(idx<0&&queue.length){idx=0;S.onlyCallId=queue[0].id}
+ if(idx<0&&queue.length&&!S.onlyCallDone){idx=0;S.onlyCallId=queue[0].id}
  const lead=idx>=0?queue[idx]:null,attempts=all.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0);
  const date=String(S.onlyCallBookingDate||''),time=String(S.onlyCallBookingTime||'');
  return '<section class="lead-page"><div class="lead-hero lead-call-hero"><div><span class="lead-kicker">PRIME WEBS AI · CALL WORKSPACE</span><h1>Only Call</h1><p>Én virksomhed ad gangen. Ring, gå videre, markér ikke interesseret eller gem en opfølgning.</p></div><div class="lead-hero-mark" aria-hidden="true">☎</div></div>'+
@@ -540,7 +540,7 @@ function vOnlyCall(){
 const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadring:vLeadRing,onlycall:vOnlyCall};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;if(d.v==='onlycall'&&!S.onlyCallId){const first=LeadStore.all().find(x=>leadPhone(x)&&x.status!=='not_interested');S.onlyCallId=first?.id||null}S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;if(d.v==='onlycall'&&!S.onlyCallId&&!S.onlyCallDone){const first=LeadStore.all().find(x=>leadPhone(x)&&x.status!=='not_interested');S.onlyCallId=first?.id||null}S.err='';S.out=null;S.msg='';S.rc=0;return 1}
   if(a==='pick'){S.view='mini';S.miniTab=d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit';S.id=id;return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='build'){S.view='mini';S.miniTab='edit';S.id=id;return 1}
@@ -584,10 +584,10 @@ document.addEventListener('input',e=>{
 function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
   if(a==='leadSave'){const f=S.leadForm||{},name=String(f.name||'').trim(),email=String(f.email||'').trim(),phone=String(f.phone||'').trim();if(!name){S.leadErr='Skriv virksomhedens navn.';return 1}if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){S.leadErr='Skriv en gyldig e-mailadresse.';return 1}if(phone&&!/^[+\d][\d\s().-]{4,}$/.test(phone)){S.leadErr='Skriv et gyldigt telefonnummer.';return 1}LeadStore.add({name,email,phone,industry:String(f.industry||'').trim(),city:String(f.city||'').trim(),website:String(f.website||'').trim(),notes:String(f.notes||'').trim(),status:'new'});S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.ringQuery='';S.view='leadring';return 1}
-  if(a==='onlyCallNext'){const q=LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested'),i=q.findIndex(x=>String(x.id)===String(S.onlyCallId));S.onlyCallId=i>=0&&i+1<q.length?q[i+1].id:null;S.onlyCallBookingDate='';S.onlyCallBookingTime='';return 1}
-  if(a==='onlyCallSkip'){const all=LeadStore.all(),before=all.filter(x=>leadPhone(x)&&x.status!=='not_interested'),oldIndex=before.findIndex(x=>String(x.id)===String(S.onlyCallId)),lead=all.find(x=>String(x.id)===String(S.onlyCallId));if(lead){lead.status='not_interested';lead.statusUpdatedAt=Date.now();LeadStore.save(all)}const q=LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested');S.onlyCallId=q[Math.min(oldIndex,q.length-1)]?.id||null;S.onlyCallBookingDate='';S.onlyCallBookingTime='';return 1}
+  if(a==='onlyCallNext'){const q=LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested'),i=q.findIndex(x=>String(x.id)===String(S.onlyCallId));S.onlyCallId=i>=0&&i+1<q.length?q[i+1].id:null;S.onlyCallDone=!(i>=0&&i+1<q.length);S.onlyCallBookingDate='';S.onlyCallBookingTime='';return 1}
+  if(a==='onlyCallSkip'){const all=LeadStore.all(),before=all.filter(x=>leadPhone(x)&&x.status!=='not_interested'),oldIndex=before.findIndex(x=>String(x.id)===String(S.onlyCallId)),lead=all.find(x=>String(x.id)===String(S.onlyCallId));if(lead){lead.status='not_interested';lead.statusUpdatedAt=Date.now();LeadStore.save(all)}const q=LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested');S.onlyCallId=q[Math.min(oldIndex,q.length-1)]?.id||null;S.onlyCallDone=q.length===0;S.onlyCallBookingDate='';S.onlyCallBookingTime='';return 1}
   if(a==='onlyCallBook'){const all=LeadStore.all(),lead=all.find(x=>String(x.id)===String(S.onlyCallId)),date=String(S.onlyCallBookingDate||''),time=String(S.onlyCallBookingTime||'');if(!lead)return 1;if(!date||!time){banner('Vælg både dato og tidspunkt.');return 1}const when=new Date(date+'T'+time);if(Number.isNaN(when.getTime())||when.getTime()<Date.now()){banner('Vælg et tidspunkt i fremtiden.');return 1}lead.bookingAt=when.toISOString();lead.status='callback';lead.bookingHistory=Array.isArray(lead.bookingHistory)?lead.bookingHistory:[];lead.bookingHistory.unshift({at:Date.now(),bookedFor:lead.bookingAt});LeadStore.save(all);banner('Opfølgningen er gemt på leadet.');return 1}
-  if(a==='onlyCallReset'){const all=LeadStore.all();all.forEach(x=>{if(x.status==='not_interested'){x.status='new';delete x.statusUpdatedAt}});LeadStore.save(all);S.onlyCallId=all.find(x=>leadPhone(x))?.id||null;return 1}
+  if(a==='onlyCallReset'){const all=LeadStore.all();all.forEach(x=>{if(x.status==='not_interested'){x.status='new';delete x.statusUpdatedAt}});LeadStore.save(all);S.onlyCallId=all.find(x=>leadPhone(x))?.id||null;S.onlyCallDone=false;return 1}
   if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
