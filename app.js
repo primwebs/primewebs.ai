@@ -166,6 +166,8 @@ const B={
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
   about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   services:b=>B.features(b),
+  pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
+  team:b=>`<section class="team-section"><h2>${esc(b.title||'Mød teamet')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c team-card"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
@@ -208,7 +210,7 @@ const Renderer={html(p){
   const serviceIndex=s.blocks.findIndex(b=>['services','features'].includes(b.type));
   const serviceTarget=serviceIndex>=0?'#section-'+s.blocks[serviceIndex].type+'-'+serviceIndex:'#kontakt';
   const body=s.blocks.map((b,i)=>{const block={...b};block.servicesHref=serviceTarget;if(['hero','cta'].includes(block.type)&&/book|bestil|tid/i.test(String(block.cta||''))&&hasBooking)block.actionHref='#booking';const html=(B[block.type]||(()=>''))(block);const anchor=block.type==='contact'?'kontakt':'section-'+block.type+'-'+i;return html.replace('<section','<section id="'+anchor+'"')}).join('');
-  const links=s.blocks.filter(b=>['services','about','features','gallery','contact','faq','reviews','map'].includes(b.type)).map(b=>'<a href="#'+(b.type==='contact'?'kontakt':'section-'+b.type+'-'+s.blocks.indexOf(b))+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
+  const links=s.blocks.filter(b=>['services','pricing','team','about','features','gallery','contact','faq','reviews','map'].includes(b.type)).map(b=>'<a href="#'+(b.type==='contact'?'kontakt':'section-'+b.type+'-'+s.blocks.indexOf(b))+'">'+esc(BT[b.type]||b.type)+'</a>').join('');
   const nav=links?'<nav aria-label="Hovedmenu">'+links+'<a class="nav-cta" href="#kontakt">Kontakt os</a></nav>':'';
   const red=!!t.background&&/^#(?:D12C3F|B82032|7A1F3D)$/i.test(t.background);
   const hero=s.blocks.find(b=>b.type==='hero')||{},about=s.blocks.find(b=>b.type==='about')||{},contact=s.blocks.find(b=>b.type==='contact')||{};
@@ -266,7 +268,7 @@ const NAV=[
   ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
  ]]
 ];
-const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri',booking:'Booking',reviews:'Anmeldelser',map:'Find os'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
+const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',pricing:'Priser',team:'Team',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri',booking:'Booking',reviews:'Anmeldelser',map:'Find os'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
 const PLANS=[['Gratis',50,0],['Starter',120,29],['Pro',250,67],['Business',500,126]];
 const TPL=[
  {n:'Restaurant',s:'Elegant',d:'Restaurant med menu, bordforespørgsler, galleri og kontakt.',c:'Mad & drikke',industry:'Restaurant/café'},
@@ -892,7 +894,7 @@ function fixP(p,i){if(!p||typeof p!=='object'||Array.isArray(p))return null;
   const t=site.meta.theme=site.meta.theme&&typeof site.meta.theme==='object'?site.meta.theme:{};
   if(!/^#[0-9a-fA-F]{6}$/.test(t.accent))t.accent='#2540D9';if(t.font!=='serif')t.font='sans';if(t.mode!=='dark')t.mode='light';
   site.blocks=site.blocks.filter(b=>b&&typeof b==='object'&&b.type).map((b,n)=>{const o={...b,id:String(b.id||'b'+n)};
-    if(['features','services','steps','faq'].includes(o.type))o.items=arr(o.items).map(x=>({t:String((x&&x.t)||''),d:String((x&&x.d)||'')}));
+    if(['features','services','steps','faq','team'].includes(o.type))o.items=arr(o.items).map(x=>({t:String((x&&x.t)||''),d:String((x&&x.d)||'')}));if(o.type==='pricing')o.items=arr(o.items).map(x=>({t:String((x&&x.t)||''),d:String((x&&x.d)||''),price:String((x&&x.price)||'')}));
     if(o.type==='gallery')o.images=arr(o.images).filter(x=>typeof x==='string');return o});
   const sane=a=>arr(a).filter(x=>x&&typeof x==='object'&&Array.isArray(x.blocks));
   return{...p,id:String(p.id||'p'+i),name,status:p.status==='ready'?'ready':'draft',site,history:sane(p.history),future:sane(p.future),chat:arr(p.chat).filter(m=>m&&typeof m.t==='string'),createdAt:p.createdAt||Date.now(),updatedAt:p.updatedAt||Date.now()}}
