@@ -67,13 +67,48 @@ footer{padding:2rem 0 3rem;color:var(--muted);font-size:.95rem;border-top:1px so
   .cols{grid-template-columns:1fr;gap:1.5rem}
   .hero{padding:2rem 0 3rem}
 }
+
+/* PRIME WEBS — graphite black, electric violet identity */
+:root{--bg:#080912;--surface:#111322;--ink:#f4f2ff;--muted:#aaa8c2;--line:#29243d;--accent:#9565ff;--accent-ink:#fff;--soft:#241b3b;color-scheme:dark}
+body{background:radial-gradient(ellipse at 82% 0%,rgba(111,66,193,.18),transparent 34%),radial-gradient(ellipse at 8% 34%,rgba(65,76,180,.11),transparent 35%),#080912;color:var(--ink)}
+.wrap{max-width:1160px}
+header{padding:1.35rem 0}
+.logo{color:#fff;text-shadow:0 0 18px rgba(159,112,255,.36);letter-spacing:.07em}
+.logo::after{content:" AI";color:#a987ff;text-shadow:0 0 16px rgba(169,135,255,.75)}
+.call-now{display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border:1px solid rgba(166,130,255,.45);border-radius:13px;background:linear-gradient(120deg,rgba(96,66,174,.24),rgba(41,35,80,.6));color:#f6f1ff;text-decoration:none;box-shadow:0 0 22px rgba(135,91,255,.12),inset 0 1px rgba(255,255,255,.06)}
+.call-now small{font-size:.75rem;color:#b9afd7}
+.call-pulse{width:8px;height:8px;border-radius:50%;background:#b58aff;box-shadow:0 0 0 4px rgba(181,138,255,.13),0 0 13px #a879ff}
+.hero{padding:4.2rem 0 5rem;gap:3.5rem}
+.hero h1{max-width:760px;color:#fff;letter-spacing:-.045em;text-shadow:0 0 32px rgba(145,92,255,.18)}
+.hero h1 strong{color:#b795ff;text-shadow:0 0 14px rgba(157,112,255,.65),0 0 36px rgba(132,82,255,.26)}
+.hero p{color:#b8b5cd}
+.btn{background:linear-gradient(115deg,#6d55ed,#a05bfa);border:1px solid rgba(205,185,255,.25);border-radius:12px;box-shadow:0 8px 28px rgba(119,77,235,.25),0 0 20px rgba(142,91,255,.13);transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(119,77,235,.34),0 0 26px rgba(142,91,255,.2)}
+.mock{background:linear-gradient(145deg,#15172a,#0e1020);border:1px solid #393052;border-radius:20px;box-shadow:0 24px 75px rgba(0,0,0,.38),0 0 38px rgba(130,82,255,.12)}
+.mock-bar{border-color:#302a45;background:rgba(255,255,255,.025)}
+.mock-body{padding:1.4rem}
+.sk{background:#292342}
+.sk.big{background:linear-gradient(100deg,#6650dc,#a46aff);box-shadow:0 0 24px rgba(151,105,255,.35)}
+.chat{background:#19152b;border-color:#3c3159;color:#e6defa}
+.chat b{color:#b995ff;text-shadow:0 0 10px rgba(176,134,255,.45)}
+section.block{border-color:#29243d}
+section.block h2{color:#fff;text-shadow:0 0 22px rgba(149,101,255,.2)}
+.cols>div{padding:19px;border:1px solid #2c2740;border-radius:15px;background:linear-gradient(145deg,rgba(25,24,44,.88),rgba(14,15,28,.9));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.cols h3{color:#c2a6ff;text-shadow:0 0 13px rgba(161,117,255,.23)}
+.cols p,.contact dd{color:#aaa8c2}
+a{color:#b99bff}
+input,textarea{background:#111322;border-color:#39324e;color:#f4f2ff;border-radius:12px}
+input:focus,textarea:focus{border-color:#a17aff;box-shadow:0 0 0 4px rgba(151,103,255,.14);outline:0}
+footer{border-color:#29243d;color:#88859e}
+@media(max-width:760px){header{align-items:flex-start;gap:12px}.call-now{flex-wrap:wrap;justify-content:center}.hero{padding:2.5rem 0 3.2rem}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <a class="logo" href="#top">PRIME WEBS</a>
-    <a class="call" href="tel:+4530950593">+45 30 95 05 93</a>
+    <a class="call call-now" href="tel:+4530950593"><span class="call-pulse" aria-hidden="true"></span><span>Ring nu</span><small>+45 30 95 05 93</small></a>
   </header>
 
   <main id="top">
