@@ -49,6 +49,11 @@ function rateLimited(ip) {
 
 const TEXT_FIELDS = { hero: ["title", "text", "cta"], about: ["title", "text"], cta: ["title", "text", "cta"], contact: ["title", "text", "email", "phone"] };
 const str = (v, n) => String(v == null ? "" : v).slice(0, n);
+const hexLum = h => { const n = parseInt(String(h).slice(1), 16); return ((n >> 16 & 255) * 299 + (n >> 8 & 255) * 587 + (n & 255) * 114) / 1000; };
+const gradientIsVisible = value => {
+  const stops = [...String(value || "").matchAll(/#[0-9a-fA-F]{6}/g)].map(m => m[0].toUpperCase());
+  return new Set(stops).size >= 2 && stops.some(c => hexLum(c) < 242);
+};
 
 // Sikrer, at AI'ens svar kun indeholder kendte blokke og gyldige værdier.
 const imgRef = v => { const s = String(v || ""); return (/^img:[a-z0-9]{3,12}$/.test(s) || /^https?:\/\/[^\s"'<>]{1,500}$/i.test(s)) ? s : ""; };
@@ -85,7 +90,11 @@ function sanitizeSite(site, fallbackLanguage) {
   if (!out.meta.theme.background) out.meta.theme.background = out.meta.theme.mode === "dark" ? "#111827" : "#F3F5FA";
   if (!out.meta.theme.backgroundStyle) out.meta.theme.backgroundStyle = out.meta.theme.mode === "dark"
     ? "linear-gradient(135deg,#101827 0%,#1E293B 55%,#172033 100%)"
-    : "linear-gradient(135deg,#F3F6FC 0%,#E8EEF8 55%,#F8F1E8 100%)";
+    : "linear-gradient(135deg,#263B73 0%,#5367A8 52%,#B7A5D8 100%)";
+  // Reject gradients that technically parse but render as an almost blank white page.
+  if (!gradientIsVisible(out.meta.theme.backgroundStyle)) out.meta.theme.backgroundStyle = out.meta.theme.mode === "dark"
+    ? "linear-gradient(135deg,#101827 0%,#263653 52%,#34264F 100%)"
+    : "linear-gradient(135deg,#263B73 0%,#5367A8 52%,#B7A5D8 100%)";
   if (!out.meta.theme.surface) out.meta.theme.surface = out.meta.theme.mode === "dark" ? "#1E293B" : "#FFFFFF";
   if (!out.meta.theme.text) out.meta.theme.text = out.meta.theme.mode === "dark" ? "#F8FAFC" : "#182230";
 
