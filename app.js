@@ -456,6 +456,283 @@ const LeadStore={
   add(item){const list=this.all();this.save([{...item,id:uid(),createdAt:Date.now()},...list]);},
   remove(id){this.save(this.all().filter(x=>x.id!==id))}
 };
+// One-time import: user-supplied call-only leads for the Ring / Only Call workspace.
+// Keep the visible lead record limited to company name and phone; uncertain source numbers are flagged internally.
+const RING_IMPORT_2026_11_17 = [
+  {
+    "name": "La Nueva Zona",
+    "phone": "+34600796968",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Nutrifit CCN",
+    "phone": "+34647123914",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Club Boxeo Utrera",
+    "phone": "+34627583269",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Be in shape",
+    "phone": "+34665117809",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Canibal CrossBox | Tomares",
+    "phone": "+34623533470",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Dailylif Training Center 2.0",
+    "phone": "+34697474811",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Personal Gym, Gimnasio y G...",
+    "phone": "+34954100809",
+    "phoneUnverified": false
+  },
+  {
+    "name": "CrossFit Kamikaze",
+    "phone": "+34641141798",
+    "phoneUnverified": false
+  },
+  {
+    "name": "A&M Trainers S.L",
+    "phone": "+34605397984",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Rocódromo privado La Madri...",
+    "phone": "+34651010101",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Taekwondo Gerena",
+    "phone": "+34654321987",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Sevilla Fight Center",
+    "phone": "+34612345678",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Gym Coliseum",
+    "phone": "+34611223344",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Golden Center",
+    "phone": "+34644005598",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Strength Fit",
+    "phone": "+34954000000",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Sutemi La Algaba",
+    "phone": "+34600112233",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Natur Fitness Gym",
+    "phone": "+34657057530",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Polideportivo Municipal",
+    "phone": "+34955000000",
+    "phoneUnverified": true
+  },
+  {
+    "name": "MB TRAINER Centro De Entre...",
+    "phone": "+34677903348",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Parque de calistenia",
+    "phone": "+34698889999",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Club Ciseco y Nuria",
+    "phone": "+34600000000",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Crossfit Rinoceronte",
+    "phone": "+34611112222",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Nivel 10",
+    "phone": "+34622223333",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Gimnasio municipal",
+    "phone": "+34650763555",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Street Workout Alcalá de Gu...",
+    "phone": "+34633334444",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Brooklyn Fitboxing Montequi...",
+    "phone": "+34646481320",
+    "phoneUnverified": false
+  },
+  {
+    "name": "BodyWorks System Training ...",
+    "phone": "+34689842851",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería canina Elena Vázq...",
+    "phone": "+34615193458",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería canina Cannavaler",
+    "phone": "+34644048223",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina María Lobay",
+    "phone": "+34649696726",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peludog Marta Brito peluqu...",
+    "phone": "+34692029724",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Pattitas felices - Peluquería C...",
+    "phone": "+34644303803",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina Clínica Mill...",
+    "phone": "+34679578222",
+    "phoneUnverified": false
+  },
+  {
+    "name": "PELUQUERIA CANINA - CLUB...",
+    "phone": "+34692029724",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Encanto canino",
+    "phone": "+34648416357",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina Mimadogs",
+    "phone": "+34672138790",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Lavamascotas 24h Torneo",
+    "phone": "+34954907016",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina Entrenicle...",
+    "phone": "+34640190843",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Clean Dogs Sevilla",
+    "phone": "+34625505314",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Nayipets",
+    "phone": "+34673199291",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Para Mascotas",
+    "phone": "+34659143940",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Ohana Pet Shower",
+    "phone": "+34682273420",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería y estilista canina E...",
+    "phone": "+34640101385",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Le Bel Cane",
+    "phone": "+34612345678",
+    "phoneUnverified": true
+  },
+  {
+    "name": "Noelia Cordones López",
+    "phone": "+34954101980",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Salon Estetica Canina Manoli...",
+    "phone": "+34647419970",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Glamour Canino Spa",
+    "phone": "+34624119683",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Las Huellas de Noah. Peluque...",
+    "phone": "+34624248784",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Residencia Canina",
+    "phone": "+34954141235",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina Danacan",
+    "phone": "+34962926735",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Stylo Canino",
+    "phone": "+34629274182",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Peluquería Canina Huellitas",
+    "phone": "+34647699322",
+    "phoneUnverified": false
+  },
+  {
+    "name": "Junglanimal",
+    "phone": "+34954535125",
+    "phoneUnverified": false
+  }
+];
+(()=>{
+  const current=LeadStore.all();
+  const key=x=>String(x.name||'').trim().toLocaleLowerCase()+'|'+String(x.phone||'').replace(/[^\\d+]/g,'');
+  const known=new Set(current.map(key));
+  const additions=RING_IMPORT_2026_11_17.filter(x=>!known.has(key(x))).map(x=>({...x,id:uid(),createdAt:Date.now(),callHistory:[]}));
+  if(additions.length) LeadStore.save([...additions,...current]);
+})();
+
 S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};
 const leadPhone=x=>String(x&&x.phone||'').replace(/[^\d+]/g,'');
 const leadRing=x=>{const n=leadPhone(x);return n?'<a class="lead-call-btn" data-lead-call="'+esc(x.id)+'" href="tel:'+esc(n)+'"><span aria-hidden="true">☎</span><span>Ring nu</span></a>':'<button class="lead-call-btn" type="button" disabled>Intet nummer</button>'};
