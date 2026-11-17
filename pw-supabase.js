@@ -1,7 +1,7 @@
 /* PRIME WEBS AI — Supabase Auth + cloud persistence.
    Only the public publishable key is used in the browser. */
 (function () {
-  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[]}, settingsData: {}, writeQueue: Promise.resolve() };
+  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[],images:{}}, settingsData: {}, writeQueue: Promise.resolve() };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return c==='x'?r:(r&3|8); }));
   const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(String(v||''));
   const local = (key, fallback) => { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (_) { return fallback; } };
@@ -20,7 +20,7 @@
   }
   async function saveWorkspaceData() {
     if(!state.client||!state.user||state.profile?.role!=='owner')return;
-    const next={...state.settingsData,finance:state.workspaceData.finance,leads:state.workspaceData.leads};
+    const next={...state.settingsData,finance:state.workspaceData.finance,leads:state.workspaceData.leads,images:state.workspaceData.images};
     const {error}=await state.client.from('user_settings').upsert({user_id:state.user.id,settings:next,updated_at:new Date().toISOString()});
     if(error)throw error;
     state.settingsData=next;
@@ -61,24 +61,28 @@
       state.settingsData={...stored};
       const cloudFinance=Array.isArray(stored.finance)?stored.finance:[];
       const cloudLeads=Array.isArray(stored.leads)?stored.leads:[];
+      const cloudImages=stored.images&&typeof stored.images==='object'?stored.images:{};
       const localFinance=local('pw.finance',[]);
       const localLeads=local('pw.leads',[]);
+      const localImages=local('pw.img',{});
       // First-login migration: keep phone-entered Finance records and Ring leads.
       // Merge records left in an older device-local browser with cloud records.
       // This recovers Finance entries created before cross-device sync was enabled.
       state.workspaceData.finance=mergeRecords(cloudFinance,localFinance);
       // Merge browser-only imports into the owner-wide list without duplicates.
       state.workspaceData.leads=mergeLeads(cloudLeads,localLeads);
+      state.workspaceData.images={...cloudImages,...localImages};
       put('pw.finance',state.workspaceData.finance);
       put('pw.leads',state.workspaceData.leads);
+      put('pw.img',state.workspaceData.images);
       const cleanSettings={...stored};delete cleanSettings.finance;delete cleanSettings.leads;
       put('pw.settings',cleanSettings);
-      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||state.workspaceData.leads.length!==cloudLeads.length||state.workspaceData.finance.length!==cloudFinance.length) await saveWorkspaceData();
+      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||!stored.images||state.workspaceData.leads.length!==cloudLeads.length||state.workspaceData.finance.length!==cloudFinance.length||Object.keys(state.workspaceData.images).length!==Object.keys(cloudImages).length) await saveWorkspaceData();
     } else {
       state.settingsData={};
       put('pw.settings',settings.data&&settings.data.settings||{});
-      state.workspaceData={finance:[],leads:[]};
-      put('pw.finance',[]);put('pw.leads',[]);
+      state.workspaceData={finance:[],leads:[],images:{}};
+      put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});
     }
   }
   const persist = (key, value) => {
@@ -112,6 +116,9 @@
         await saveWorkspaceData();
       } else if(key==='pw.leads'&&Array.isArray(value)) {
         state.workspaceData.leads=value;
+        await saveWorkspaceData();
+      } else if(key==='pw.img'&&value&&typeof value==='object'&&!Array.isArray(value)) {
+        state.workspaceData.images=value;
         await saveWorkspaceData();
       }
     }).catch(e=>{console.error('Supabase sync error:',e);window.__pwCloudError=e.message||'Cloud sync failed';if(window.render)window.render();});
