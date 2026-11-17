@@ -2,6 +2,8 @@
 // Add ANTHROPIC_API_KEY in Vercel → Project → Settings → Environment Variables.
 // Optional: set ANTHROPIC_MODEL. The key is never sent to the browser.
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
+// Accept the exact environment-variable name already saved in Vercel (it was entered with a typo).
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || process.env.anthropec_api_key;
 
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
@@ -134,7 +136,7 @@ module.exports = async (req, res) => {
   } catch (_) {
     return res.status(503).json({ error: "Kunne ikke kontrollere din Supabase-session." });
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!ANTHROPIC_API_KEY) {
     return res.status(503).json({
       error: "AI-generatoren er klar i koden, men mangler en API-nøgle. Tilføj ANTHROPIC_API_KEY under Vercel → Settings → Environment Variables."
     });
@@ -161,7 +163,7 @@ module.exports = async (req, res) => {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "x-api-key": ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
