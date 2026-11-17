@@ -23,7 +23,7 @@ hero and about may also have an "image" field: keep it exactly as given and neve
 Keep all content specific, useful, polished, and in the language requested by the user (Danish by default).
 Use realistic business copy, clear calls to action, and no fabricated certifications, awards, addresses, reviews, or guarantees.
 For generate, create a rich, complete first version with these blocks in this order: hero, features (4-6 items), services, about, steps, faq, cta, contact. If the user asks for online booking, appointments, reservations, or a booking system, also include a booking block before contact so the renderer adds a separate booking page. Write substantial, specific copy: the hero text is 2-3 sentences, the about text is two short paragraphs separated by a blank line, and every item description is 1-2 full sentences. Base everything on the business description. Where facts are missing, write general, honest copy and never invent prices, years of experience, numbers, addresses, names or reviews.
-For edit, preserve the existing site structure and content unless the user asks to change it. Apply the requested change to the site JSON. Keep existing block IDs where possible and add IDs to new blocks.
+For edit, use the latest request together with recent conversation context. Short replies such as “all”, “everything”, “yes”, or “do that” refer to the immediately preceding assistant question or proposal; do not call them unclear when the context resolves them. If the user asks for a whole-site redesign, redesign the complete visual system, not just buttons: update theme.accent, theme.background, theme.surface, theme.text, font/mode as appropriate, and rewrite/reorganize relevant blocks while preserving true business facts and contact details. If the user asks to change the main/page color (for example “make it red”), set both theme.accent and theme.background to suitable coordinated shades so the entire page visibly changes, not only CTA buttons. For ordinary targeted edits, preserve unrelated content and structure. Always return the complete updated site JSON, keep existing block IDs where possible, and add IDs to new blocks. Never claim that a change was made unless the returned JSON actually contains it.
 Theme accent must be a valid hex color; font must be "sans" or "serif"; mode must be "light" or "dark".`;
 
 function extractJSON(text) {
@@ -70,6 +70,9 @@ function sanitizeSite(site, fallbackLanguage) {
       language: normalizeLanguage(meta.language, fallbackLanguage),
       theme: {
         accent: /^#[0-9a-fA-F]{6}$/.test(t.accent) ? t.accent : "#2540D9",
+        background: /^#[0-9a-fA-F]{6}$/.test(t.background) ? t.background : "",
+        surface: /^#[0-9a-fA-F]{6}$/.test(t.surface) ? t.surface : "",
+        text: /^#[0-9a-fA-F]{6}$/.test(t.text) ? t.text : "",
         font: t.font === "serif" ? "serif" : "sans",
         mode: t.mode === "dark" ? "dark" : "light"
       }
@@ -106,6 +109,7 @@ function extra(b) {
   if (t("tone", 40)) parts.push("Tone of voice: " + t("tone", 40));
   parts.push("Language of all copy: " + (t("language", 20) || "Danish"));
   if (/^#[0-9a-fA-F]{6}$/.test(t("color", 7))) parts.push("Use exactly this accent color in theme.accent: " + t("color", 7));
+  if (/^#[0-9a-fA-F]{6}$/.test(t("background", 7))) parts.push("Use exactly this page background color in theme.background: " + t("background", 7));
   const em = t("email", 120), ph = t("phone", 40);
   parts.push("Contact block: " + (em || ph ? "use exactly this email '" + em + "' and phone '" + ph + "' and do not invent any other contact details" : "do not invent contact details; leave email and phone as empty strings"));
   return "\n" + parts.join("\n");
@@ -156,7 +160,7 @@ module.exports = async (req, res) => {
       "\nDescription: " + String(body.description || "").slice(0, 5000) +
       "\nStyle preference: " + String(body.style || "Moderne").slice(0, 40) + extra(body)
     : "Edit this existing website according to the user's request. Return the complete updated site JSON.\nCurrent site: " +
-      JSON.stringify(body.site).slice(0, 24000) + "\nUser request: " + String(body.message).slice(0, 3000);
+      JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-10).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1200) })) : []).slice(0, 10000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
 
   try {
     const upstream = await fetch("https://api.anthropic.com/v1/messages", {
