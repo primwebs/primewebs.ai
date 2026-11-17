@@ -118,6 +118,8 @@
     async resetPassword(email){const clean=String(email||'').trim().toLowerCase();const {error}=await state.client.auth.resetPasswordForEmail(clean,{redirectTo:window.location.origin+'/?pw-reset=1'});if(error)throw error;},
     async updatePassword(password){const {data,error}=await state.client.auth.updateUser({password:String(password||'')});if(error)throw error;if(data&&data.user)state.user=data.user;return data;},
     async refresh(){await loadCloud();},
+    async listBookings(){if(!state.client||!state.user)return [];const {data,error}=await state.client.from('booking_requests').select('*, projects(name)').order('created_at',{ascending:false}).limit(200);if(error)throw error;return data||[];},
+    async updateBookingStatus(id,status){if(!state.client||!state.user)throw new Error('Log ind igen.');if(!['pending','accepted','declined','cancelled'].includes(status))throw new Error('Ugyldig bookingstatus.');const {error}=await state.client.from('booking_requests').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;return true;},
     async signUp(email,password){const clean=String(email||'').trim().toLowerCase();const {data,error}=await state.client.auth.signUp({email:clean,password:String(password||''),options:{emailRedirectTo:window.location.origin}});if(error)throw error;if(data&&data.session)state.user=data.user||data.session.user;return data;},
     async signInGoogle(){const {error}=await state.client.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});if(error)throw error;},
     async signOut(){const {error}=await state.client.auth.signOut();if(error)throw error;},
