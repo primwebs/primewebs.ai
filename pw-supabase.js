@@ -12,6 +12,7 @@
     return data || [];
   };
   const leadKey = x => String(x&&x.name||'').trim().toLocaleLowerCase()+'|'+String(x&&x.phone||'').replace(/[^\\d+]/g,'');
+  function mergeRecords(primary, secondary) { const out=Array.isArray(primary)?primary.slice():[],seen=new Set(out.map(x=>String(x&&x.id||'')));for(const item of(Array.isArray(secondary)?secondary:[])){const id=String(item&&item.id||'');if(id&&!seen.has(id)){out.push(item);seen.add(id);}}return out; }
   function mergeLeads(primary, secondary) {
     const out=Array.isArray(primary)?primary.slice():[], seen=new Set(out.map(leadKey));
     for(const item of (Array.isArray(secondary)?secondary:[])){const k=leadKey(item);if(k!=='|'&&!seen.has(k)){out.push(item);seen.add(k);}}
@@ -63,14 +64,16 @@
       const localFinance=local('pw.finance',[]);
       const localLeads=local('pw.leads',[]);
       // First-login migration: keep phone-entered Finance records and Ring leads.
-      state.workspaceData.finance=cloudFinance.length?cloudFinance:(Array.isArray(localFinance)?localFinance:[]);
+      // Merge records left in an older device-local browser with cloud records.
+      // This recovers Finance entries created before cross-device sync was enabled.
+      state.workspaceData.finance=mergeRecords(cloudFinance,localFinance);
       // Merge browser-only imports into the owner-wide list without duplicates.
       state.workspaceData.leads=mergeLeads(cloudLeads,localLeads);
       put('pw.finance',state.workspaceData.finance);
       put('pw.leads',state.workspaceData.leads);
       const cleanSettings={...stored};delete cleanSettings.finance;delete cleanSettings.leads;
       put('pw.settings',cleanSettings);
-      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||state.workspaceData.leads.length!==cloudLeads.length||!cloudFinance.length&&localFinance.length) await saveWorkspaceData();
+      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||state.workspaceData.leads.length!==cloudLeads.length||state.workspaceData.finance.length!==cloudFinance.length) await saveWorkspaceData();
     } else {
       state.settingsData={};
       put('pw.settings',settings.data&&settings.data.settings||{});
