@@ -191,7 +191,7 @@ const Renderer={html(p){
   const s=p.site,t=s.meta.theme||{},d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
   const f=t.font==='serif'?'Georgia,"Times New Roman",serif':'system-ui,-apple-system,"Segoe UI",sans-serif';
   const bg=/^#[0-9a-fA-F]{6}$/.test(t.background)?t.background:(d?'#0E1320':'#fff');
-  const bgStyle=typeof t.backgroundStyle==='string'&&/^(linear|radial)-gradient\\([#a-zA-Z0-9.% ,()-]+\\)$/.test(t.backgroundStyle)?t.backgroundStyle:bg;
+  const bgStyle=typeof t.backgroundStyle==='string'&&/^(linear|radial)-gradient\([#a-zA-Z0-9.% ,()-]+\)$/.test(t.backgroundStyle)?t.backgroundStyle:bg;
   const fg=/^#[0-9a-fA-F]{6}$/.test(t.text)?t.text:(d?'#E8ECF5':'#101828');
   const sf=/^#[0-9a-fA-F]{6}$/.test(t.surface)?t.surface:(d?'#171E30':'#F5F7FB');
   const mu=lum(fg)>150?'#F0F2F5':'#4B5565',ln=lum(bg)>150?'#D7DCE3':'#FFFFFF30';
