@@ -15,9 +15,12 @@
    - `ANTHROPIC_API_KEY`: din nøgle fra console.anthropic.com
    - `ACCESS_CODE`: en adgangskode, du selv vælger (lang og svær at gætte)
    - `ANTHROPIC_MODEL` (valgfri): standard er `claude-sonnet-5-5`
+   - `GEMINI_API_KEY` (valgfri): Gemini API-nøgle fra Google AI Studio
+   - `GEMINI_MODEL` (valgfri): standard er `gemini-3.8-flash`
+   - `AI_PROVIDER` (valgfri): `auto` (standard), `gemini` eller `anthropic`. `auto` vælger Gemini, hvis Gemini-nøglen findes; ellers Anthropic.
 3. Deploy igen. Åbn dashboardet, gå til **Indstillinger**, og skriv samme adgangskode i feltet **AI-adgangskode**.
 
-Uden nøgle eller adgangskode kører dashboardet i **demo-tilstand** med testgeneratoren, så alt kan stadig prøves.
+Uden AI-nøgle kører dashboardet i **demo-tilstand** med testgeneratoren, så alt kan stadig prøves.
 
 ## Sikkerhed
 - Læg aldrig nøgler eller adgangskoder i filerne eller i en chat. Repositoryet er offentligt.
