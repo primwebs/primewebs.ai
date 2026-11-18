@@ -7,7 +7,7 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || process.env.anthropec
 
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
-The site meta object may include animation: {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. For suitable businesses, you may add one or two threeD blocks using shape orb, torus, box or knot and a valid hex color. Use real 3D only when it improves the design; avoid adding it to every section or to text-heavy/local-service sites by default. Unless the user explicitly requests less motion, use immersive as the default. Use scroll reveals, floating/tilting imagery, tasteful CSS 3D depth and animated heading reveals. Never make motion interfere with reading, navigation, or mobile usability. Respect reduced-motion preferences in the rendered site.
+The site meta object may include animation: {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. For suitable businesses, you may add one or two threeD blocks using shape orb, torus, box, knot, barber-pole, shampoo-bottle, scissors, barber-chair, car, wheel or engine and a valid hex color. Match the 3D object to the business: barber-pole or scissors for barbers, shampoo-bottle for salons, car, wheel or engine for mechanics and garages. Use real 3D only when it improves the design; avoid adding it to every section or to text-heavy/local-service sites by default. Unless the user explicitly requests less motion, use immersive as the default. Use scroll reveals, floating/tilting imagery, tasteful CSS 3D depth and animated heading reveals. Never make motion interfere with reading, navigation, or mobile usability. Respect reduced-motion preferences in the rendered site.
 The JSON must have this shape:
 {"site":{"v":1,"meta":{"title":"...","language":"da|en","theme":{"accent":"#2540D9","background":"#...","backgroundStyle":"linear-gradient(...)","surface":"#...","text":"#...","font":"sans","mode":"light","radius":"large"}},"blocks":[...],"pages":[{"id":"...","title":"Booking","slug":"booking","blocks":[...]}]}, "reply":"short explanation in the user’s language"}
 Allowed block types:
@@ -22,7 +22,7 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
-threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot",color:"#6D7CFF"} (real interactive 3D scene; use sparingly and only when it suits the business)
+threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine",color:"#6D7CFF"} (real interactive 3D scene; use sparingly and only when it suits the business)
 pricing: {id,type:"pricing",title,items:[{t,d,price}]} (only use exact prices supplied by the user or existing site)
 team: {id,type:"team",title,items:[{t,d}]} (only use real names and roles supplied by the user or existing site)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
@@ -135,7 +135,7 @@ function sanitizeSite(site, fallbackLanguage) {
       const address = str(b.address, 300).trim();
       if (address) out.blocks.push({ id, type: "map", title: str(b.title || "Find os", 160), address });
     } else if (b.type === "threeD") {
-      const shape = ["orb", "torus", "box", "knot"].includes(b.shape) ? b.shape : "orb";
+      const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine"].includes(b.shape) ? b.shape : "orb";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
       const modelData = typeof b.modelData === "string" && /^data:model\\/(gltf-binary|gltf\\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : "";\n      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
     } else if (b.type === "booking") {
