@@ -139,6 +139,8 @@ const DemoAI={mode:'test',
         const block={id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'};
         ci>=0?s.blocks.splice(ci,0,block):s.blocks.push(block);
       }
+      s.pages=Array.isArray(s.pages)?s.pages:[];
+      if(!s.pages.some(x=>x.slug==='booking'))s.pages.push({id:uid(),title:'Booking',slug:'booking',blocks:[{id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'}]});
       say('En separat bookingside med bookingformular er tilføjet');
     }
     if(!out.length)return{site:null,reply:'Testgeneratoren kan nu håndtere flere faste ændringer, men forstod ikke netop den formulering. Prøv fx: "Gør hele hjemmesiden rød med hvid tekst", "tilføj et galleri", "lav flere fordele", "skift overskriften til \"Velkommen\" eller "gør hjørnerne mere afrundede".'};
@@ -1067,10 +1069,17 @@ function smartSite(i){
   const cta=mk.cta(n);if(i.tone==='Venlig')cta.cta='Skriv til os';if(i.tone==='Energisk')cta.cta='Kom i gang nu';
   const wantsBooking=/\bbook(?:ing)?\s*(?:system|funktion|side)?\b|bestil\s+(?:en\s+)?tid|book\s+(?:en\s+)?tid|tidsbestilling|online\s+booking|lav\s+(?:et\s+)?booking(?:system|funktion|side)?/i.test(txt);
   const ct=mk.contact();ct.email=i.email||(desc.match(RX_MAIL)||[])[0]||Settings.get().email;ct.phone=i.phone||(desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone;
-  const blocks=[hero,mk.features(),svc,mk.about(n,clean),mk.steps(),faq,cta];
+  const about=mk.about(n,clean),blocks=[hero,mk.features(),svc,about,mk.steps(),faq,cta];
   if(wantsBooking)blocks.push({id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'});
   blocks.push(ct);
-  return{v:1,meta:{title:n,theme:th},blocks}}
+  const pages=[
+    {id:uid(),title:'Ydelser',slug:'ydelser',blocks:[structuredClone(svc)]},
+    {id:uid(),title:'Om os',slug:'om-os',blocks:[structuredClone(about)]},
+    {id:uid(),title:'Kontakt',slug:'kontakt',blocks:[structuredClone(ct)]},
+    {id:uid(),title:'Handelsbetingelser',slug:'handelsbetingelser',blocks:[mk.legal()]}
+  ];
+  if(wantsBooking)pages.splice(3,0,{id:uid(),title:'Booking',slug:'booking',blocks:[{id:uid(),type:'booking',title:'Book en tid',text:'Vælg en ydelse og send os din ønskede tid.',cta:'Book en tid'}]});
+  return{v:1,meta:{title:n,seoTitle:n+' | '+b[1],seoDescription:hero.text.slice(0,155),theme:th},blocks,pages}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x="fcol"]');if(b){S.form={...S.form,color:b.dataset.c};render()}});
 /* ===== Farver: hjemmesidens design og dashboardets accentfarve ===== */
 const swatch=(x,n,h,on)=>`<button type="button" class="swb" data-x="${x}" data-c="${h}" title="${n}" aria-label="${n}" aria-pressed="${on}" style="background:${h}"></button>`;
