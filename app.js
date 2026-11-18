@@ -1203,7 +1203,7 @@ function keepImages(o,n){if(!n||!o)return;(n.blocks||[]).forEach(b=>{const x=o.b
 function fileToData(file){return new Promise((ok,no)=>{const fr=new FileReader();fr.onerror=()=>no(new Error('Filen kunne ikke læses'));fr.onload=()=>{const im=new Image();im.onerror=()=>no(new Error('Filen er ikke et billede'));im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.82))};im.src=fr.result};fr.readAsDataURL(file)})}
 function setImg(slot,val){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks;
   if(slot==='gal'){let g=bl.find(x=>x.type==='gallery');if(!g){g=mk.gallery();const ci=bl.findIndex(x=>x.type==='contact');ci>-1?bl.splice(ci,0,g):bl.push(g)}g.images=[...(g.images||[]),val].slice(0,8)}
-  else{const b=bl.find(x=>x.type===slot);if(b)b.image=val}})}
+  else{let b=bl.find(x=>x.type===slot);if(!b&&slot==='about'){b={id:uid(),type:'about',title:'Om os',text:'Læs mere om vores virksomhed og det, vi kan hjælpe dig med.',image:val};const ci=bl.findIndex(x=>x.type==='contact');bl.splice(ci<0?bl.length:ci,0,b)}else if(b)b.image=val}})}
 function delImg(slot,i){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks;
   if(slot==='gal'){const g=bl.find(x=>x.type==='gallery');if(g){g.images.splice(i,1);if(!g.images.length)q.site.blocks=bl.filter(x=>x!==g)}}
   else{const b=bl.find(x=>x.type===slot);if(b)delete b.image}})}
