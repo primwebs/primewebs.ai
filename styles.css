@@ -998,3 +998,110 @@ input:focus,textarea:focus,select:focus{border-color:#a17aff;box-shadow:0 0 0 4p
 .block-editor-card.is-dragging{opacity:.42;transform:scale(.99)}
 .block-editor-card.drag-over{border-color:var(--ac);box-shadow:0 0 0 2px color-mix(in srgb,var(--ac) 24%,transparent)}
 .block-editor-card[draggable="true"]>header:before{content:"⠿";display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-right:6px;border-radius:7px;color:var(--mu);font-size:1.1rem;cursor:grab}
+
+
+/* Mine projekter: kompakte knapper uden overlap eller brede kort */
+.dash-projects{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+}
+.dash-project-card{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  align-items:center;
+  gap:.85rem;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+.dash-project-card>.dash-project-symbol{
+  grid-column:1;
+  grid-row:1;
+}
+.dash-project-card>.dash-project-info{
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+}
+.dash-project-card>.dash-project-actions,
+.dash-project-card>.row{
+  grid-column:1 / -1;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:.55rem;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  margin:0;
+}
+.dash-project-card>.dash-project-actions .btn,
+.dash-project-card>.row .btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  width:100%;
+  max-width:100%;
+  min-height:40px;
+  margin:0;
+  padding:.5rem .55rem;
+  font-size:.82rem;
+  line-height:1.25;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  box-sizing:border-box;
+}
+.dash-project-card .dash-open-project{
+  min-height:40px;
+  white-space:normal;
+}
+.dash-project-info,
+.dash-project-name,
+.dash-project-meta{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.dash-project-meta{
+  align-items:flex-start;
+}
+@media(max-width:900px){
+  .dash-projects{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:650px){
+  .dash-project-card{
+    grid-template-columns:32px minmax(0,1fr);
+    gap:.7rem;
+    padding:.9rem;
+  }
+  .dash-project-card>.dash-project-symbol{
+    width:32px;
+    height:32px;
+    flex-basis:32px;
+  }
+  .dash-project-card>.dash-project-actions,
+  .dash-project-card>.row{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.5rem;
+    margin-top:.1rem;
+  }
+  .dash-project-card>.dash-project-actions .btn,
+  .dash-project-card>.row .btn{
+    min-height:42px;
+    padding:.5rem .4rem;
+    font-size:.78rem;
+  }
+}
+@media(max-width:360px){
+  .dash-project-card>.dash-project-actions,
+  .dash-project-card>.row{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
