@@ -195,7 +195,7 @@
         const {data,error}=await state.client.from('published_sites').update({site:previous.site,html:previous.html,version:nextVersion,status:'published',published_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('project_id',project.id).select('*').single();
         if(error)throw error;return data;
       }
-      const slugBase=String(project.name||'website').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,42)||'website';
+      const slugBase=String(project.name||'website').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,42)||'website';
       const slug=existing&&existing.slug?existing.slug:slugBase+'-'+project.id.slice(0,6);
       const version=Number(existing&&existing.version||0)+1;
       const snapshot=project.site||{};
