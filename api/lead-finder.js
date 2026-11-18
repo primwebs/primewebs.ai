@@ -64,20 +64,29 @@ async function fetchJson(url, options = {}, timeoutMs = 12000) {
 }
 async function queryOverpass(query) {
   let lastError;
-  for (const endpoint of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]) {
+  let emptyResult = null;
+  // Prefer the Europe mirror for Spain/Denmark; fall back to global community instances.
+  for (const endpoint of [
+    "https://ovp.dresel.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://overpass-api.de/api/interpreter"
+  ]) {
     try {
-      return await fetchJson(endpoint, {
+      const data = await fetchJson(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "text/plain;charset=UTF-8",
           "User-Agent": "PRIME-WEBS-AI-LeadFinder/1.0"
         },
         body: query
-      }, 22000);
+      }, 12000);
+      if (Array.isArray(data && data.elements) && data.elements.length) return data;
+      emptyResult = data;
     } catch (error) {
       lastError = error;
     }
   }
+  if (emptyResult) return emptyResult;
   throw lastError || new Error("Overpass unavailable");
 }
 function finish(data, category, city, limit, cacheKey, res) {
@@ -135,23 +144,18 @@ export default async function handler(req, res) {
       return send(res, 404, { error: "Vi kunne ikke finde området. Prøv bynavn efterfulgt af land, fx Málaga, Spain." });
     }
 
-    const place = places.find(p => p.osm_type === "relation" || p.osm_type === "way") || places[0];
-    let areaSelector;
-    if (place.osm_type === "relation") areaSelector = "area(" + (Number(place.osm_id) + 3600000000) + ")->.searchArea;";
-    else if (place.osm_type === "way") areaSelector = "area(" + (Number(place.osm_id) + 2400000000) + ")->.searchArea;";
-    else {
-      const lat = Number(place.lat), lon = Number(place.lon);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return send(res, 422, { error: "Områdets geografiske placering kunne ikke bestemmes." });
-      phase = "business search";
-      const nearbyQuery = '[out:json][timeout:20];(' + category.filter + '(around:12000,' + lat + ',' + lon + '););out center tags ' + limit + ';';
-      const nearbyData = await queryOverpass(nearbyQuery);
-      return finish(nearbyData, category, city, limit, cacheKey, res);
+    const place = places[0];
+    const lat = Number(place.lat), lon = Number(place.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return send(res, 422, { error: "Områdets geografiske placering kunne ikke bestemmes." });
     }
 
     phase = "business search";
-    const query = '[out:json][timeout:20];' + areaSelector + '(' + category.filter + '(area.searchArea););out center tags ' + limit + ';';
+    // A city-centre radius keeps queries small and avoids slow scans over huge municipal boundaries.
+    const radius = 8000;
+    const query = '[out:json][timeout:20];(' + category.filter + '(around:' + radius + ',' + lat + ',' + lon + '););out center tags ' + limit + ';';
     const data = await queryOverpass(query);
-    return finish(data, category, city, limit, cacheKey, res);
+
   } catch (error) {
     const message = error && error.name === "AbortError"
       ? "Søgningen via " + phase + " tog for lang tid. Prøv et mindre område eller igen senere."
