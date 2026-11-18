@@ -1,9 +1,11 @@
 // PRIME WEBS AI — server-side Anthropic adapter
 // Add ANTHROPIC_API_KEY in Vercel → Project → Settings → Environment Variables.
 // Optional: set ANTHROPIC_MODEL. The key is never sent to the browser.
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
-// Accept the exact environment-variable name already saved in Vercel (it was entered with a typo).
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || process.env.anthropec_api_key;
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || "").trim();
+// Keep compatibility with the original Anthropic key variable, including its historical typo.
+const ANTHROPIC_API_KEY = String(process.env.ANTHROPIC_API_KEY || process.env.anthropec_api_key || "").trim();
 
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
@@ -203,9 +205,9 @@ module.exports = async (req, res) => {
   } catch (_) {
     return res.status(503).json({ error: "Kunne ikke kontrollere din Supabase-session." });
   }
-  if (!ANTHROPIC_API_KEY) {
+  if (!GEMINI_API_KEY && !ANTHROPIC_API_KEY) {
     return res.status(503).json({
-      error: "AI-generatoren er klar i koden, men mangler en API-nøgle. Tilføj ANTHROPIC_API_KEY under Vercel → Settings → Environment Variables."
+      error: "AI-nøglen mangler. Tilføj GEMINI_API_KEY eller ANTHROPIC_API_KEY i Vercel. Den lokale testgenerator kan stadig bruges."
     });
   }
   const body = req.body || {};
@@ -226,28 +228,49 @@ module.exports = async (req, res) => {
       JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-10).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1200) })) : []).slice(0, 10000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
 
   try {
-    const upstream = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 12000,
-        system: SYSTEM,
-        messages: [{ role: "user", content: task }]
-      })
-    });
-    const result = await upstream.json();
-    if (!upstream.ok) {
-      const detail = result && result.error && result.error.message;
-      return res.status(upstream.status >= 500 ? 502 : upstream.status).json({
-        error: detail || "AI-udbyderen afviste forespørgslen. Kontrollér API-nøgle og model."
+    let text = "";
+    if (GEMINI_API_KEY) {
+      const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(GEMINI_MODEL) + ":generateContent?key=" + encodeURIComponent(GEMINI_API_KEY), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM + "\\nReturn only a JSON object with keys site and reply." }] },
+          contents: [{ role: "user", parts: [{ text: task }] }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 12000 }
+        })
       });
+      const result = await upstream.json().catch(() => ({}));
+      if (!upstream.ok) {
+        const detail = result && result.error && result.error.message;
+        return res.status(upstream.status >= 500 ? 502 : upstream.status).json({
+          error: detail || "Gemini afviste forespørgslen. Kontrollér GEMINI_API_KEY og GEMINI_MODEL."
+        });
+      }
+      text = (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\\n");
+    } else {
+      const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: 12000,
+          system: SYSTEM,
+          messages: [{ role: "user", content: task }]
+        })
+      });
+      const result = await upstream.json().catch(() => ({}));
+      if (!upstream.ok) {
+        const detail = result && result.error && result.error.message;
+        return res.status(upstream.status >= 500 ? 502 : upstream.status).json({
+          error: detail || "Anthropic afviste forespørgslen. Kontrollér API-nøgle og model."
+        });
+      }
+      text = (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\\n");
     }
-    const text = (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\n");
     const parsed = extractJSON(text);
     if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
       throw new Error("AI'en returnerede en ufuldstændig hjemmeside.");
