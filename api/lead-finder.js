@@ -1,6 +1,5 @@
 // PRIME WEBS AI — free local-business discovery using OpenStreetMap.
 // No Google Maps scraping, paid API key, or paid enrichment provider is used.
-export const config = { maxDuration: 30 };
 
 const CATEGORY = {
   hairdresser: { label: "Frisør", filter: 'nwr["shop"="hairdresser"]' },
