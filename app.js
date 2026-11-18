@@ -339,7 +339,7 @@ function vBuilder(){
  const currentSlug=activePage?pageSlug:'home',blocks=activePage?activePage.blocks:(p.site.blocks||[]);
  const field=(bi,k,v,extra='')=>{const attrs=`data-b="${bi}" data-k="${k}" data-page="${currentSlug}" ${extra}`;return ['text','d'].includes(k)?`<label class="block-field">${LBL[k]||k}<textarea ${attrs} rows="4">${esc(v??'')}</textarea></label>`:`<label class="block-field">${LBL[k]||k}<input ${attrs} value="${esc(v??'')}"></label>`};
  const itemFields=(bi,items)=>items.map((it,ii)=>`<div class="block-item-fields"><span class="block-item-number">${ii+1}</span><div>${it.name!==undefined?field(bi,'name',it.name,`data-i="${ii}" data-ik="name"`):field(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)}${it.text!==undefined?field(bi,'text',it.text,`data-i="${ii}" data-ik="text"`):field(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)}${it.price!==undefined?field(bi,'price',it.price,`data-i="${ii}" data-ik="price"`):''}${it.rating!==undefined?field(bi,'rating',it.rating,`data-i="${ii}" data-ik="rating"`):''}</div></div>`).join('');
- const cards=blocks.map((b,bi)=>`<article class="block-editor-card"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-page="${currentSlug}" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-page="${currentSlug}" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-page="${currentSlug}" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type'].includes(k)).map(k=>Array.isArray(b[k])?(b[k].length&&typeof b[k][0]==='object'?itemFields(bi,b[k]):b[k].map((it,ii)=>`<label class="block-field">${k==='images'?'Billede URL':'Element'}<input data-b="${bi}" data-k="${k}" data-page="${currentSlug}" data-i="${ii}" value="${esc(it)}" placeholder="https://..."></label>`).join('')):field(bi,k,b[k])).join('')}</div></article>`).join('');
+ const cards=blocks.map((b,bi)=>`<article class="block-editor-card" draggable="true" data-drag-block="${bi}" data-drag-page="${currentSlug}" title="Træk sektionen for at flytte den"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-page="${currentSlug}" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-page="${currentSlug}" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-page="${currentSlug}" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type'].includes(k)).map(k=>Array.isArray(b[k])?(b[k].length&&typeof b[k][0]==='object'?itemFields(bi,b[k]):b[k].map((it,ii)=>`<label class="block-field">${k==='images'?'Billede URL':'Element'}<input data-b="${bi}" data-k="${k}" data-page="${currentSlug}" data-i="${ii}" value="${esc(it)}" placeholder="https://..."></label>`).join('')):field(bi,k,b[k])).join('')}</div></article>`).join('');
  const addTypes=['features','services','about','steps','faq','cta','gallery','booking','pricing','team','reviews','map','legal'];
  const pageOptions=[['home','Forside'],...pages.map(x=>[x.slug,x.title||x.slug])];
  return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">VISUEL WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Redigér alle sider, sektioner, tekst og indhold direkte – ændringerne kan fortrydes.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn ghost" data-act="go" data-v="customize">Design & SEO</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div>
@@ -1026,6 +1026,45 @@ async function send(t){
   S.busy=false;render();
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
+
+
+/* Drag-and-drop section ordering in the visual editor. Up/down controls remain available on touch devices. */
+let pwDraggingBlock=null;
+document.addEventListener('dragstart',e=>{
+ const card=e.target.closest&&e.target.closest('[data-drag-block]');
+ if(!card)return;
+ pwDraggingBlock={index:Number(card.dataset.dragBlock),page:String(card.dataset.dragPage||'home')};
+ card.classList.add('is-dragging');
+ if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(pwDraggingBlock.index))}
+});
+document.addEventListener('dragover',e=>{
+ const card=e.target.closest&&e.target.closest('[data-drag-block]');
+ if(!card||!pwDraggingBlock||String(card.dataset.dragPage||'home')!==pwDraggingBlock.page)return;
+ e.preventDefault();
+ if(e.dataTransfer)e.dataTransfer.dropEffect='move';
+ document.querySelectorAll('.block-editor-card.drag-over').forEach(x=>x.classList.remove('drag-over'));
+ card.classList.add('drag-over');
+});
+document.addEventListener('drop',e=>{
+ const card=e.target.closest&&e.target.closest('[data-drag-block]');
+ if(!card||!pwDraggingBlock||String(card.dataset.dragPage||'home')!==pwDraggingBlock.page)return;
+ e.preventDefault();
+ const from=pwDraggingBlock.index,to=Number(card.dataset.dragBlock),pageSlug=pwDraggingBlock.page;
+ if(from!==to&&Number.isInteger(from)&&Number.isInteger(to)){
+  upd(S.id,q=>{
+   q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];
+   const page=pageSlug!=='home'?(q.site.pages||[]).find(x=>x.slug===pageSlug):null;
+   const blocks=page?page.blocks:q.site.blocks;
+   if(!Array.isArray(blocks)||from<0||to<0||from>=blocks.length||to>=blocks.length)return;
+   const moved=blocks.splice(from,1)[0];blocks.splice(to,0,moved);
+  });
+ }
+ pwDraggingBlock=null;render();
+});
+document.addEventListener('dragend',()=>{
+ pwDraggingBlock=null;
+ document.querySelectorAll('.block-editor-card.is-dragging,.block-editor-card.drag-over').forEach(x=>x.classList.remove('is-dragging','drag-over'));
+});
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
