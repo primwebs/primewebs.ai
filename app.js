@@ -168,6 +168,7 @@ const AI={mode:'api',
 };
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
+const safeLink=value=>{const s=String(value||'').trim();if(/^#[a-z0-9_-]*$/i.test(s)||(/^\/(?!\/)/.test(s)))return s;try{const u=new URL(s,location.origin);return ['http:','https:','mailto:','tel:'].includes(u.protocol)?s:'#kontakt'}catch(e){return '#kontakt'}};
 const B={
   hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
