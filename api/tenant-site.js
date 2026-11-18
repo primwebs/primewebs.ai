@@ -2,7 +2,7 @@
 module.exports=async function handler(req,res){
  const slug=String(req.query&&req.query.slug||'').toLowerCase();
  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))return res.status(404).send('Website not found');
- const base=String(process.env.SUPABASE_URL||'').replace(/\\/+$/,'');
+ const base=String(process.env.SUPABASE_URL||'').replace(/\/+$/,'');
  const key=String(process.env.SUPABASE_PUBLISHABLE_KEY||process.env.SUPABASE_ANON_KEY||'');
  if(!base||!key)return res.status(503).send('Website hosting is not configured yet.');
  try{
