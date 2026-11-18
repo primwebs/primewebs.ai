@@ -167,6 +167,44 @@
     async signInGoogle(){const {error}=await state.client.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});if(error)throw error;},
     async signOut(){const {error}=await state.client.auth.signOut();if(error)throw error;},
     async signOut(){const {error}=await state.client.auth.signOut();if(error)throw error;},
+    async publishProject(project,html,action){
+      if(!state.client||!state.user)throw new Error('Log ind for at publicere hjemmesider.');
+      if(!project||!isUuid(project.id))throw new Error('Projektet er ikke synkroniseret til databasen endnu. Vent et øjeblik, og prøv igen.');
+      await state.writeQueue;
+      const {data:owned,error:ownedError}=await state.client.from('projects').select('id,user_id').eq('id',project.id).maybeSingle();
+      if(ownedError)throw ownedError;
+      if(!owned||owned.user_id!==state.user.id)throw new Error('Du har ikke adgang til dette projekt.');
+      const {data:existing,error:existingError}=await state.client.from('published_sites').select('*').eq('project_id',project.id).maybeSingle();
+      if(existingError)throw existingError;
+      if(action==='publishSite'&&existing&&existing.status==='published')throw new Error('Hjemmesiden er allerede publiceret. Brug Update.');
+      if(action==='updateSite'&&(!existing||existing.status!=='published'))throw new Error('Hjemmesiden er ikke publiceret endnu. Brug Publish.');
+      if(action==='unpublishSite'){
+        if(!existing||existing.status!=='published')throw new Error('Hjemmesiden er ikke publiceret.');
+        const {data,error}=await state.client.from('published_sites').update({status:'unpublished',updated_at:new Date().toISOString()}).eq('project_id',project.id).select('*').single();
+        if(error)throw error;return data;
+      }
+      let target=existing;
+      if(action==='restoreSite'){
+        if(!existing||existing.status!=='published')throw new Error('Der findes ingen publiceret hjemmeside at gendanne.');
+        const {data:versions,error:versionError}=await state.client.from('published_site_versions').select('version,site,html').eq('project_id',project.id).order('version',{ascending:false}).limit(2);
+        if(versionError)throw versionError;
+        if(!versions||versions.length<2)throw new Error('Der findes ingen tidligere version endnu. Publicér en ændring først.');
+        const previous=versions[1],nextVersion=Number(existing.version||0)+1;
+        const {error:saveVersionError}=await state.client.from('published_site_versions').insert({project_id:project.id,owner_id:state.user.id,version:nextVersion,site:previous.site,html:previous.html});
+        if(saveVersionError)throw saveVersionError;
+        const {data,error}=await state.client.from('published_sites').update({site:previous.site,html:previous.html,version:nextVersion,status:'published',published_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('project_id',project.id).select('*').single();
+        if(error)throw error;return data;
+      }
+      const slugBase=String(project.name||'website').toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,42)||'website';
+      const slug=existing&&existing.slug?existing.slug:slugBase+'-'+project.id.slice(0,6);
+      const version=Number(existing&&existing.version||0)+1;
+      const snapshot=project.site||{};
+      const {error:versionError}=await state.client.from('published_site_versions').insert({project_id:project.id,owner_id:state.user.id,version,site:snapshot,html:String(html||'')});
+      if(versionError)throw versionError;
+      const payload={project_id:project.id,owner_id:state.user.id,slug,site:snapshot,html:String(html||''),status:'published',version,published_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+      const {data,error}=await state.client.from('published_sites').upsert(payload,{onConflict:'project_id'}).select('*').single();
+      if(error)throw error;return data;
+    },
     persistKey(key,value){persist(key,value);},
     async spendCredits(amount,kind,description){if(!state.client||!state.user)return false;const {data,error}=await state.client.rpc('spend_credits',{p_amount:amount,p_kind:kind||'usage',p_description:description||''});if(error)throw error;state.credits={...state.credits,balance:data.balance,unlimited:data.unlimited};return !!data.success;}
   };
