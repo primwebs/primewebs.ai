@@ -1019,3 +1019,61 @@ input:focus,textarea:focus,select:focus{border-color:#a17aff;box-shadow:0 0 0 4p
   .dash-project-card>.dash-project-actions,
   .dash-project-card>.row{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* Editor polish: tydelig gem-handling og mere rolig værktøjslinje */
+.editor-head-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.55rem;
+  max-width:100%;
+}
+.editor-head-actions .btn{
+  min-height:42px;
+  border-radius:12px;
+}
+.editor-head-actions .save-project-btn{
+  color:#fff;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(135deg,#7357f5 0%,#3b82f6 100%);
+  box-shadow:0 8px 22px rgba(84,91,230,.22);
+  font-weight:750;
+}
+.editor-head-actions .save-project-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 28px rgba(84,91,230,.3);
+}
+.editor-workspace-head{
+  gap:1rem;
+  align-items:flex-start;
+}
+.editor-workspace-head>div:first-child{
+  min-width:0;
+  flex:1 1 220px;
+}
+@media(max-width:650px){
+  .editor-head-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+  .editor-head-actions .btn{
+    flex:1 1 auto;
+    min-width:0;
+    font-size:.82rem;
+    padding:.65rem .75rem;
+  }
+  .editor-head-actions .save-project-btn{
+    flex-basis:100%;
+  }
+}
+@media(prefers-reduced-motion:no-preference){
+  .block-editor-card{
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .block-editor-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 34px rgba(20,25,45,.12);
+  }
+}
