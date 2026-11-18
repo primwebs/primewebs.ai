@@ -4,7 +4,7 @@
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const AI_PROVIDER = String(process.env.AI_PROVIDER || "auto").trim().toLowerCase();
-const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || "").trim();
+const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || process.env.gemini || "").trim();
 // Keep compatibility with the original Anthropic key variable, including its historical typo.
 const ANTHROPIC_API_KEY = String(process.env.ANTHROPIC_API_KEY || process.env.anthropec_api_key || "").trim();
 
