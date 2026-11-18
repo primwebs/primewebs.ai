@@ -22,5 +22,17 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<slug>[a-z0-9-]+)\\\\.primewebs\\\\.site"
+        }
+      ],
+      "destination": "/api/tenant-site?slug=$slug"
+    }
   ]
 }
