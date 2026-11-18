@@ -1249,3 +1249,72 @@ function loginScreen(){
 }
 
 boot();
+
+
+/* ===== PRIME WEBS AI · 3D Motion Studio (MVP) ===== */
+(function(){
+  const studioCss = `
+  .pw3d-wrap{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr);gap:18px}
+  .pw3d-stage{position:relative;min-height:460px;overflow:hidden;border:1px solid #ffffff20;border-radius:24px;background:radial-gradient(ellipse at 50% 44%,#263d68 0%,#111a31 48%,#080d19 100%);box-shadow:0 24px 70px #0b153533}
+  .pw3d-stage canvas{display:block;width:100%;height:460px}
+  .pw3d-chip{position:absolute;top:16px;left:16px;padding:8px 12px;border:1px solid #ffffff24;border-radius:99px;background:#ffffff12;color:#eaf1ff;font-size:11px;font-weight:800;letter-spacing:.12em}
+  .pw3d-controls{padding:20px;border:1px solid var(--line,#e5e7eb);border-radius:20px;background:var(--card,#fff)}
+  .pw3d-controls h2{margin:0 0 6px}.pw3d-controls label{display:grid;gap:7px;margin:16px 0;font-weight:700;font-size:13px}
+  .pw3d-controls input,.pw3d-controls select,.pw3d-controls textarea{width:100%;padding:11px 12px;border:1px solid #d7dce5;border-radius:11px;background:var(--surface,#fff);color:inherit;font:inherit}
+  .pw3d-actions{display:flex;flex-wrap:wrap;gap:8px}.pw3d-note{font-size:12px;line-height:1.6;color:var(--muted,#64748b)}
+  .pw3d-stage-caption{position:absolute;bottom:18px;left:20px;color:#eaf1ff}.pw3d-stage-caption strong{display:block;font-size:22px}.pw3d-stage-caption span{font-size:12px;color:#b9c8e5}
+  @media(max-width:850px){.pw3d-wrap{grid-template-columns:1fr}.pw3d-stage,.pw3d-stage canvas{min-height:340px;height:340px}}
+  `;
+  if(!document.getElementById('pw3d-css')){const st=document.createElement('style');st.id='pw3d-css';st.textContent=studioCss;document.head.appendChild(st)}
+  let studioState={kind:'bottle',color:'#70e1ff',title:'NOVA · PRODUCT STUDY',motion:true};
+  function studioView(){
+    return `<section class="finance-hero"><div class="finance-hero-copy"><span class="finance-eyebrow">PRIME WEBS AI · CREATIVE LAB</span><h1>3D Motion Studio</h1><p>Skab levende produktpræsentationer til moderne hjemmesider. Vælg en 3D-form, justér materialefarve og se scenen bevæge sig live.</p><div class="finance-tags"><span>Realtime 3D</span><span>Produktvisualisering</span><span>Motion preview</span></div></div></section>
+    <section class="pw3d-wrap">
+      <div class="pw3d-stage"><div class="pw3d-chip">LIVE 3D PREVIEW</div><canvas id="pw3d-canvas"></canvas><div class="pw3d-stage-caption"><strong id="pw3d-caption">${esc(studioState.title)}</strong><span>PRIME WEBS AI · MOTION DESIGN</span></div></div>
+      <aside class="pw3d-controls"><h2>Scene editor</h2><p class="pw3d-note">Tilpas produktets udtryk. Ændringer vises direkte i 3D-previewet.</p>
+      <label>Produktform<select id="pw3d-kind"><option value="bottle">Premium flaske</option><option value="orb">Floating orb</option><option value="shoe">Sneaker-koncept</option><option value="box">Produktæske</option></select></label>
+      <label>Produktnavn<input id="pw3d-title" maxlength="42" value="${esc(studioState.title)}"></label>
+      <label>Materialefarve<input id="pw3d-color" type="color" value="${studioState.color}"></label>
+      <label>Beskrivelse / creative brief<textarea id="pw3d-brief" rows="3" placeholder="Fx: En luksuriøs parfume med kromdetaljer og blødt blåt lys"></textarea></label>
+      <div class="pw3d-actions"><button class="btn" data-act="studioApply">Opdatér 3D-scene</button><button class="btn ghost" data-act="studioMotion">Pause / start motion</button></div>
+      <p class="pw3d-note" style="margin-top:16px">Dette er første fungerende 3D-studio: scenen renderes lokalt i browseren med Three.js. AI-generering af helt nye modeller, teksturer og eksport til GLB/GLTF kræver næste backend-/modelintegration.</p></aside>
+    </section>`;
+  }
+  V.studio=studioView;
+  NAV.push(['Kreativt værksted',[['studio','3D Motion Studio']]]);
+  let renderer,scene,camera,product,raf,observer;
+  function init3D(){
+    const canvas=document.getElementById('pw3d-canvas');if(!canvas)return;
+    if(!window.THREE){const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';script.onload=init3D;script.onerror=()=>banner('3D-biblioteket kunne ikke indlæses. Kontrollér internetforbindelsen.');document.head.appendChild(script);return}
+    const T=window.THREE,host=canvas.parentElement,w=host.clientWidth,h=host.clientHeight;
+    if(renderer){cancelAnimationFrame(raf);renderer.dispose();renderer=null}
+    renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(w,h,false);renderer.outputColorSpace=T.SRGBColorSpace;
+    scene=new T.Scene();camera=new T.PerspectiveCamera(35,w/h,.1,100);camera.position.set(0,0,8);
+    scene.add(new T.AmbientLight(0xffffff,1.8));const key=new T.DirectionalLight(0xffffff,3);key.position.set(4,5,6);scene.add(key);const rim=new T.PointLight(0x3e8bff,32);rim.position.set(-4,-2,3);scene.add(rim);
+    const floor=new T.Mesh(new T.CircleGeometry(2.7,64),new T.MeshBasicMaterial({color:0x233657,transparent:true,opacity:.23}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.65;scene.add(floor);
+    const grid=new T.GridHelper(12,30,0x5273a8,0x263956);grid.position.y=-1.66;grid.material.transparent=true;grid.material.opacity=.2;scene.add(grid);
+    buildProduct(T);
+    const resize=()=>{if(!renderer)return;const ww=host.clientWidth,hh=host.clientHeight;camera.aspect=ww/hh;camera.updateProjectionMatrix();renderer.setSize(ww,hh,false)};if(observer)observer.disconnect();observer=new ResizeObserver(resize);observer.observe(host);
+    const tick=()=>{raf=requestAnimationFrame(tick);if(product&&studioState.motion){product.rotation.y+=.006;product.rotation.x=Math.sin(Date.now()*.0005)*.045;product.position.y=Math.sin(Date.now()*.001)*.09}renderer.render(scene,camera)};tick();
+  }
+  function buildProduct(T){
+    if(product){scene.remove(product);product.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+    product=new T.Group();const color=new T.Color(studioState.color),mat=new T.MeshPhysicalMaterial({color,metalness:.48,roughness:.2,clearcoat:1,clearcoatRoughness:.12});
+    const dark=new T.MeshStandardMaterial({color:0x142238,metalness:.8,roughness:.24}),accent=new T.MeshStandardMaterial({color:0xeaf5ff,metalness:.7,roughness:.18});
+    const add=(geo,m,x,y,z,sx=1,sy=1,sz=1)=>{const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);product.add(o);return o};
+    if(studioState.kind==='orb'){add(new T.SphereGeometry(1.15,64,64),mat,0,0,0);add(new T.TorusGeometry(1.48,.035,12,100),accent,0,0,0).rotation.x=.7;add(new T.TorusGeometry(1.62,.018,8,100),dark,0,0,0).rotation.y=1.1}
+    else if(studioState.kind==='box'){add(new T.BoxGeometry(1.75,2.1,1.15),mat,0,0,0);add(new T.BoxGeometry(1.8,.12,1.2),accent,0,.62,0);add(new T.BoxGeometry(.08,1.4,1.18),dark,0,0,0)}
+    else if(studioState.kind==='shoe'){add(new T.BoxGeometry(2.65,.58,1.05),mat,0,-.25,0,1,1,1);add(new T.SphereGeometry(.57,32,24),mat,.95,-.18,0,1.35,.55,.9);add(new T.BoxGeometry(2.7,.16,1.08),accent,0,-.62,0);for(let i=0;i<4;i++)add(new T.TorusGeometry(.22,.035,8,24),dark,-.45+i*.32,.12,.54).rotation.x=Math.PI/2}
+    else {add(new T.CylinderGeometry(.66,.72,2.25,64,1,true),mat,0,-.05,0);add(new T.SphereGeometry(.66,48,24),mat,0,1.08,0,1,.32,1);add(new T.CylinderGeometry(.69,.69,.13,64),dark,0,-1.17,0);add(new T.CylinderGeometry(.31,.31,.32,48),accent,0,1.45,0);add(new T.TorusGeometry(.67,.035,10,64),accent,0,.7,0).rotation.x=Math.PI/2}
+    scene.add(product);
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('[data-act]');if(!a)return;
+    if(a.dataset.act==='studioApply'){studioState.kind=document.getElementById('pw3d-kind')?.value||'bottle';studioState.title=document.getElementById('pw3d-title')?.value||'3D Product';studioState.color=document.getElementById('pw3d-color')?.value||'#70e1ff';const c=document.getElementById('pw3d-caption');if(c)c.textContent=studioState.title;if(window.THREE&&scene)buildProduct(window.THREE);else init3D();banner('3D-scenen er opdateret.');}
+    if(a.dataset.act==='studioMotion'){studioState.motion=!studioState.motion;a.textContent=studioState.motion?'Pause / start motion':'Start motion';}
+  });
+  const oldRender=window.render; 
+  document.addEventListener('click',e=>{if(e.target.closest('[data-act="go"][data-v="studio"]'))setTimeout(init3D,80)});
+  const originalRender0=window.render0;
+  setTimeout(()=>{if(typeof render==='function'&&S.view==='studio')init3D()},500);
+})();
