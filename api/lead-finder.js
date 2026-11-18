@@ -155,7 +155,7 @@ export default async function handler(req, res) {
     const radius = 8000;
     const query = '[out:json][timeout:20];(' + category.filter + '(around:' + radius + ',' + lat + ',' + lon + '););out center tags ' + limit + ';';
     const data = await queryOverpass(query);
-
+    return finish(data, category, city, limit, cacheKey, res);
   } catch (error) {
     const message = error && error.name === "AbortError"
       ? "Søgningen via " + phase + " tog for lang tid. Prøv et mindre område eller igen senere."
