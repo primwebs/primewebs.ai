@@ -273,7 +273,7 @@ function vEdit(){const p=getP();if(!p)return vPick('edit');
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
- ['Ring',[['onlycall','Ring']]],
+ ['Ring',[['leadfinder','Automatisk Lead Finder'],['leadring','Leadliste / Ring'],['leadhistory','Lead History'],['onlycall','Only Call'],['ringcalendar','Opfølgningskalender']]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
  ['Finance',[['finance','Finance']]],
@@ -758,20 +758,54 @@ const RING_IMPORT_2026_11_17 = [
 })();
 
 S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};
+S.leadScan=S.leadScan||{city:'Málaga, Spain',industry:'hairdresser',limit:'50',noWebsiteOnly:true,loading:false,error:'',results:[],scannedAt:0};
 const leadPhone=x=>String(x&&x.phone||'').replace(/[^\d+]/g,'');
 const leadRing=x=>{const n=leadPhone(x);return n?'<a class="lead-call-btn" data-lead-call="'+esc(x.id)+'" href="tel:'+esc(n)+'"><span aria-hidden="true">☎</span><span>Ring nu</span></a>':'<button class="lead-call-btn" type="button" disabled>Intet nummer</button>'};
 function vLeadFinder(){
- const f=S.leadForm||{},leads=LeadStore.all();
+ const f=S.leadForm||{},leads=LeadStore.all(),scan=S.leadScan||{city:'Málaga, Spain',industry:'hairdresser',limit:'50',noWebsiteOnly:true,loading:false,error:'',results:[]};
+ const shown=(scan.results||[]).filter(x=>!scan.noWebsiteOnly||!x.website);
  const field=(k,label,placeholder='',type='text')=>'<label style="display:grid;gap:6px;font-weight:650">'+label+'<input data-lf="'+k+'" type="'+type+'" value="'+esc(f[k]||'')+'" placeholder="'+placeholder+'" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit"></label>';
- const call=leadPhone(f)?'<a class="btn ghost" href="tel:'+esc(leadPhone(f))+'">☎ Ring</a>':'<button class="btn ghost" type="button" disabled>☎ Ring</button>';
- return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Opret lead</h1><p>Indtast en virksomheds oplysninger, gem leadet, eller ring direkte til virksomheden.</p></div><div class="settings-hero-icon" aria-hidden="true">☎</div></div></section>'+
- '<div class="settings-card" style="margin-bottom:18px"><div class="settings-card-head"><span class="settings-card-icon blue">＋</span><div><h2>Virksomhedsoplysninger</h2><p>Udfyld virksomhedens oplysninger nedenfor.</p></div></div>'+
+ const scanResults=shown.length?'<div class="lead-scan-results">'+shown.map((x,i)=>'<article class="lead-scan-result"><div class="lead-scan-result-main"><strong>'+esc(x.name)+'</strong><span>'+esc([x.industry,x.city].filter(Boolean).join(' · '))+'</span><small>'+esc(x.address||'Adresse ikke registreret')+'</small><div class="lead-scan-tags">'+(x.website?'<span class="has-site">Hjemmeside fundet</span>':'<span class="no-site">Ingen hjemmeside registreret</span>')+(x.phone?'<span>☎ '+esc(x.phone)+'</span>':'')+(x.email?'<span>✉ '+esc(x.email)+'</span>':'')+'</div></div><button class="btn ghost" data-act="leadScanSave" data-i="'+i+'">Gem lead</button></article>').join('')+'</div>':'<div class="lead-empty">'+(scan.loading?'Søger efter virksomheder…':scan.results&&scan.results.length?'Ingen resultater matcher filteret.':'Vælg branche og område, og start en scanning.')+'</div>';
+ return '<section class="lead-page"><div class="lead-hero"><div><span class="lead-kicker">PRIME WEBS AI · AUTOMATISK PROSPEKTERING</span><h1>Lead Finder</h1><p>Find lokale virksomheder – også virksomheder, hvor OpenStreetMap ikke har registreret en hjemmeside. Resultaterne kommer fra åbne OpenStreetMap-data.</p></div><div class="lead-hero-mark">⌕</div></div>'+
+ '<div class="lead-panel lead-scan-panel"><div class="lead-panel-head"><div><h2>Automatisk virksomhedsscanner</h2><p>Gratis datakilde · ingen Google Maps-scraping · ingen API-nøgle.</p></div><span class="domain-status ready">OPEN DATA</span></div>'+
+ '<div class="lead-scan-controls"><label>By eller område<input data-scan="city" value="'+esc(scan.city||'')+'" placeholder="Fx Málaga, Spain"></label><label>Branche<select data-scan="industry"><option value="hairdresser" '+(scan.industry==='hairdresser'?'selected':'')+'>Frisører</option><option value="beauty" '+(scan.industry==='beauty'?'selected':'')+'>Skønhedssaloner</option><option value="restaurant" '+(scan.industry==='restaurant'?'selected':'')+'>Restauranter og caféer</option><option value="auto" '+(scan.industry==='auto'?'selected':'')+'>Autoværksteder</option><option value="fitness" '+(scan.industry==='fitness'?'selected':'')+'>Fitnesscentre</option><option value="trades" '+(scan.industry==='trades'?'selected':'')+'>Håndværkere</option><option value="all" '+(scan.industry==='all'?'selected':'')+'>Alle virksomheder</option></select></label><label>Resultatgrænse<select data-scan="limit"><option value="25" '+(scan.limit==='25'?'selected':'')+'>25 virksomheder</option><option value="50" '+(scan.limit==='50'?'selected':'')+'>50 virksomheder</option><option value="100" '+(scan.limit==='100'?'selected':'')+'>100 virksomheder</option></select></label></div>'+
+ '<div class="lead-scan-actions"><label class="lead-scan-check"><input type="checkbox" data-scan="noWebsiteOnly" '+(scan.noWebsiteOnly?'checked':'')+'> Vis kun virksomheder uden registreret hjemmeside</label><button class="btn" data-act="leadScan" '+(scan.loading?'disabled':'')+'>'+(scan.loading?'Scanner…':'⌕ Scan efter virksomheder')+'</button></div>'+
+ (scan.error?'<p class="err" role="alert">'+esc(scan.error)+'</p>':'')+
+ (scan.scannedAt?'<p class="mu">Seneste scanning: '+new Date(scan.scannedAt).toLocaleString('da-DK')+' · '+(scan.results||[]).length+' fundet · '+shown.length+' vist med nuværende filter</p>':'')+
+ scanResults+
+ (shown.length?'<div class="lead-scan-footer"><button class="btn ghost" data-act="leadScanSaveAll">Gem alle '+shown.length+' viste leads i Lead History</button><span class="mu">Dubletter springes over.</span></div>':'')+
+ '<p class="lead-source-note">Datakvaliteten afhænger af OpenStreetMap-bidrag. Manglende hjemmeside betyder kun, at der ikke er registreret en hjemmeside i kilden – ikke et bevis på, at virksomheden ikke har en.</p></div>'+
+ '<div class="settings-card" style="margin-bottom:18px"><div class="settings-card-head"><span class="settings-card-icon blue">＋</span><div><h2>Opret lead manuelt</h2><p>Tilføj en virksomhed, som scanneren ikke fandt.</p></div></div>'+
  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">'+field('name','Virksomhedsnavn','Fx Málaga Auto Service')+field('industry','Branche','Fx autoværksted')+field('city','By / område','Fx Málaga')+field('address','Adresse','Gade, nummer og postnummer')+field('website','Hjemmeside','https://…','url')+field('phone','Telefon','Telefonnummer','tel')+field('email','E-mail','kontakt@virksomhed.dk','email')+'</div>'+
  '<label style="display:grid;gap:6px;margin-top:14px;font-weight:650">Noter<textarea data-lf="notes" rows="3" placeholder="Skriv noter om virksomheden…" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit">'+esc(f.notes||'')+'</textarea></label>'+
  (S.leadErr?'<p class="err">'+esc(S.leadErr)+'</p>':'')+
- '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px">'+call+'<button class="btn" data-act="leadSave">＋ Gem lead</button><span class="mu">Ring åbner telefonens opkaldsskærm. Gem lead gemmer oplysningerne i leadlisten.</span></div></div>'+
+ '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px"><button class="btn" data-act="leadSave">＋ Gem lead</button><span class="mu">Gemte leads går videre til Ring og Only Call.</span></div></div>'+
  '<div class="settings-card"><div class="settings-card-head"><span class="settings-card-icon teal">◎</span><div><h2>Senest oprettede leads</h2><p>'+leads.length+' gemte virksomheder</p></div><span style="margin-left:auto"><button class="btn ghost" data-act="go" data-v="leadhistory">Se alle gemte leads →</button></span></div>'+
- (leads.length?'<div style="display:grid;gap:10px">'+leads.slice(0,5).map(x=>'<article style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><div style="flex:1;min-width:180px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · '))+'</div><div class="mu">'+esc(x.phone||'Intet telefonnummer')+'</div></div>'+leadRing(x)+'</article>').join('')+'</div>':'<p class="mu">Du har endnu ikke gemt nogen leads. Tilføj en virksomhed ovenfor.</p>')+'</div></section>';
+ (leads.length?'<div style="display:grid;gap:10px">'+leads.slice(0,5).map(x=>'<article class="lead-scan-result"><div class="lead-scan-result-main"><strong>'+esc(x.name)+'</strong><span>'+esc([x.industry,x.city].filter(Boolean).join(' · '))+'</span><small>'+esc(x.phone||'Intet telefonnummer')+'</small></div>'+leadRing(x)+'</article>').join('')+'</div>':'<p class="mu">Du har endnu ikke gemt nogen leads.</p>')+'</div></section>';
+}
+async function runLeadScan(){
+ const scan=S.leadScan||{};const city=String(scan.city||'').trim();
+ if(!city){scan.error='Skriv en by eller et område først.';scan.loading=false;return render()}
+ scan.loading=true;scan.error='';scan.results=[];render();
+ try{
+  const params=new URLSearchParams({city,industry:scan.industry||'all',limit:String(scan.limit||50)});
+  const response=await fetch('/api/lead-finder?'+params.toString(),{headers:{Accept:'application/json'}});
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(payload.error||'Scanningen kunne ikke gennemføres.');
+  scan.results=Array.isArray(payload.results)?payload.results:[];
+  scan.scannedAt=Date.now();
+  scan.source=payload.source||'OpenStreetMap';
+  if(!scan.results.length)scan.error='Ingen virksomheder blev fundet i den valgte kategori. Prøv en bredere branche eller et andet område.';
+ }catch(error){scan.error=error.message||'Kunne ikke hente virksomhedsdata.'}
+ scan.loading=false;render();
+}
+function saveScannedLead(x){
+ if(!x||!x.name)return false;
+ const list=LeadStore.all(),norm=v=>String(v||'').trim().toLowerCase(),phone=v=>String(v||'').replace(/[^\d]/g,'');
+ const duplicate=list.some(y=>(phone(x.phone)&&phone(y.phone)===phone(x.phone))||(!phone(x.phone)&&norm(y.name)===norm(x.name)&&norm(y.city)===norm(x.city)));
+ if(duplicate)return false;
+ LeadStore.add({name:x.name,industry:x.industry||'',city:x.city||'',address:x.address||'',website:x.website||'',phone:x.phone||'',email:x.email||'',source:'OpenStreetMap',sourceId:x.sourceId||'',noWebsite:!x.website,notes:'Fundet via OpenStreetMap. '+(!x.website?'Ingen hjemmeside er registreret i datakilden.':'Hjemmeside: '+x.website),status:'new'});
+ return true;
 }
 function vLeadHistory(){
  const leads=LeadStore.all(),q=String(S.leadQuery||'').toLowerCase().trim(),list=leads.filter(x=>[x.name,x.industry,x.city,x.address,x.website,x.email,x.phone].join(' ').toLowerCase().includes(q));
@@ -878,7 +912,7 @@ function vRingCalendar(){
  (selectedItems.length?'<div class="ring-event-list">'+selectedItems.map(eventRow).join('')+'</div>':'<div class="ring-calendar-empty"><span>▦</span><strong>Ingen aftaler denne dag</strong><p>Vælg en anden dato eller book en opfølgning i Only Call.</p></div>')+
  '<div class="ring-upcoming"><h3>Kommende opfølgninger</h3>'+(upcoming.length?upcoming.map(eventRow).join(''):'<p class="mu">Ingen bookede opfølgninger endnu.</p>')+'</div></section></div></section>';
 }
-const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadring:vLeadRing,onlycall:vOnlyCall,ringcalendar:vRingCalendar};
+const V={dash:vDash,list:vList,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadfinder:vLeadFinder,leadring:vLeadRing,leadhistory:vLeadHistory,onlycall:vOnlyCall,ringcalendar:vRingCalendar};
 S.bookings=S.bookings||[];
 V.bookings=()=>{const rows=S.bookings||[],pending=rows.filter(x=>x.status==='pending').length,status={pending:'Afventer',accepted:'Accepteret',declined:'Afvist',cancelled:'Annulleret'};return `<section class="finance-hero"><div class="finance-hero-copy"><span class="finance-eyebrow">PRIME WEBS AI · BOOKING</span><h1>Bookingforespørgsler</h1><p>Alle online bookingforespørgsler fra dine kunders hjemmesider samlet ét sted.</p><div class="finance-tags"><span>${rows.length} i alt</span><span>${pending} afventer</span></div></div></section><section class="finance-panel"><div class="finance-panel-head"><div><h2>Seneste forespørgsler</h2><p class="mu">En booking er først endeligt aftalt, når virksomheden har bekræftet den.</p></div><button class="btn ghost" data-act="bookRefresh">Opdater</button></div>${rows.length?`<div class="finance-table-wrap"><table><tr><th>Dato / tid</th><th>Projekt</th><th>Kunde</th><th>Ydelse</th><th>Status</th><th>Handling</th></tr>${rows.map(x=>`<tr><td>${esc(x.requested_date)}<br>${String(x.requested_time||'').slice(0,5)}</td><td>${esc(x.projects&&x.projects.name||'Hjemmeside')}</td><td><strong>${esc(x.customer_name)}</strong><div class="mu">${esc(x.customer_email)}</div>${esc(x.customer_phone||'')}</td><td>${esc(x.service)}${x.notes?`<div class="mu">${esc(x.notes)}</div>`:''}</td><td>${status[x.status]||esc(x.status)}</td><td>${x.status==='pending'?`<button class="btn" data-act="bookStatus" data-id="${x.id}" data-status="accepted">Accepter</button> <button class="btn ghost" data-act="bookStatus" data-id="${x.id}" data-status="declined">Afvis</button>`: `<button class="btn ghost" data-act="bookStatus" data-id="${x.id}" data-status="pending">Sæt til afventer</button>`}</td></tr>`).join('')}</table></div>`:'<div class="finance-chart-empty"><span>▦</span><strong>Ingen bookingforespørgsler endnu</strong><p>Når en kunde sender en booking fra en offentliggjort hjemmeside, vises den her.</p></div>'}</section>`};
 
@@ -925,6 +959,9 @@ document.addEventListener('input',e=>{
 
 function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
+  if(a==='leadScan'){runLeadScan();return 1}
+  if(a==='leadScanSave'){const i=Number(d.i),x=(S.leadScan&&S.leadScan.results||[]).filter(v=>!S.leadScan.noWebsiteOnly||!v.website)[i];if(x){const ok=saveScannedLead(x);banner(ok?'Lead gemt i Lead History.':'Leadet findes allerede i din liste.')}return 1}
+  if(a==='leadScanSaveAll'){const xs=(S.leadScan&&S.leadScan.results||[]).filter(v=>!S.leadScan.noWebsiteOnly||!v.website);let added=0;xs.forEach(x=>{if(saveScannedLead(x))added++});banner(added+' nye leads gemt. Dubletter blev sprunget over.');return 1}
   if(a==='leadSave'){const f=S.leadForm||{},name=String(f.name||'').trim(),email=String(f.email||'').trim(),phone=String(f.phone||'').trim();if(!name){S.leadErr='Skriv virksomhedens navn.';return 1}if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){S.leadErr='Skriv en gyldig e-mailadresse.';return 1}if(phone&&!/^[+\d][\d\s().-]{4,}$/.test(phone)){S.leadErr='Skriv et gyldigt telefonnummer.';return 1}LeadStore.add({name,email,phone,industry:String(f.industry||'').trim(),city:String(f.city||'').trim(),website:String(f.website||'').trim(),notes:String(f.notes||'').trim(),status:'new'});S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.ringQuery='';S.view='leadring';return 1}
   if(a==='onlyCallOpenBooking'){S.onlyCallBookingOpen=true;return 1}
   if(a==='ringCalendarDay'){S.ringCalendarDay=d.date||'';return 1}
@@ -1010,9 +1047,10 @@ document.addEventListener('click',e=>{
   else if(a==='dev')S.device=b.dataset.d;
   render();
 });
-document.addEventListener('input',e=>{const d=e.target.dataset;if(d.renameInput!==undefined)S.renameValue=e.target.value;if(d.f)S.form[d.f]=e.target.value;if(d.newPageTitle!==undefined)S.newPageTitle=e.target.value;if(e.target.matches('[data-dash-prompt]'))S.dashPrompt=e.target.value;if(e.target.matches('[data-dash-search]'))S.dashSearch=e.target.value;if(e.target.matches('[data-template-q]'))S.templateQuery=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(e.target.matches('[data-only-book-date]'))S.onlyCallBookingDate=e.target.value;if(e.target.matches('[data-only-book-time]'))S.onlyCallBookingTime=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
+document.addEventListener('input',e=>{const d=e.target.dataset;if(d.renameInput!==undefined)S.renameValue=e.target.value;if(d.f)S.form[d.f]=e.target.value;if(d.newPageTitle!==undefined)S.newPageTitle=e.target.value;if(e.target.matches('[data-dash-prompt]'))S.dashPrompt=e.target.value;if(e.target.matches('[data-dash-search]'))S.dashSearch=e.target.value;if(e.target.matches('[data-template-q]'))S.templateQuery=e.target.value;if(d.g)S.cf[d.g]=e.target.value;if(d.lf)S.leadForm[d.lf]=e.target.value;if(d.scan&&e.target.type!=='checkbox')S.leadScan[d.scan]=e.target.value;if(e.target.matches('[data-only-book-date]'))S.onlyCallBookingDate=e.target.value;if(e.target.matches('[data-only-book-time]'))S.onlyCallBookingTime=e.target.value;if(e.target.matches('[data-lead-query]'))S.leadQuery=e.target.value;if(e.target.id==='rs')S.rv=e.target.value});
 document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[data-template-q]')){const selector=e.target.matches('[data-dash-search]')?'[data-dash-search]':'[data-template-q]',value=e.target.value,at=e.target.selectionStart;render();const next=document.querySelector(selector);if(next){next.focus();try{next.setSelectionRange(at,at)}catch(_){}}}});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
+  if(d.scan){S.leadScan[d.scan]=e.target.type==='checkbox'?e.target.checked:v;render();return}
   if(d.dashSort!==undefined){S.dashSort=v;render();return}
   if(d.proj!==undefined){S.id=v||null;render();return}
   if(d.builderPage!==undefined){S.builderPage=v;S.pageDelete=null;render();return}
@@ -1095,6 +1133,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
   if(d.x==='uiacc'){Settings.set('accent',d.c);render()}
   else if(d.x==='uireset'){Settings.set('accent','');render()}
   else if(d.x==='acc'){setTheme('accent',d.c);render()}
+  else if(d.x==='designPreset'){applyDesignPreset(d.preset);render()}
   else if(d.x==='mode'||d.x==='font'){setTheme(d.x,d.v);render()}});
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.seo){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];q.site.meta=q.site.meta||{};q.site.meta[d.seo]=String(e.target.value||'').trim().slice(0,d.seo==='seoTitle'?160:300)});render()}else if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);if(d.th==='background'){const n=parseInt(e.target.value.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;setTheme('surface',bright>155?'#FFFFFF':'#252A35');setTheme('text',bright>155?'#111111':'#FFFFFF');}render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
@@ -1151,7 +1190,26 @@ const _vAdm=vAdmin;
 V.admin=()=>_vAdm().split('<!--BK-->')[0].replace('<h1>Admin Panel</h1>','<h1>Admin Panel: Roller og adgang</h1>');
 V.backup=()=>{const p=_vAdm().split('<!--BK-->');return p.length>1?p[1]:p[0]};
 V.colors=()=>{const ac=Settings.get().accent||'';return '<div class="colors-page"><section class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI / PERSONALISERING</span><h1>Udseende og farver</h1><p>Tilpas dashboardets accentfarve, så kontrolpanelet får dit eget udtryk.</p></div><div class="settings-hero-icon">◉</div></section><div class="settings-layout"><div class="settings-main"><section class="settings-card"><div class="settings-card-head"><span class="settings-card-icon violet">✦</span><div><h2>Vælg accentfarve</h2><p>Farven bruges på knapper, aktive menupunkter og markeringer.</p></div></div><div class="colors-grid">'+Object.entries(PAL).map(([n,h])=>'<button type="button" class="colors-choice '+(ac.toLowerCase()===h.toLowerCase()?'active':'')+'" data-x="uiacc" data-c="'+h+'" aria-label="'+n+'" aria-pressed="'+(ac.toLowerCase()===h.toLowerCase())+'"><span style="--swatch:'+h+'"></span><small>'+n+'</small>'+(ac.toLowerCase()===h.toLowerCase()?'<b>✓</b>':'')+'</button>').join('')+'</div><div class="settings-color-custom"><label class="settings-field"><span>Egen farve</span><input type="color" data-ui-color value="'+(/^#[0-9a-fA-F]{6}$/.test(ac)?ac:'#2540D9')+'"></label><div><strong>Din accentfarve</strong><p>Vælg en vilkårlig farve med farvevælgeren.</p></div></div><button class="btn ghost settings-reset" data-x="uireset">Nulstil til standardfarve</button></section></div><aside class="settings-side"><section class="settings-card"><span class="settings-overline">EKSEMPEL</span><h3>Sådan ser farven ud</h3><div class="color-preview"><div class="color-preview-top"><span></span><span></span><span></span></div><div class="color-preview-content"><div class="color-preview-nav" style="background:'+(ac||'#2540D9')+'"></div><div><i style="background:'+(ac||'#2540D9')+'"></i><i></i><i></i><button style="background:'+(ac||'#2540D9')+'">Knap</button></div></div></div><p class="settings-status-note">Farven påvirker dashboardet – ikke designet på kundernes hjemmesider.</p></section></aside></div></div>'};
-V.customize=()=>{const p=getP();if(!p)return vPick('customize');return `<div class="bar"><strong>Tilpas design: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto">${designCard(p)}<p class="mu">Skift farve, lys eller mørk og skrifttype. Ændringer kan fortrydes.</p></section><section class="pv">${frame(p)}</section></div>`};
+
+const DESIGN_PRESETS={
+ ocean:{label:'Ocean Studio',accent:'#38A3F1',background:'#071B2C',backgroundStyle:'linear-gradient(135deg,#071B2C 0%,#0B3D56 52%,#102A43 100%)',surface:'#123B52',text:'#F4FAFF',font:'sans',mode:'dark',radius:'large'},
+ midnight:{label:'Midnight Luxury',accent:'#C9A24B',background:'#101018',backgroundStyle:'linear-gradient(135deg,#101018 0%,#24202B 55%,#15131D 100%)',surface:'#292431',text:'#FAF6EE',font:'serif',mode:'dark',radius:'large'},
+ forest:{label:'Forest & Earth',accent:'#6BAA75',background:'#10251D',backgroundStyle:'linear-gradient(135deg,#10251D 0%,#1E4936 55%,#152E27 100%)',surface:'#254D3B',text:'#F4F8F1',font:'sans',mode:'dark',radius:'large'},
+ warm:{label:'Warm Editorial',accent:'#C96B45',background:'#F5EBDD',backgroundStyle:'linear-gradient(135deg,#F5EBDD 0%,#E8C9AE 52%,#F8EFE5 100%)',surface:'#FFF9F1',text:'#2B211C',font:'serif',mode:'light',radius:'large'},
+ rose:{label:'Modern Rose',accent:'#C94F83',background:'#2A1425',backgroundStyle:'linear-gradient(135deg,#2A1425 0%,#55243E 55%,#25162D 100%)',surface:'#4A263F',text:'#FFF5FA',font:'sans',mode:'dark',radius:'large'},
+ clean:{label:'Clean Minimal',accent:'#2457D6',background:'#F4F7FB',backgroundStyle:'linear-gradient(135deg,#F4F7FB 0%,#E6EDF7 55%,#F8FAFD 100%)',surface:'#FFFFFF',text:'#172033',font:'sans',mode:'light',radius:'large'}
+};
+function applyDesignPreset(key){
+ const preset=DESIGN_PRESETS[key];if(!preset||!getP())return;
+ upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];q.site.meta=q.site.meta||{};q.site.meta.theme={...(q.site.meta.theme||{}),...preset};});
+ banner(preset.label+' anvendt. Du kan stadig tilpasse farverne manuelt.');
+}
+function designAgentPanel(p){
+ const cards=Object.entries(DESIGN_PRESETS).map(([key,x])=>'<button type="button" class="design-agent-choice" data-x="designPreset" data-preset="'+key+'"><span class="design-agent-swatch" style="--da-accent:'+x.accent+';--da-bg:'+x.background+'"></span><strong>'+x.label+'</strong><small>'+x.mode+' · '+x.font+'</small></button>').join('');
+ return '<section class="design-agent-panel"><div><span class="dash-section-kicker">PRIME WEBS AI · DESIGN AGENT</span><h3>Vælg en komplet designretning</h3><p class="mu">Gratis designmotor uden ekstra AI-API-kald. Anvender en sammenhængende farvepalette, baggrundsgradient, overflader og typografi på hele hjemmesiden.</p></div><div class="design-agent-grid">'+cards+'</div></section>';
+}
+
+V.customize=()=>{const p=getP();if(!p)return vPick('customize');return `<div class="bar"><strong>Tilpas design: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ghost" data-act="undo" ${p.history.length?'':'disabled'}>Fortryd</button><button class="btn ghost" data-act="redo" ${p.future.length?'':'disabled'}>Gentag</button></div><div class="ed"><section class="chat" style="overflow:auto">${designAgentPanel(p)}${designCard(p)}<p class="mu">Skift farve, lys eller mørk og skrifttype. Ændringer kan fortrydes.</p></section><section class="pv">${frame(p)}</section></div>`};
 V.preview=()=>{const p=getP();if(!p)return vPick('preview');return `<div class="bar"><strong>Forhåndsvisning: ${esc(p.name)}</strong><span class="sp"></span><button class="btn ${S.device==='desktop'?'':'ghost'}" data-act="dev" data-d="desktop">Computer</button><button class="btn ${S.device==='tablet'?'':'ghost'}" data-act="dev" data-d="tablet">Tablet</button><button class="btn ${S.device==='mobile'?'':'ghost'}" data-act="dev" data-d="mobile">Mobil</button></div><div class="pv" style="height:78vh"><iframe class="${S.device}" title="Forhåndsvisning" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></div>`};
 V.history=()=>{const p=getP();if(!p)return vPick('history');const sn=p.history.map((x,i)=>[i,x]).reverse();
   return `<h1>Versionshistorik: ${esc(p.name)}</h1><p class="mu">Hver ændring gemmer den tidligere version. Gendan en version, og du kan stadig fortryde bagefter.</p>`+(sn.length?`<table><tr><th>Version</th><th>Forside</th><th>Blokke</th><th>Farve</th><th></th></tr>${sn.map(([i,x])=>`<tr><td>#${i+1}</td><td>${esc((x.blocks.find(b=>b.type==='hero')||{}).title||'')}</td><td>${x.blocks.length}</td><td><span class="swb" style="display:inline-block;width:18px;height:18px;cursor:default;background:${esc(x.meta.theme.accent)}"></span> ${esc(x.meta.theme.accent)}</td><td><button class="btn ghost" data-x="hrest" data-i="${i}">Gendan</button></td></tr>`).join('')}</table>`:'<p class="mu">Ingen tidligere versioner endnu.</p>')};
