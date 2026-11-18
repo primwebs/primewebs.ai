@@ -10,6 +10,7 @@ This branch adds no new paid vendor, API key, subscription, or payment integrati
 - Basic request throttling and short server-side result caching.
 - OpenStreetMap attribution and clear warnings that missing website data is not proof that a business has no website.
 - Local Design Agent presets that apply coordinated colors, gradient backgrounds, surfaces, typography and radius without an AI API call.
+- Drag-and-drop section reordering in the Visual Editor; the existing move-up/move-down controls remain available for touch devices.
 - Existing manual lead creation, Lead History, Ring and Only Call are retained.
 
 ## Cost and data limitations
