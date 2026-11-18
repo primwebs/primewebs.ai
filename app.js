@@ -149,14 +149,16 @@ const DemoAI={mode:'test',
 const AI={mode:'api',
   async request(action,payload){
     const sessionResult=window.PWDB&&window.PWDB.client?await window.PWDB.client.auth.getSession():null;const token=sessionResult&&sessionResult.data&&sessionResult.data.session&&sessionResult.data.session.access_token;if(!token){const e=new Error('Log ind for at bruge AI-generatoren.');e.status=401;throw e}const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action,...payload})});
-    const data=await response.json().catch(()=>({error:'Serveren returnerede et ugyldigt svar.'}));
+    const raw=await response.text();let data;try{data=JSON.parse(raw)}catch(_){data={error:'Serveren returnerede ikke JSON (HTTP '+response.status+'). '+String(raw||'').replace(/<[^>]*>/g,' ').slice(0,180)}}
     if(!response.ok){const e=new Error(data.error||'AI-forbindelsen fejlede ('+response.status+').');e.status=response.status;throw e}
     return data;
   },
   async run(action,payload,demo){
     try{const r=await this.request(action,payload);this.mode='api';return r}
     catch(e){
-      if(e.status&&![503,404].includes(e.status))throw e;
+      // Keep website creation usable when the API, session, provider key or server is unavailable.
+      // The local demo generator does not call an external provider or incur API charges.
+      if(e.status&&e.status<500&&![401,403,404,429].includes(e.status))throw e;
       this.mode='demo';
       return demo();
     }
