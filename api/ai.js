@@ -160,8 +160,8 @@ function extra(b) {
   parts.push("Language of all copy: " + (t("language", 20) || "Detect Danish or English from the user prompt; Danish if unclear. Never mix languages."));
   if (/^#[0-9a-fA-F]{6}$/.test(t("color", 7))) parts.push("Use exactly this accent color in theme.accent: " + t("color", 7));
   if (/^#[0-9a-fA-F]{6}$/.test(t("background", 7))) parts.push("Use exactly this page background color in theme.background: " + t("background", 7));
-  const em = t("email", 120), ph = t("phone", 40);
-  parts.push("Contact block: " + (em || ph ? "use exactly this email '" + em + "' and phone '" + ph + "' and do not invent any other contact details" : "do not invent contact details; leave email and phone as empty strings"));
+  const em = t("email", 120), ph = t("phone", 40), wa = t("whatsapp", 40);
+  parts.push("Contact block: " + (em || ph || wa ? "use exactly this email '" + em + "', phone '" + ph + "' and confirmed WhatsApp number '" + wa + "'; only set contact.whatsapp when the supplied WhatsApp field is non-empty. Do not assume the phone number is WhatsApp-enabled." : "do not invent contact details; leave email, phone and whatsapp as empty strings"));
   return "\n" + parts.join("\n");
 }
 
