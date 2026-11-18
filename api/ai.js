@@ -2,7 +2,8 @@
 // Add ANTHROPIC_API_KEY in Vercel → Project → Settings → Environment Variables.
 // Optional: set ANTHROPIC_MODEL. The key is never sent to the browser.
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const AI_PROVIDER = String(process.env.AI_PROVIDER || "auto").trim().toLowerCase();
 const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || "").trim();
 // Keep compatibility with the original Anthropic key variable, including its historical typo.
 const ANTHROPIC_API_KEY = String(process.env.ANTHROPIC_API_KEY || process.env.anthropec_api_key || "").trim();
@@ -205,10 +206,15 @@ module.exports = async (req, res) => {
   } catch (_) {
     return res.status(503).json({ error: "Kunne ikke kontrollere din Supabase-session." });
   }
-  if (!GEMINI_API_KEY && !ANTHROPIC_API_KEY) {
-    return res.status(503).json({
-      error: "AI-nøglen mangler. Tilføj GEMINI_API_KEY eller ANTHROPIC_API_KEY i Vercel. Den lokale testgenerator kan stadig bruges."
-    });
+  const requestedProvider = ["auto", "gemini", "anthropic"].includes(AI_PROVIDER) ? AI_PROVIDER : "auto";
+  const activeProvider = requestedProvider === "auto"
+    ? (GEMINI_API_KEY ? "gemini" : "anthropic")
+    : requestedProvider;
+  if (activeProvider === "gemini" && !GEMINI_API_KEY) {
+    return res.status(503).json({ error: "AI_PROVIDER er sat til gemini, men GEMINI_API_KEY mangler i Vercel." });
+  }
+  if (activeProvider === "anthropic" && !ANTHROPIC_API_KEY) {
+    return res.status(503).json({ error: "AI_PROVIDER er sat til anthropic, men ANTHROPIC_API_KEY mangler i Vercel." });
   }
   const body = req.body || {};
   const action = body.action;
@@ -229,12 +235,12 @@ module.exports = async (req, res) => {
 
   try {
     let text = "";
-    if (GEMINI_API_KEY) {
+    if (activeProvider === "gemini") {
       const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(GEMINI_MODEL) + ":generateContent?key=" + encodeURIComponent(GEMINI_API_KEY), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM + "\\nReturn only a JSON object with keys site and reply." }] },
+          systemInstruction: { parts: [{ text: SYSTEM + "\nReturn only a JSON object with keys site and reply." }] },
           contents: [{ role: "user", parts: [{ text: task }] }],
           generationConfig: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 12000 }
         })
@@ -246,8 +252,8 @@ module.exports = async (req, res) => {
           error: detail || "Gemini afviste forespørgslen. Kontrollér GEMINI_API_KEY og GEMINI_MODEL."
         });
       }
-      text = (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\\n");
-    } else {
+      text = (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\n");
+    } else if (activeProvider === "anthropic") {
       const upstream = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
