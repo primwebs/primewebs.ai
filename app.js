@@ -257,7 +257,7 @@ const Renderer={html(p){
 
 /* ===== Lag 4: UI ===== */
 let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',null),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
-const getP=()=>Projects.all().find(p=>p.id===S.id);
+const getP=()=>{const all=Projects.all();let p=S.id!=null?all.find(x=>String(x.id)===String(S.id)):null;if(!p){const saved=Storage.get('pw.activeProject',null);p=saved!=null?all.find(x=>String(x.id)===String(saved)):null;if(p)S.id=p.id}if(p){S.id=p.id;Storage.set('pw.activeProject',p.id)}return p||null};
 const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>String(p.id)===String(id));if(i<0)return false;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l);return true};
 
 function vList(){const l=Projects.all();
@@ -320,7 +320,7 @@ function duplicateProject(id){
  copy.customerId=null;copy.customer=null;copy.isPublished=false;delete copy.publishedAt;delete copy.publishedUrl;delete copy.liveUrl;
  if(copy.site&&Array.isArray(copy.site.blocks))copy.site.blocks=copy.site.blocks.map(b=>({...b,id:uid()}));
  Projects.save([copy,...Projects.all()]);
- S.id=copy.id;S.view='mini';S.miniTab='edit';S.err='';
+ S.id=copy.id;Storage.set('pw.activeProject',copy.id);S.view='mini';S.miniTab='edit';S.err='';
  banner('Projektet er kopieret. Originalen er uændret.');
 }
 function vDash(){const all=Projects.all(),u=Session.user(),q=String(S.dashSearch||'').trim().toLowerCase(),filter=S.dashFilter||'all';
@@ -1016,7 +1016,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){S.view='mini';S.miniTab='edit';S.id=id}
+  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));S.view='mini';S.miniTab='edit';S.id=p?p.id:null;Storage.set('pw.activeProject',S.id)}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Hjemmesiden er slettet fra dit workspace.')}else S.del=id}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
@@ -1026,7 +1026,7 @@ document.addEventListener('input',e=>{const d=e.target.dataset;if(d.renameInput!
 document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[data-template-q]')){const selector=e.target.matches('[data-dash-search]')?'[data-dash-search]':'[data-template-q]',value=e.target.value,at=e.target.selectionStart;render();const next=document.querySelector(selector);if(next){next.focus();try{next.setSelectionRange(at,at)}catch(_){}}}});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.dashSort!==undefined){S.dashSort=v;render();return}
-  if(d.proj!==undefined){S.id=v||null;render();return}
+  if(d.proj!==undefined){const p=Projects.all().find(x=>String(x.id)===String(v));S.id=p?p.id:null;Storage.set('pw.activeProject',S.id);if(p){S.view='mini';if(!['edit','builder','customize','media','preview','history'].includes(S.miniTab))S.miniTab='edit'}render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined){const arr=Array.isArray(b[d.k])?b[d.k]:b.items;if(d.ik)arr[+d.i][d.ik]=v;else arr[+d.i]=v}else b[d.k]=v})}
   else if(d.dom)upd(d.dom,q=>{q.domain=v.trim()||null});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
@@ -1107,7 +1107,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!=
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
 const PT={edit:'AI Chat Editor',builder:'AI Website Builder',customize:'Tilpas design',media:'Billeder',preview:'Forhåndsvisning',history:'Versionshistorik'};
 GC.Redigering='#0E9AA7';
-function projPick(){return `<select class="ms" data-proj aria-label="Valgt hjemmeside"><option value="">Vælg hjemmeside…</option>${Projects.all().map(p=>`<option value="${p.id}" ${p.id===S.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>`}
+function projPick(){return `<select class="ms" data-proj aria-label="Valgt hjemmeside"><option value="">Vælg hjemmeside…</option>${Projects.all().map(p=>`<option value="${p.id}" ${String(p.id)===String(S.id)?'selected':''}>${esc(p.name)}</option>`).join('')}</select>`}
 const NAV_ICONS={
   dash:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   new:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4M12 8v6M9 11h6"/>',
