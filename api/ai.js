@@ -7,6 +7,7 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || process.env.anthropec
 
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
+The site meta object may include animation: {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. Unless the user explicitly requests less motion, use immersive as the default. Use scroll reveals, floating/tilting imagery, tasteful CSS 3D depth and animated heading reveals. Never make motion interfere with reading, navigation, or mobile usability. Respect reduced-motion preferences in the rendered site.
 The JSON must have this shape:
 {"site":{"v":1,"meta":{"title":"...","language":"da|en","theme":{"accent":"#2540D9","background":"#...","backgroundStyle":"linear-gradient(...)","surface":"#...","text":"#...","font":"sans","mode":"light","radius":"large"}},"blocks":[...],"pages":[{"id":"...","title":"Booking","slug":"booking","blocks":[...]}]}, "reply":"short explanation in the user’s language"}
 Allowed block types:
@@ -94,6 +95,13 @@ function sanitizeSite(site, fallbackLanguage) {
         font: t.font === "serif" ? "serif" : "sans",
         mode: t.mode === "dark" ? "dark" : "light",
         radius: t.radius === "large" ? "large" : "medium"
+      },
+      animation: {
+        level: ["none", "subtle", "advanced", "immersive"].includes(meta.animation && meta.animation.level) ? meta.animation.level : "immersive",
+        scroll: !meta.animation || meta.animation.scroll !== false,
+        floatingImages: !meta.animation || meta.animation.floatingImages !== false,
+        threeD: !meta.animation || meta.animation.threeD !== false,
+        animatedText: !meta.animation || meta.animation.animatedText !== false
       }
     },
     blocks: []
