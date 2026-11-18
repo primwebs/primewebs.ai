@@ -156,11 +156,10 @@ const AI={mode:'api',
   async run(action,payload,demo){
     try{const r=await this.request(action,payload);this.mode='api';return r}
     catch(e){
-      // Keep website creation usable when the API, session, provider key or server is unavailable.
-      // The local demo generator does not call an external provider or incur API charges.
-      if(e.status&&e.status<500&&![401,403,404,429].includes(e.status))throw e;
-      this.mode='demo';
-      return demo();
+      // Never silently replace real AI with the local demo generator.
+      // Surface the real server/provider error so configuration problems can be fixed.
+      this.mode='error';
+      throw e;
     }
   },
   generate(input){return this.run('generate',input,async()=>({site:await DemoAI.generate(input),reply:'Demo-tilstand: AI-serveren er ikke sat op endnu, så siden er lavet af testgeneratoren.'}))},
