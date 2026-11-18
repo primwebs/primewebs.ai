@@ -1019,3 +1019,6 @@ input:focus,textarea:focus,select:focus{border-color:#a17aff;box-shadow:0 0 0 4p
   .dash-project-card>.dash-project-actions,
   .dash-project-card>.row{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Animation & 3D controls */
+.animation-control-panel{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin:0 0 1rem;padding:1rem 1.1rem;border:1px solid var(--ln);border-radius:14px;background:linear-gradient(120deg,rgba(113,89,220,.12),rgba(57,120,190,.06))}.animation-control-panel .mu{margin:.2rem 0}.animation-levels{display:flex;gap:.35rem;flex-wrap:wrap}.animation-levels .chip.is-selected{background:var(--so);border-color:var(--ac);color:var(--ink);font-weight:750}
