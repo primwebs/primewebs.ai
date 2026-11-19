@@ -138,7 +138,7 @@
     state.client.auth.onAuthStateChange((event,session)=>{
       state.user=session&&session.user||null;
       if(event==='SIGNED_IN' && state.user) loadCloud().then(()=>{ if(window.render) window.render(); }).catch(e=>{window.__pwCloudError=e.message; if(window.render)window.render();});
-      if(event==='SIGNED_OUT'){state.profile=null;state.credits=null;['pw.projects','pw.customers','pw.settings','pw.finance','pw.leads'].forEach(k=>localStorage.removeItem(k)); if(window.loginScreen)window.loginScreen();}
+      if(event==='SIGNED_OUT'){state.profile=null;state.credits=null;/* Keep cached workspace data safe; a transient auth refresh must never erase projects. */ if(window.loginScreen)window.loginScreen();}
     });
     return state;
   })();
