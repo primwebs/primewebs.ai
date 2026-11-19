@@ -236,47 +236,60 @@ module.exports = async (req, res) => {
 
   try {
     let text = "";
-    if (activeProvider === "gemini") {
-      const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(GEMINI_MODEL) + ":generateContent?key=" + encodeURIComponent(GEMINI_API_KEY), {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM + "\nReturn only a JSON object with keys site and reply." }] },
-          contents: [{ role: "user", parts: [{ text: task }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 12000 }
-        })
-      });
-      const result = await upstream.json().catch(() => ({}));
-      if (!upstream.ok) {
-        const detail = result && result.error && result.error.message;
-        return res.status(upstream.status >= 500 ? 502 : upstream.status).json({
-          error: detail || "Gemini afviste forespørgslen. Kontrollér GEMINI_API_KEY og GEMINI_MODEL."
-        });
+    const callGemini = async () => {
+      let lastError = "Gemini er midlertidigt utilgængelig.";
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(GEMINI_MODEL) + ":generateContent?key=" + encodeURIComponent(GEMINI_API_KEY), {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: SYSTEM + "\\nReturn only a JSON object with keys site and reply." }] },
+              contents: [{ role: "user", parts: [{ text: task }] }],
+              generationConfig: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 12000 }
+            })
+          });
+          const result = await upstream.json().catch(() => ({}));
+          if (upstream.ok) return (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\\n");
+          lastError = result && result.error && result.error.message || "Gemini afviste forespørgslen.";
+          if (![429, 500, 502, 503, 504].includes(upstream.status)) {
+            const error = new Error(lastError); error.status = upstream.status; throw error;
+          }
+        } catch (error) {
+          if (error.status && ![429, 500, 502, 503, 504].includes(error.status)) throw error;
+          lastError = error.message || lastError;
+        }
+        if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 900));
       }
-      text = (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\n");
-    } else if (activeProvider === "anthropic") {
+      const error = new Error(lastError); error.status = 503; throw error;
+    };
+    const callAnthropic = async () => {
       const upstream = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01"
-        },
-        body: JSON.stringify({
-          model: ANTHROPIC_MODEL,
-          max_tokens: 12000,
-          system: SYSTEM,
-          messages: [{ role: "user", content: task }]
-        })
+        headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 12000, system: SYSTEM, messages: [{ role: "user", content: task }] })
       });
       const result = await upstream.json().catch(() => ({}));
       if (!upstream.ok) {
-        const detail = result && result.error && result.error.message;
-        return res.status(upstream.status >= 500 ? 502 : upstream.status).json({
-          error: detail || "Anthropic afviste forespørgslen. Kontrollér API-nøgle og model."
-        });
+        const error = new Error(result && result.error && result.error.message || "Reserve-AI'en afviste forespørgslen.");
+        error.status = upstream.status; throw error;
       }
-      text = (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\\n");
+      return (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\\n");
+    };
+
+    if (activeProvider === "gemini") {
+      try {
+        text = await callGemini();
+      } catch (geminiError) {
+        // Automatically fail over during provider overload/outages; never expose a raw 503 to the editor.
+        if (!ANTHROPIC_API_KEY || ![429, 500, 502, 503, 504].includes(geminiError.status)) throw geminiError;
+        try { text = await callAnthropic(); }
+        catch (fallbackError) {
+          throw new Error("Gemini er midlertidigt overbelastet, og reserveforbindelsen kunne heller ikke svare. Prøv igen om lidt. (" + String(fallbackError.message || "").slice(0, 220) + ")");
+        }
+      }
+    } else if (activeProvider === "anthropic") {
+      text = await callAnthropic();
     }
     const parsed = extractJSON(text);
     if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
