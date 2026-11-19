@@ -1263,7 +1263,13 @@ async function boot(){
     render();
   }catch(e){
     window.__pwInitError=e&&e.message||'Supabase kunne ikke indlæses';
-    loginScreen();
+    // A cloud refresh/load failure is not proof that the user is signed out.
+    // Keep the current workspace visible and let the user retry instead of ejecting them.
+    if(window.PWDB&&window.PWDB.user){
+      S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email||''};
+      render();
+      setTimeout(()=>banner('Forbindelsen til cloud-data fejlede: '+window.__pwInitError+'. Dine lokale projektdata er bevaret. Genindlæs siden eller prøv igen.'),0);
+    }else loginScreen();
   }
 }
 function loginScreen(){
