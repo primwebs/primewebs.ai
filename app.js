@@ -289,7 +289,7 @@ function vList(){const l=Projects.all();
   return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="build" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${S.del===p.id?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
-function vEdit(){const p=getP();if(!p)return vPick('edit');
+function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
   return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">AI WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Beskriv ændringer, og følg resultatet i live-preview.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="media">Billeder</button><button class="btn ghost" data-act="go" data-v="preview">Forhåndsvisning</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div>
 <div class="ed"><section class="chat"><div class="editor-section"><span class="badge">AI-chat</span><p class="mu">Skriv alt, hvad du vil ændre på hjemmesiden, i ét felt. Du kan bede om nye overskrifter, tekster, farver, billeder, ydelser, fordele, Om os, spørgsmål og svar, opfølgning eller kontaktoplysninger.</p></div><div class="msgs">${p.chat.map(m=>`<div class="m ${m.r}">${esc(m.t)}</div>`).join('')}${S.busy?'<div class="m ai">Arbejder…</div>':''}</div><div class="prompt-box"><textarea id="chatin" rows="4" placeholder="Beskriv med dine egne ord, hvad AI'en skal ændre på hjemmesiden…" ${S.busy?'disabled':''}></textarea><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send ændring</button></div></section><section class="pv"><iframe title="Live preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></section></div>`;
 }
@@ -1011,7 +1011,7 @@ async function generate(){
 }
 async function send(t){
   t=(t||'').trim();if(!t||S.busy)return;const p=getP();
-  if(!p||!p.id){S.busy=false;S.view='mini';S.miniTab='list';S.msg='Vælg først den hjemmeside, du vil redigere.';render();return}
+  if(!p||!p.id){S.busy=false;S.err='Den valgte hjemmeside kunne ikke genfindes. Dine ændringer er ikke sendt. Bliv i editoren, og genvælg projektet fra Dashboard.';banner(S.err);render();return}
   upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t})});
   if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>q.chat.push({r:'ai',t:'Du har ikke flere credits.'}));return render()}
   S.busy=true;render();
@@ -1040,7 +1040,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));S.view='mini';S.miniTab='edit';S.id=p?p.id:null;Storage.set('pw.activeProject',S.id)}
+  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='mini';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Hjemmesiden er slettet fra dit workspace.')}else S.del=id}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
