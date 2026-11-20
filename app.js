@@ -296,11 +296,35 @@ function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-w
 
 /* ===== Nye sider ===== */
 const NAV=[
- ['Dashboard',[['dash','Dashboard']]],
+ ['Workspace',[
+  ['dash','Dashboard'],
+  ['new','Opret hjemmeside'],
+  ['templates','Skabeloner']
+ ]],
+ ['Website Studio',[
+  ['mini','Aktivt projekt',[
+   ['edit','AI Chat Editor'],
+   ['builder','Visuel editor'],
+   ['customize','Design og stil'],
+   ['preview','Live preview'],
+   ['history','Versionshistorik'],
+   ['files','Filer og eksport']
+  ]]
+ ]],
+ ['Kunder & drift',[
+  ['customers','Kunder'],
+  ['bookings','Bookinger']
+ ]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
- ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
- ['Finance',[['finance','Finance']]],
- ['Statistik og analyser',[['stats','Statistik og analyser']]],
+ ['Finance',[
+  ['finance','Finance'],
+  ['finlist','Posteringer'],
+  ['fincust','Indtægt pr. kunde']
+ ]],
+ ['Vækst og abonnementer',[
+  ['stats','Statistik og analyser'],
+  ['credits','Planer og credits']
+ ]],
  ['System',[
   ['settings','Indstillinger'],
   ['colors','Udseende og farver'],
@@ -773,7 +797,7 @@ const NAV_ICONS={
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
-  const btn=(k,t,c='')=>`<button class="nv ${c} ${S.view===k?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
+  const btn=(k,t,c='')=>`<button class="nv ${c} ${(S.view===k||(S.view==='mini'&&S.miniTab===k))?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
     if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'||g==='Finance'||g==='Statistik og analyser'){
       const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
@@ -781,11 +805,11 @@ function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
       if(!ch)return((!q||t.toLowerCase().includes(q))?btn(k,t):'');
       const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';
-      const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view):v===1);
+      const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view||(S.view==='mini'&&c[0]===S.miniTab)):v===1);
       return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
     if(!rows)return '';const open=q?true:st[g]!==0;
     const gi=g==='Finance'?'finance':g==='System'?'settings':g==='Domæner og publicering'?'domains':'dash';
-    return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?(g==='Redigering'?projPick():'')+rows:''}</div>`}).join('')}
+    return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?(g==='Website Studio'?projPick():'')+rows:''}</div>`}).join('')}
 const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)=>h.slice(i(a)+a.length+7,b?i(b):h.length);
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
