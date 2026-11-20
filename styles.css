@@ -967,3 +967,13 @@ input:focus,textarea:focus,select:focus{border-color:#9c80ff;box-shadow:0 0 0 4p
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+/* Brand mark */
+.logo{display:flex;align-items:center;gap:.65rem}
+.logo::before{
+ content:"✦";display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;
+ border-radius:11px;color:#fff;font-size:17px;
+ background:linear-gradient(145deg,#a78bfa,#6845d8 68%,#3c2b87);
+ border:1px solid rgba(222,208,255,.34);
+ box-shadow:0 5px 18px rgba(126,91,232,.34),inset 0 1px rgba(255,255,255,.35)
+}
