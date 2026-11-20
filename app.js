@@ -799,7 +799,7 @@ function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20"
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
   const btn=(k,t,c='')=>`<button class="nv ${c} ${(S.view===k||(S.view==='mini'&&S.miniTab===k))?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
   return NAV.map(([g,it])=>{
-    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'||g==='Finance'||g==='Statistik og analyser'){
+    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'||g==='Statistik og analyser'){
       const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
     }
     const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
