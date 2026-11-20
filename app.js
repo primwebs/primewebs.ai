@@ -2,6 +2,20 @@ if(typeof structuredClone!=='function')window.structuredClone=o=>JSON.parse(JSON
 /* ===== Lag 0: hjælpere ===== */
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
+const newProjectId=()=>window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
+const isProjectUuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
+function normalizeProjectIds(list){
+  let changed=false;
+  const projects=(Array.isArray(list)?list:[]).map(p=>{
+    if(!p||typeof p!=='object'||isProjectUuid(p.id))return p;
+    const previous=String(p.id||''),next=newProjectId();
+    p.id=next;
+    if(previous&&String(S.id||'')===previous)S.id=next;
+    changed=true;
+    return p;
+  });
+  return{projects,changed};
+}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const $=s=>document.querySelector(s);
 
@@ -17,7 +31,17 @@ const Credits={cost:{generate:10,edit:1},
   balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
   spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
-const Projects={all:()=>Storage.get('pw.projects',[]).map(fixP).filter(Boolean),save:l=>Storage.set('pw.projects',l)};
+const Projects={
+  all(){
+    const result=normalizeProjectIds(Storage.get('pw.projects',[]).map(fixP).filter(Boolean));
+    if(result.changed)Storage.set('pw.projects',result.projects);
+    return result.projects;
+  },
+  save(list){
+    const result=normalizeProjectIds(list);
+    Storage.set('pw.projects',result.projects);
+  }
+};
 const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
 const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.site',ownerEmail:'primewebssupport@gmail.com',theme:'auto'},get(){const s={...this.d,...Storage.get('pw.settings',{})};['company','email','phone','web','ownerEmail'].forEach(k=>{s[k]=String(s[k]??'')});return s},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
