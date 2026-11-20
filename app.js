@@ -297,7 +297,6 @@ function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-w
 /* ===== Nye sider ===== */
 const NAV=[
  ['Dashboard',[['dash','Dashboard']]],
- ['Ring',[['onlycall','Ring']]],
  ['Domæner og publicering',[['domains','Domæner og publicering']]],
  ['Credits og abonnementer',[['credits','Credits og abonnementer']]],
  ['Finance',[['finance','Finance']]],
@@ -327,7 +326,7 @@ const TPL=[
 ];
 const CK=[[1,'AI-generator via sikker serverfunktion (API-nøgle kræves)'],[1,'Live preview og chat-redigering'],[1,'Bygger med direkte redigering af blokke'],[1,'Ejer/admin med creditforbrug registreret pr. AI-handling'],[1,'Kunder med egne credits (manuelt)'],[1,'Sikkerhedskopi og gendannelse'],[1,'Adgangskode, begrænsning og validering på AI-serveren'],[1,'Demo-tilstand, hvis AI-serveren ikke er sat op'],[0,'Login og database'],[0,'Rigtig publicering og egne domæner'],[0,'Betaling og abonnementer (kræver din godkendelse)']];
 const nEdits=p=>p.chat.filter(m=>m.r==='u').length;
-const snap=()=>JSON.stringify({app:'primewebs',v:2,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),leads:LeadStore.all(),settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),images:Imgs.all(),credits:Storage.get('pw.credits',50)},null,2);
+const snap=()=>JSON.stringify({app:'primewebs',v:2,at:new Date().toISOString(),projects:Projects.all(),customers:Customers.all(),leads:[],settings:(({aiCode,...r})=>r)(Settings.get()),finance:Fin.all(),images:Imgs.all(),credits:Storage.get('pw.credits',50)},null,2);
 // Forhåndsvisningen ligger i en afskærmet ramme (srcdoc). Uden <base> sender et #-link rammen til dashboardets egen adresse, og rammen bliver hvid.
 function previewDoc(p){return Renderer.html(p).replace('<head>','<head><base href="about:srcdoc">')}
 const frame=p=>`<iframe title="Live preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe>`;
@@ -405,13 +404,12 @@ function vCred(){return `<h1>Credits og abonnementer</h1><div class="card" style
 function vCust(){const c=Customers.all(),l=Projects.all(),f=S.cf,po=(v)=>PLANS.map(([n])=>`<option ${v===n?'selected':''}>${n}</option>`).join('');
   return `<h1>Kundehjemmesider</h1><div class="card form" style="margin-bottom:1rem"><h3>Ny kunde</h3><label>Navn<input data-g="name" value="${esc(f.name)}"></label><label>E-mail<input data-g="email" value="${esc(f.email)}"></label><label>Plan<select data-g="plan">${po(f.plan)}</select></label>${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="cadd">Tilføj kunde</button></div><h3>Kunder</h3>`+(c.length?`<table><tr><th>Kunde</th><th>Plan</th><th>Credits</th><th></th></tr>${c.map(u=>`<tr><td>${esc(u.name)}<div class="mu" style="margin:0">${esc(u.email)}</div></td><td><select data-cu="${u.id}" data-cf="plan">${po(u.plan)}</select></td><td>${u.credits}</td><td><div class="row"><button class="btn ghost" data-act="cc" data-id="${u.id}" data-n="-10">−10</button><button class="btn ghost" data-act="cc" data-id="${u.id}" data-n="10">+10</button><button class="btn ghost" data-act="cdel" data-id="${u.id}">${S.cdel===u.id?'Bekræft':'Slet'}</button></div></td></tr>`).join('')}</table>`:'<p class="mu">Ingen kunder endnu.</p>')+`<h3 style="margin-top:1.5rem">Projekter</h3>`+(l.length?`<table><tr><th>Hjemmeside</th><th>Kunde</th></tr>${l.map(p=>`<tr><td>${esc(p.name)}</td><td><select data-cp="${p.id}"><option value="">Intern (mig)</option>${c.map(u=>`<option value="${u.id}" ${p.customerId===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td></tr>`).join('')}</table>`:'<p class="mu">Ingen hjemmesider endnu.</p>')}
 
-function vStats(){const l=Projects.all(),cs=Customers.all(),leads=LeadStore.all(),ed=l.reduce((n,p)=>n+nEdits(p),0),blocks=l.reduce((n,p)=>n+(p.site.blocks||[]).length,0),calls=leads.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0),booked=leads.filter(x=>x.bookingAt).length,notInterested=leads.filter(x=>x.status==='not_interested').length,mx=Math.max(1,...l.map(nEdits)),tile=(v,k,d,icon)=>`<article class="insight-kpi"><span class="insight-kpi-icon">${icon}</span><div class="mu">${k}</div><strong>${v}</strong><small>${d}</small></article>`;
+function vStats(){const l=Projects.all(),cs=Customers.all(),ed=l.reduce((n,p)=>n+nEdits(p),0),blocks=l.reduce((n,p)=>n+(p.site.blocks||[]).length,0),mx=Math.max(1,...l.map(nEdits)),tile=(v,k,d,icon)=>`<article class="insight-kpi"><span class="insight-kpi-icon">${icon}</span><div class="mu">${k}</div><strong>${v}</strong><small>${d}</small></article>`;
  return `<section class="insight-hero"><div class="insight-hero-copy"><span class="insight-eyebrow">PRIME WEBS AI · OVERBLIK</span><h1>Statistik & analyser</h1><p>Få et samlet overblik over dine projekter, kunder og AI-aktivitet.</p><div class="insight-tags"><span>✦ Projekter</span><span>✦ Kunder</span><span>✦ AI-aktivitet</span></div></div><div class="insight-hero-graphic" aria-hidden="true"><div class="insight-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small>INSIGHTS</small></div></section>
  <div class="insight-head"><div><h2>Platformens aktivitet</h2><p class="mu">Nøgletal baseret på dine gemte data.</p></div><span class="insight-local">● Data fra denne browser</span></div>
- <div class="insight-grid">${tile(l.length,'Hjemmesider','Oprettede projekter','▧')}${tile(cs.length,'Kunder','Registrerede kunder','♙')}${tile(ed,'AI-chatændringer','Registrerede redigeringer','✧')}${tile(blocks,'Website-sektioner','Sektioner i alle projekter','▤')}${tile(leads.length,'Gemte leads','Leads i din ringeliste','☎')}${tile(calls,'Opkaldsforsøg','Registreret i Only Call','↗')}${tile(booked,'Opfølgninger','Gemte aftaler på leads','◷')}${tile(notInterested,'Ikke interesseret','Leads sprunget over','−')}</div>
+ <div class="insight-grid">${tile(l.length,'Hjemmesider','Oprettede projekter','▧')}${tile(cs.length,'Kunder','Registrerede kunder','♙')}${tile(ed,'AI-chatændringer','Registrerede redigeringer','✧')}${tile(blocks,'Website-sektioner','Sektioner i alle projekter','▤')}</div>
  <section class="insight-panel"><div class="insight-panel-head"><div><span class="insight-section-kicker">DINE WEBSITES</span><h2>Projektaktivitet</h2><p class="mu">Se aktivitet og indhold for hvert projekt.</p></div><span class="insight-count">${l.length} projekter</span></div>
- ${l.length?`<div class="insight-project-grid">${l.slice().sort((a,b)=>nEdits(b)-nEdits(a)).map(p=>{const edits=nEdits(p),sections=(p.site.blocks||[]).length;return `<article class="insight-project-card"><div class="insight-project-top"><span class="insight-project-icon">W</span><span class="insight-project-status">${p.status==='ready'?'● Klar':'● Kladde'}</span></div><h3>${esc(p.name)}</h3><div class="insight-project-stats"><span><strong>${sections}</strong> sektioner</span><span><strong>${edits}</strong> AI-ændringer</span></div><div class="insight-project-progress"><div><span>AI-aktivitet</span><strong>${edits}</strong></div><div class="insight-track"><i style="width:${edits/mx*100}%"></i></div></div></article>`}).join('')}</div>`:'<div class="insight-empty"><span>▧</span><strong>Ingen projekter endnu</strong><p class="mu">Når du opretter hjemmesider, vises deres aktivitet her.</p></div>'}</section>
- <section class="insight-panel"><div class="insight-panel-head"><div><span class="insight-section-kicker">CALL CENTER</span><h2>Lead- og opkaldsaktivitet</h2><p class="mu">Registreringer fra din ringeliste i denne browser.</p></div><span class="insight-count">${leads.filter(leadPhone).length} telefonnumre</span></div><p>Opkaldsforsøg: <strong>${calls}</strong> · Opfølgninger: <strong>${booked}</strong> · Ikke interesseret: <strong>${notInterested}</strong></p><button class="btn ghost" data-act="go" data-v="onlycall">Åbn Only Call →</button></section><p class="insight-foot">Besøgstal og konverteringer vises først, når publicering og webanalyse er tilsluttet. Statistikken bygger på lokale browserdata – ikke besøgstal fra offentlig trafik.</p>`}
+ ${l.length?`<div class="insight-project-grid">${l.slice().sort((a,b)=>nEdits(b)-nEdits(a)).map(p=>{const edits=nEdits(p),sections=(p.site.blocks||[]).length;return `<article class="insight-project-card"><div class="insight-project-top"><span class="insight-project-icon">W</span><span class="insight-project-status">${p.status==='ready'?'● Klar':'● Kladde'}</span></div><h3>${esc(p.name)}</h3><div class="insight-project-stats"><span><strong>${sections}</strong> sektioner</span><span><strong>${edits}</strong> AI-ændringer</span></div><div class="insight-project-progress"><div><span>AI-aktivitet</span><strong>${edits}</strong></div><div class="insight-track"><i style="width:${edits/mx*100}%"></i></div></div></article>`}).join('')}</div>`:'<div class="insight-empty"><span>▧</span><strong>Ingen projekter endnu</strong><p class="mu">Når du opretter hjemmesider, vises deres aktivitet her.</p></div>'}</section><p class="insight-foot">Besøgstal og konverteringer vises først, når publicering og webanalyse er tilsluttet. Statistikken bygger på lokale browserdata – ikke besøgstal fra offentlig trafik.</p>`}
 
 
 function vSet(){const s=Settings.get(),u=Session.user(),role=u.role==='owner'?'Ejer':'Administrator',aiReady=AI.mode==='api';
@@ -491,316 +489,6 @@ document.addEventListener('input',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.f
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.ff){S.ff[d.ff]=e.target.value;if(d.ff==='type'){S.ff.cat=FCAT[S.ff.type][0];render()}}});
 
 
-/* ===== Lead management: create, history and calling ===== */
-const LeadStore={
-  all:()=>Storage.get('pw.leads',[]).filter(x=>x&&typeof x==='object'),
-  save:list=>Storage.set('pw.leads',list),
-  add(item){const list=this.all();this.save([{...item,id:uid(),createdAt:Date.now()},...list]);},
-  remove(id){this.save(this.all().filter(x=>x.id!==id))}
-};
-// One-time import: user-supplied call-only leads for the Ring / Only Call workspace.
-// Keep the visible lead record limited to company name and phone; uncertain source numbers are flagged internally.
-const RING_IMPORT_2026_11_17 = [
-  {
-    "name": "La Nueva Zona",
-    "phone": "+34600796968",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Nutrifit CCN",
-    "phone": "+34647123914",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Club Boxeo Utrera",
-    "phone": "+34627583269",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Be in shape",
-    "phone": "+34665117809",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Canibal CrossBox | Tomares",
-    "phone": "+34623533470",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Dailylif Training Center 2.0",
-    "phone": "+34697474811",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Personal Gym, Gimnasio y G...",
-    "phone": "+34954100809",
-    "phoneUnverified": false
-  },
-  {
-    "name": "CrossFit Kamikaze",
-    "phone": "+34641141798",
-    "phoneUnverified": false
-  },
-  {
-    "name": "A&M Trainers S.L",
-    "phone": "+34605397984",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Rocódromo privado La Madri...",
-    "phone": "+34651010101",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Taekwondo Gerena",
-    "phone": "+34654321987",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Sevilla Fight Center",
-    "phone": "+34612345678",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Gym Coliseum",
-    "phone": "+34611223344",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Golden Center",
-    "phone": "+34644005598",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Strength Fit",
-    "phone": "+34954000000",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Sutemi La Algaba",
-    "phone": "+34600112233",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Natur Fitness Gym",
-    "phone": "+34657057530",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Polideportivo Municipal",
-    "phone": "+34955000000",
-    "phoneUnverified": true
-  },
-  {
-    "name": "MB TRAINER Centro De Entre...",
-    "phone": "+34677903348",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Parque de calistenia",
-    "phone": "+34698889999",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Club Ciseco y Nuria",
-    "phone": "+34600000000",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Crossfit Rinoceronte",
-    "phone": "+34611112222",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Nivel 10",
-    "phone": "+34622223333",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Gimnasio municipal",
-    "phone": "+34650763555",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Street Workout Alcalá de Gu...",
-    "phone": "+34633334444",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Brooklyn Fitboxing Montequi...",
-    "phone": "+34646481320",
-    "phoneUnverified": false
-  },
-  {
-    "name": "BodyWorks System Training ...",
-    "phone": "+34689842851",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería canina Elena Vázq...",
-    "phone": "+34615193458",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería canina Cannavaler",
-    "phone": "+34644048223",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina María Lobay",
-    "phone": "+34649696726",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peludog Marta Brito peluqu...",
-    "phone": "+34692029724",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Pattitas felices - Peluquería C...",
-    "phone": "+34644303803",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina Clínica Mill...",
-    "phone": "+34679578222",
-    "phoneUnverified": false
-  },
-  {
-    "name": "PELUQUERIA CANINA - CLUB...",
-    "phone": "+34692029724",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Encanto canino",
-    "phone": "+34648416357",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina Mimadogs",
-    "phone": "+34672138790",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Lavamascotas 24h Torneo",
-    "phone": "+34954907016",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina Entrenicle...",
-    "phone": "+34640190843",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Clean Dogs Sevilla",
-    "phone": "+34625505314",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Nayipets",
-    "phone": "+34673199291",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Para Mascotas",
-    "phone": "+34659143940",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Ohana Pet Shower",
-    "phone": "+34682273420",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería y estilista canina E...",
-    "phone": "+34640101385",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Le Bel Cane",
-    "phone": "+34612345678",
-    "phoneUnverified": true
-  },
-  {
-    "name": "Noelia Cordones López",
-    "phone": "+34954101980",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Salon Estetica Canina Manoli...",
-    "phone": "+34647419970",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Glamour Canino Spa",
-    "phone": "+34624119683",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Las Huellas de Noah. Peluque...",
-    "phone": "+34624248784",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Residencia Canina",
-    "phone": "+34954141235",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina Danacan",
-    "phone": "+34962926735",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Stylo Canino",
-    "phone": "+34629274182",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Peluquería Canina Huellitas",
-    "phone": "+34647699322",
-    "phoneUnverified": false
-  },
-  {
-    "name": "Junglanimal",
-    "phone": "+34954535125",
-    "phoneUnverified": false
-  }
-];
-(()=>{
-  const current=LeadStore.all();
-  const key=x=>String(x.name||'').trim().toLocaleLowerCase()+'|'+String(x.phone||'').replace(/[^\\d+]/g,'');
-  const known=new Set(current.map(key));
-  const additions=RING_IMPORT_2026_11_17.filter(x=>!known.has(key(x))).map(x=>({...x,id:uid(),createdAt:Date.now(),callHistory:[]}));
-  if(additions.length) LeadStore.save([...additions,...current]);
-})();
-
-S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};
-const leadPhone=x=>String(x&&x.phone||'').replace(/[^\d+]/g,'');
-const leadRing=x=>{const n=leadPhone(x);return n?'<a class="lead-call-btn" data-lead-call="'+esc(x.id)+'" href="tel:'+esc(n)+'"><span aria-hidden="true">☎</span><span>Ring nu</span></a>':'<button class="lead-call-btn" type="button" disabled>Intet nummer</button>'};
-function vLeadFinder(){
- const f=S.leadForm||{},leads=LeadStore.all();
- const field=(k,label,placeholder='',type='text')=>'<label style="display:grid;gap:6px;font-weight:650">'+label+'<input data-lf="'+k+'" type="'+type+'" value="'+esc(f[k]||'')+'" placeholder="'+placeholder+'" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit"></label>';
- const call=leadPhone(f)?'<a class="btn ghost" href="tel:'+esc(leadPhone(f))+'">☎ Ring</a>':'<button class="btn ghost" type="button" disabled>☎ Ring</button>';
- return '<section style="max-width:1100px;margin:0 auto"><div class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI · LEAD VÆRKTØJER</span><h1>Opret lead</h1><p>Indtast en virksomheds oplysninger, gem leadet, eller ring direkte til virksomheden.</p></div><div class="settings-hero-icon" aria-hidden="true">☎</div></div></section>'+
- '<div class="settings-card" style="margin-bottom:18px"><div class="settings-card-head"><span class="settings-card-icon blue">＋</span><div><h2>Virksomhedsoplysninger</h2><p>Udfyld virksomhedens oplysninger nedenfor.</p></div></div>'+
- '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">'+field('name','Virksomhedsnavn','Fx Málaga Auto Service')+field('industry','Branche','Fx autoværksted')+field('city','By / område','Fx Málaga')+field('address','Adresse','Gade, nummer og postnummer')+field('website','Hjemmeside','https://…','url')+field('phone','Telefon','Telefonnummer','tel')+field('email','E-mail','kontakt@virksomhed.dk','email')+'</div>'+
- '<label style="display:grid;gap:6px;margin-top:14px;font-weight:650">Noter<textarea data-lf="notes" rows="3" placeholder="Skriv noter om virksomheden…" style="width:100%;padding:13px;border:1px solid var(--line,#d9deea);border-radius:10px;background:var(--card,#fff);color:inherit">'+esc(f.notes||'')+'</textarea></label>'+
- (S.leadErr?'<p class="err">'+esc(S.leadErr)+'</p>':'')+
- '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px">'+call+'<button class="btn" data-act="leadSave">＋ Gem lead</button><span class="mu">Ring åbner telefonens opkaldsskærm. Gem lead gemmer oplysningerne i leadlisten.</span></div></div>'+
- '<div class="settings-card"><div class="settings-card-head"><span class="settings-card-icon teal">◎</span><div><h2>Senest oprettede leads</h2><p>'+leads.length+' gemte virksomheder</p></div><span style="margin-left:auto"><button class="btn ghost" data-act="go" data-v="leadhistory">Se alle gemte leads →</button></span></div>'+
- (leads.length?'<div style="display:grid;gap:10px">'+leads.slice(0,5).map(x=>'<article style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px;border:1px solid var(--line,#e2e6ef);border-radius:12px"><div style="flex:1;min-width:180px"><strong>'+esc(x.name)+'</strong><div class="mu">'+esc([x.industry,x.city].filter(Boolean).join(' · '))+'</div><div class="mu">'+esc(x.phone||'Intet telefonnummer')+'</div></div>'+leadRing(x)+'</article>').join('')+'</div>':'<p class="mu">Du har endnu ikke gemt nogen leads. Tilføj en virksomhed ovenfor.</p>')+'</div></section>';
-}
-function vLeadHistory(){
- const leads=LeadStore.all(),q=String(S.leadQuery||'').toLowerCase().trim(),list=leads.filter(x=>[x.name,x.industry,x.city,x.address,x.website,x.email,x.phone].join(' ').toLowerCase().includes(q));
- const calls=list.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0);
- return '<section class="lead-page"><div class="lead-hero"><div><span class="lead-kicker">PRIME WEBS AI · LEAD MANAGEMENT</span><h1>Lead History</h1><p>Alle dine leads, kontaktoplysninger og tidligere opkald samlet ét sted.</p></div><div class="lead-hero-mark">◷</div></div>'+
- '<div class="lead-stats"><div><small>Gemte leads</small><strong>'+leads.length+'</strong></div><div><small>Opkaldsforsøg</small><strong>'+calls+'</strong></div><div><small>Med telefonnummer</small><strong>'+leads.filter(x=>leadPhone(x)).length+'</strong></div></div>'+
- '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Alle leads</h2><p>'+list.length+' vist</p></div><button class="btn" data-act="go" data-v="leadfinder">＋ Opret lead</button></div>'+
- '<input class="lead-search" data-lead-query type="search" value="'+esc(S.leadQuery||'')+'" placeholder="Søg virksomhed, branche, by eller telefonnummer…">'+
- (list.length?'<div class="lead-list">'+list.map(x=>{const h=Array.isArray(x.callHistory)?x.callHistory:[],last=h[0];return '<article class="lead-row"><div class="lead-avatar">'+esc(String(x.name||'?').trim().slice(0,1).toUpperCase())+'</div><div class="lead-main"><strong>'+esc(x.name)+'</strong><span>'+esc([x.industry,x.city].filter(Boolean).join(' · ')||'Virksomhed')+'</span><small>'+esc(x.phone||'Intet telefonnummer')+' · '+(last?'Seneste opkaldsforsøg '+new Date(last.at).toLocaleString('da-DK'):'Ikke ringet endnu')+'</small></div>'+leadRing(x)+'<button class="btn ghost" data-act="leadDelete" data-id="'+esc(x.id)+'">'+(S.leadDelete===x.id?'Bekræft':'Slet')+'</button></article>'}).join('')+'</div>':'<p class="lead-empty">'+(leads.length?'Ingen leads matcher søgningen.':'Ingen leads gemt endnu. Opret dit første lead for at komme i gang.')+'</p>')+'</div></section>';
-}
-
 function projectSeoAudit(p){
  const blocks=p.site.blocks||[],types=new Set(blocks.map(b=>b.type)),contact=blocks.find(b=>b.type==='contact')||{},hero=blocks.find(b=>b.type==='hero')||{};
  const checks=[
@@ -843,64 +531,13 @@ function vFiles(){
  const ext=tab.split('.').pop();
  return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · FILES</span><h1>'+esc(p.name)+' / Filer</h1><p class="mu">Se, gennemgå og eksportér hjemmesidens filer. ZIP-eksporten indeholder HTML, JSON, billeder og en SEO-tjekliste.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn" data-act="zipDownload">Download komplet ZIP</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">READ ONLY</span></header><textarea class="code file-code" readonly spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+'</span><button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button><button class="btn" data-act="zipDownload">Download ZIP</button></footer></section></div>';
 }
-function vLeadRing(){
- const all=LeadStore.all(),q=String(S.ringQuery||'').trim().toLowerCase(),list=all.filter(x=>[x.name,x.email,x.phone].join(' ').toLowerCase().includes(q));
- const attempts=all.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0),ready=all.filter(x=>leadPhone(x)).length;
- const recent=all.flatMap(x=>(Array.isArray(x.callHistory)?x.callHistory:[]).map(c=>({...c,leadName:x.name,leadId:x.id}))).sort((a,b)=>b.at-a.at).slice(0,8),f=S.leadForm||{};
- const field=(key,label,placeholder,type='text')=>'<label class="lead-add-field">'+label+'<input data-lf="'+key+'" type="'+type+'" value="'+esc(f[key]||'')+'" placeholder="'+placeholder+'"></label>';
- return '<section class="lead-page"><div class="lead-hero lead-call-hero"><div><span class="lead-kicker">PRIME WEBS AI · LEAD MANAGEMENT</span><h1>Ring</h1><p>Opret og gem leads her. Brug Only Call, når du vil ringe dig gennem listen.</p></div><div class="lead-hero-mark" aria-hidden="true">☎</div></div>'+
- '<div class="lead-stats"><div><small>Gemte leads</small><strong>'+all.length+'</strong></div><div><small>Klar til opkald</small><strong>'+ready+'</strong></div><div><small>Opkaldsforsøg</small><strong>'+attempts+'</strong></div></div>'+
- '<div class="ring-shortcuts"><button class="ring-shortcut primary" data-act="go" data-v="onlycall"><span class="ring-shortcut-icon">☎</span><span><strong>Open Only Call</strong><small>Ring ét lead ad gangen</small></span><b>→</b></button><button class="ring-shortcut" data-act="go" data-v="ringcalendar"><span class="ring-shortcut-icon">▦</span><span><strong>Kalender</strong><small>Se alle bookede tider og opfølgninger</small></span><b>→</b></button><button class="ring-shortcut" data-act="go" data-v="bookings"><span class="ring-shortcut-icon">▤</span><span><strong>Bookingforespørgsler</strong><small>Se forespørgsler fra kundernes hjemmesider</small></span><b>→</b></button></div>'+
- '<div class="lead-panel lead-add-panel"><div class="lead-panel-head"><div><h2>＋ Gem lead</h2><p>Tilføj virksomhedens oplysninger til din ringeliste.</p></div></div><div class="lead-add-grid">'+field('name','Virksomhedsnavn','Fx Málaga Auto Service')+field('phone','Telefonnummer','+34 600 000 000','tel')+field('email','E-mail','kontakt@virksomhed.dk','email')+'</div>'+
- '<label class="lead-add-field" style="display:block;margin-top:12px">Noter<textarea data-lf="notes" rows="2" placeholder="Noter om virksomheden…">'+esc(f.notes||'')+'</textarea></label>'+
- (S.leadErr?'<p class="err" role="alert">'+esc(S.leadErr)+'</p>':'')+'<div class="lead-add-actions"><button class="btn" data-act="leadSave">Gem lead</button><span class="mu">Denne side gemmer leads – den starter ikke opkald.</span></div></div>'+
- '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Leadliste</h2><p>'+list.length+' virksomheder</p></div><button class="btn" data-act="go" data-v="onlycall">Åbn Only Call →</button></div><input class="lead-search" data-ring-query type="search" value="'+esc(S.ringQuery||'')+'" placeholder="Søg på navn, e-mail eller telefonnummer…">'+
- (list.length?'<div class="lead-list">'+list.map(x=>{const h=Array.isArray(x.callHistory)?x.callHistory:[],last=h[0];return '<article class="lead-row lead-call-row"><div class="lead-avatar">'+esc(String(x.name||'?').trim().slice(0,1).toUpperCase())+'</div><div class="lead-main"><strong>'+esc(x.name)+'</strong><span>'+esc(x.email||'Ingen e-mail')+'</span><small>'+esc(x.phone||'Intet telefonnummer')+'</small><em>'+(last?'Sidst ringet '+new Date(last.at).toLocaleString('da-DK'):'Ikke ringet endnu')+(x.status==='not_interested'?' · Ikke interesseret':'')+(x.bookingAt?' · Opfølgning '+new Date(x.bookingAt).toLocaleString('da-DK'):'')+'</em></div></article>'}).join('')+'</div>':'<p class="lead-empty">'+(all.length?'Ingen leads matcher søgningen.':'Du har ingen leads endnu.')+'</p>')+'</div>'+
- '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Lead History</h2><p>Seneste opkaldsforsøg</p></div></div>'+(recent.length?'<div class="lead-call-log">'+recent.map(c=>'<div class="lead-log-row"><span class="lead-log-icon">☎</span><div><strong>'+esc(c.leadName)+'</strong><small>Opkald åbnet · '+new Date(c.at).toLocaleString('da-DK')+'</small></div><span class="lead-log-status">Startet</span></div>').join('')+'</div>':'<p class="lead-empty">Historikken vises, når du ringer fra Only Call.</p>')+'</div></section>';
-}
-
-function vOnlyCall(){
- const all=LeadStore.all(),now=Date.now(),queue=all.filter(x=>leadPhone(x)&&(!Number(x.retryAt)||Number(x.retryAt)<=now));
- let idx=queue.findIndex(x=>String(x.id)===String(S.onlyCallId));
- if(idx<0&&queue.length&&!S.onlyCallDone){idx=0;S.onlyCallId=queue[0].id}
- const lead=idx>=0?queue[idx]:null,attempts=all.reduce((n,x)=>n+(Array.isArray(x.callHistory)?x.callHistory.length:0),0);
- const date=String(S.onlyCallBookingDate||''),time=String(S.onlyCallBookingTime||'');
- return '<section class="lead-page onlycall-page"><div class="lead-hero lead-call-hero"><div><span class="lead-kicker">PRIME WEBS AI · CALL WORKSPACE</span><h1>Only Call</h1><p>Ét lead ad gangen. Ring direkte fra mobilen, registrér resultatet, og gem opfølgninger i kalenderen.</p><div class="ring-calendar-hero-actions"><button class="ring-top-button" data-act="go" data-v="leadring">Leadliste</button><button class="ring-top-button" data-act="go" data-v="ringcalendar">Kalender</button><button class="ring-top-button" data-act="go" data-v="bookings">Bookingforespørgsler</button></div></div><div class="lead-hero-mark">☎</div></div>'+
- '<div class="lead-stats"><div><small>Leads i køen</small><strong>'+queue.length+'</strong></div><div><small>Opkaldsforsøg</small><strong>'+attempts+'</strong></div><div><small>Position</small><strong>'+(lead?(idx+1)+' / '+queue.length:'0 / 0')+'</strong></div></div>'+
- (lead?'<article class="lead-panel onlycall-card"><div class="lead-kicker">AKTUELT LEAD</div><h2>'+esc(lead.name)+'</h2><p class="mu">'+esc([lead.industry,lead.city].filter(Boolean).join(' · ')||'Virksomhed')+'</p><div class="onlycall-details"><div><span>Telefon</span><strong>'+esc(lead.phone)+'</strong></div>'+(lead.email?'<div><span>E-mail</span><strong>'+esc(lead.email)+'</strong></div>':'')+(lead.website?'<div><span>Hjemmeside</span><strong>'+esc(lead.website)+'</strong></div>':'')+(lead.notes?'<div><span>Noter</span><strong>'+esc(lead.notes)+'</strong></div>':'')+(lead.bookingAt?'<div><span>Næste opfølgning</span><strong>'+new Date(lead.bookingAt).toLocaleString('da-DK')+'</strong></div>':'')+'</div>'+
- '<div class="onlycall-actions"><a class="ring-action call" data-lead-call="'+esc(lead.id)+'" href="tel:'+esc(leadPhone(lead))+'"><span>☎</span><strong>Call</strong></a><button class="ring-action next" data-act="onlyCallNext"><span>→</span><strong>Next Record</strong></button><button class="ring-action" data-act="onlyCallNoAnswer"><span>◷</span><strong>No Answer · Retry in 8h</strong></button><button class="ring-action skip" data-act="onlyCallSkip"><span>×</span><strong>Not Interested</strong></button><button class="ring-action book" data-act="onlyCallOpenBooking"><span>▦</span><strong>Book a Time</strong></button></div>'+
- (S.onlyCallBookingOpen?'<div class="ring-booking-form"><div><h3>Book a follow-up</h3><p class="mu">Vælg dato og klokkeslæt. Aftalen bliver gemt i din kalender.</p></div><div class="ring-booking-fields"><label class="lead-add-field">Dato<input data-only-book-date type="date" min="'+new Date().toISOString().slice(0,10)+'" value="'+esc(date)+'"></label><label class="lead-add-field">Tidspunkt<input data-only-book-time type="time" value="'+esc(time)+'"></label></div><button class="ring-action save" data-act="onlyCallBook"><span>✓</span><strong>Save Follow-up</strong></button></div>':'')+'</article>':'<div class="lead-panel"><h2>Ingen flere leads i ringekøen</h2><p class="mu">Tilføj nye leads fra Leadliste. Leads markeret Not Interested er slettet permanent.</p><button class="btn" data-act="go" data-v="leadring">Åbn Leadliste</button></div>')+
- '<div class="lead-panel"><div class="lead-panel-head"><div><h2>Ringekø</h2><p>'+all.filter(x=>x.status==='not_interested').length+' ikke interesseret · '+all.filter(x=>x.bookingAt).length+' opfølgninger gemt</p></div><button class="btn ghost" data-act="go" data-v="leadring">Tilbage til Ring</button></div></div></section>';
-}
-function vRingCalendar(){
- const all=LeadStore.all(),now=new Date(),month=String(S.ringCalendarMonth||[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0')].join('-'));
- const parts=month.split('-').map(Number),year=parts[0]||now.getFullYear(),mon=(parts[1]||now.getMonth()+1)-1;
- const selected=String(S.ringCalendarDay||[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-'));
- const fmtDate=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
- const appointments=all.flatMap(lead=>{
-   const history=Array.isArray(lead.bookingHistory)?lead.bookingHistory:[];
-   const entries=history.length?history:(lead.bookingAt?[{bookedFor:lead.bookingAt}]:[]);
-   return entries.map((item,index)=>({lead,at:item.bookedFor||item.at||lead.bookingAt,index})).filter(x=>x.at&&!Number.isNaN(new Date(x.at).getTime()));
- }).sort((a,b)=>new Date(a.at)-new Date(b.at));
- const byDay={};appointments.forEach(a=>{const key=fmtDate(new Date(a.at));(byDay[key]||(byDay[key]=[])).push(a)});
- const first=new Date(year,mon,1),offset=(first.getDay()+6)%7,start=new Date(year,mon,1-offset);
- const cells=Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const key=fmtDate(d),inside=d.getMonth()===mon,items=byDay[key]||[];return '<button class="ring-calendar-day '+(inside?'':'outside')+' '+(key===selected?'selected':'')+'" data-act="ringCalendarDay" data-date="'+key+'"><span>'+d.getDate()+'</span>'+(items.length?'<i>'+items.length+'</i>':'')+'</button>'}).join('');
- const selectedItems=byDay[selected]||[];
- const upcoming=appointments.filter(a=>new Date(a.at)>=new Date(new Date().setHours(0,0,0,0))).slice(0,10);
- const eventRow=a=>'<article class="ring-event"><div class="ring-event-time"><strong>'+new Date(a.at).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})+'</strong><small>'+new Date(a.at).toLocaleDateString('da-DK',{day:'2-digit',month:'short'})+'</small></div><div class="ring-event-info"><strong>'+esc(a.lead.name||'Lead')+'</strong><small>'+esc(a.lead.phone||'Intet telefonnummer')+(a.lead.city?' · '+esc(a.lead.city):'')+'</small></div>'+(leadPhone(a.lead)?'<a class="ring-event-call" href="tel:'+esc(leadPhone(a.lead))+'">Call</a>':'')+'</article>';
- return '<section class="lead-page ring-calendar-page"><div class="lead-hero lead-call-hero"><div><span class="lead-kicker">PRIME WEBS AI · RING CALENDAR</span><h1>Your Calendar</h1><p>Alle bookede opfølgninger fra Only Call samlet i én kalender.</p><div class="ring-calendar-hero-actions"><button class="ring-top-button" data-act="go" data-v="leadring">← Tilbage til Ring</button><button class="ring-top-button" data-act="go" data-v="onlycall">Åbn Only Call</button></div></div><div class="lead-hero-mark">▦</div></div>'+
- '<div class="ring-calendar-layout"><section class="lead-panel ring-month-panel"><div class="ring-month-head"><button class="ring-month-nav" data-act="ringCalendarPrev" aria-label="Forrige måned">‹</button><div><h2>'+first.toLocaleDateString('da-DK',{month:'long',year:'numeric'})+'</h2><p>'+appointments.length+' bookede opfølgninger i alt</p></div><button class="ring-month-nav" data-act="ringCalendarNext" aria-label="Næste måned">›</button></div><div class="ring-weekdays"><span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span></div><div class="ring-calendar-grid">'+cells+'</div><div class="ring-calendar-legend"><i></i> Dag med booket opfølgning</div></section>'+
- '<section class="lead-panel ring-agenda-panel"><div class="ring-agenda-heading"><div><span class="lead-kicker">DAGENS OVERSIGT</span><h2>'+new Date(selected+'T12:00:00').toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'})+'</h2></div><span class="ring-agenda-count">'+selectedItems.length+' aftaler</span></div>'+
- (selectedItems.length?'<div class="ring-event-list">'+selectedItems.map(eventRow).join('')+'</div>':'<div class="ring-calendar-empty"><span>▦</span><strong>Ingen aftaler denne dag</strong><p>Vælg en anden dato eller book en opfølgning i Only Call.</p></div>')+
- '<div class="ring-upcoming"><h3>Kommende opfølgninger</h3>'+(upcoming.length?upcoming.map(eventRow).join(''):'<p class="mu">Ingen bookede opfølgninger endnu.</p>')+'</div></section></div></section>';
-}
-const V={dash:vDash,list:vDash,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin,leadring:vLeadRing,onlycall:vOnlyCall,ringcalendar:vRingCalendar};
+const V={dash:vDash,list:vDash,new:vNew,mini:vMini,builder:vBuilder,edit:vEdit,templates:vTpl,files:vFiles,domains:vDom,credits:vCred,customers:vCust,stats:vStats,finance:vFin,settings:vSet,admin:vAdmin};
 S.bookings=S.bookings||[];
 V.bookings=()=>{const rows=S.bookings||[],pending=rows.filter(x=>x.status==='pending').length,status={pending:'Afventer',accepted:'Accepteret',declined:'Afvist',cancelled:'Annulleret'};return `<section class="finance-hero"><div class="finance-hero-copy"><span class="finance-eyebrow">PRIME WEBS AI · BOOKING</span><h1>Bookingforespørgsler</h1><p>Alle online bookingforespørgsler fra dine kunders hjemmesider samlet ét sted.</p><div class="finance-tags"><span>${rows.length} i alt</span><span>${pending} afventer</span></div></div></section><section class="finance-panel"><div class="finance-panel-head"><div><h2>Seneste forespørgsler</h2><p class="mu">En booking er først endeligt aftalt, når virksomheden har bekræftet den.</p></div><button class="btn ghost" data-act="bookRefresh">Opdater</button></div>${rows.length?`<div class="finance-table-wrap"><table><tr><th>Dato / tid</th><th>Projekt</th><th>Kunde</th><th>Ydelse</th><th>Status</th><th>Handling</th></tr>${rows.map(x=>`<tr><td>${esc(x.requested_date)}<br>${String(x.requested_time||'').slice(0,5)}</td><td>${esc(x.projects&&x.projects.name||'Hjemmeside')}</td><td><strong>${esc(x.customer_name)}</strong><div class="mu">${esc(x.customer_email)}</div>${esc(x.customer_phone||'')}</td><td>${esc(x.service)}${x.notes?`<div class="mu">${esc(x.notes)}</div>`:''}</td><td>${status[x.status]||esc(x.status)}</td><td>${x.status==='pending'?`<button class="btn" data-act="bookStatus" data-id="${x.id}" data-status="accepted">Accepter</button> <button class="btn ghost" data-act="bookStatus" data-id="${x.id}" data-status="declined">Afvis</button>`: `<button class="btn ghost" data-act="bookStatus" data-id="${x.id}" data-status="pending">Sæt til afventer</button>`}</td></tr>`).join('')}</table></div>`:'<div class="finance-chart-empty"><span>▦</span><strong>Ingen bookingforespørgsler endnu</strong><p>Når en kunde sender en booking fra en offentliggjort hjemmeside, vises den her.</p></div>'}</section>`};
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='animationLevel'){const allowed=['none','subtle','advanced','immersive'];if(!allowed.includes(d.level))return 1;upd(S.id,q=>{q.site.meta=q.site.meta||{};q.site.meta.animation={level:d.level,scroll:d.level!=='none',floatingImages:d.level==='advanced'||d.level==='immersive',threeD:d.level==='immersive',animatedText:d.level!=='none'}});return 1}
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;if(d.v==='onlycall'&&!S.onlyCallId&&!S.onlyCallDone){const first=LeadStore.all().find(x=>leadPhone(x));S.onlyCallId=first?.id||null}S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
   if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Du er tilbage på Dashboard; dine gemte projekter er bevaret. Opdatér Dashboard, og prøv igen.');return 1}S.view='mini';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.msg='';S.err='';return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='tpl'){const t=TPL[+d.i];if(!t)return 1;S.form={name:'',desc:t.d,style:t.s,ind:t.industry||'',svc:'',tone:'Professionel'};S.view='new';S.err='';return 1}
@@ -927,32 +564,9 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
 }
 
 
-// Record that the tel: action was initiated; the browser cannot confirm whether a call connected.
-document.addEventListener('click',e=>{
- const link=e.target.closest&&e.target.closest('[data-lead-call]');
- if(!link)return;
- const id=link.getAttribute('data-lead-call'),items=LeadStore.all(),lead=items.find(x=>String(x.id)===String(id));
- if(!lead)return;
- lead.callHistory=Array.isArray(lead.callHistory)?lead.callHistory:[];
- lead.callHistory.unshift({at:Date.now()});lead.callHistory=lead.callHistory.slice(0,100);
- LeadStore.save(items);
-});
-document.addEventListener('input',e=>{
- if(e.target.matches('[data-ring-query]')){S.ringQuery=e.target.value;const pos=e.target.selectionStart;render();const el=document.querySelector('[data-ring-query]');if(el){el.focus();el.setSelectionRange(pos,pos)}}
-});
-
 function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
-  if(a==='leadSave'){const f=S.leadForm||{},name=String(f.name||'').trim(),email=String(f.email||'').trim(),phone=String(f.phone||'').trim();if(!name){S.leadErr='Skriv virksomhedens navn.';return 1}if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){S.leadErr='Skriv en gyldig e-mailadresse.';return 1}if(phone&&!/^[+\d][\d\s().-]{4,}$/.test(phone)){S.leadErr='Skriv et gyldigt telefonnummer.';return 1}LeadStore.add({name,email,phone,industry:String(f.industry||'').trim(),city:String(f.city||'').trim(),website:String(f.website||'').trim(),notes:String(f.notes||'').trim(),status:'new'});S.leadForm={name:'',industry:'',city:'',address:'',website:'',phone:'',email:'',notes:''};S.leadErr='';S.ringQuery='';S.view='leadring';return 1}
-  if(a==='onlyCallOpenBooking'){S.onlyCallBookingOpen=true;return 1}
-  if(a==='ringCalendarDay'){S.ringCalendarDay=d.date||'';return 1}
-  if(a==='ringCalendarPrev'||a==='ringCalendarNext'){const base=String(S.ringCalendarMonth||[new Date().getFullYear(),String(new Date().getMonth()+1).padStart(2,'0')].join('-')).split('-').map(Number);const dt=new Date(base[0],base[1]-1+(a==='ringCalendarPrev'?-1:1),1);S.ringCalendarMonth=[dt.getFullYear(),String(dt.getMonth()+1).padStart(2,'0')].join('-');return 1}
-  if(a==='onlyCallNext'){S.onlyCallBookingOpen=false;const q=LeadStore.all().filter(x=>leadPhone(x)&&(!Number(x.retryAt)||Number(x.retryAt)<=Date.now())),i=q.findIndex(x=>String(x.id)===String(S.onlyCallId));S.onlyCallId=i>=0&&i+1<q.length?q[i+1].id:null;S.onlyCallDone=!(i>=0&&i+1<q.length);S.onlyCallBookingDate='';S.onlyCallBookingTime='';return 1}
-  if(a==='onlyCallNoAnswer'){S.onlyCallBookingOpen=false;const all=LeadStore.all(),lead=all.find(x=>String(x.id)===String(S.onlyCallId));if(!lead)return 1;lead.retryAt=Date.now()+8*60*60*1000;lead.lastCallOutcome='no_answer';lead.callHistory=Array.isArray(lead.callHistory)?lead.callHistory:[];lead.callHistory.unshift({at:Date.now(),outcome:'no_answer',retryAt:lead.retryAt});LeadStore.save(all);const q=all.filter(x=>leadPhone(x)&&(!Number(x.retryAt)||Number(x.retryAt)<=Date.now()));const i=q.findIndex(x=>String(x.id)===String(S.onlyCallId));S.onlyCallId=i>=0&&i+1<q.length?q[i+1].id:null;S.onlyCallDone=!(i>=0&&i+1<q.length);S.onlyCallBookingDate='';S.onlyCallBookingTime='';banner('No Answer gemt. Leadet kommer tilbage i Ring om 8 timer.');return 1}
-  if(a==='onlyCallSkip'){S.onlyCallBookingOpen=false;const all=LeadStore.all(),oldIndex=all.filter(x=>leadPhone(x)).findIndex(x=>String(x.id)===String(S.onlyCallId)),kept=all.filter(x=>String(x.id)!==String(S.onlyCallId));LeadStore.save(kept);const q=kept.filter(x=>leadPhone(x));S.onlyCallId=q[Math.min(oldIndex,q.length-1)]?.id||null;S.onlyCallDone=q.length===0;S.onlyCallBookingDate='';S.onlyCallBookingTime='';banner('Leadet er slettet permanent fra Ring.');return 1}
-  if(a==='onlyCallBook'){const all=LeadStore.all(),lead=all.find(x=>String(x.id)===String(S.onlyCallId)),date=String(S.onlyCallBookingDate||''),time=String(S.onlyCallBookingTime||'');if(!lead)return 1;if(!date||!time){banner('Vælg både dato og tidspunkt.');return 1}const when=new Date(date+'T'+time);if(Number.isNaN(when.getTime())||when.getTime()<Date.now()){banner('Vælg et tidspunkt i fremtiden.');return 1}lead.bookingAt=when.toISOString();lead.status='callback';lead.bookingHistory=Array.isArray(lead.bookingHistory)?lead.bookingHistory:[];lead.bookingHistory.unshift({at:Date.now(),bookedFor:lead.bookingAt});LeadStore.save(all);S.onlyCallBookingOpen=false;S.onlyCallBookingDate='';S.onlyCallBookingTime='';banner('Opfølgningen er gemt i kalenderen.');return 1}
-  if(a==='onlyCallReset'){S.onlyCallBookingOpen=false;const all=LeadStore.all();S.onlyCallId=all.find(x=>leadPhone(x))?.id||null;S.onlyCallDone=false;return 1}
-  if(a==='leadDelete'){if(S.leadDelete===d.id){LeadStore.remove(d.id);S.leadDelete=null}else S.leadDelete=d.id;return 1}
+
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
   if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
   if(a==='billing'){S.pricingPeriod=d.p==='annual'?'annual':'monthly';return 1}
@@ -1124,8 +738,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b
 document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){Settings.set('accent',e.target.value);render()}else if(d.s){Settings.set(d.s,e.target.value);render()}else if(d.th&&/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setTheme(d.th,e.target.value);if(d.th==='background'){const n=parseInt(e.target.value.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,bright=(r*299+g*587+b*114)/1000;setTheme('surface',bright>155?'#FFFFFF':'#252A35');setTheme('text',bright>155?'#111111':'#FFFFFF');}render()}});
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
 const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280','Lead værktøjer':'#7B3FD1'};
-const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B',leadfinder:'#7B3FD1',leadhistory:'#0E9AA7',leadring:'#1E8E5A'};
-const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length,leadfinder:()=>LeadStore.all().length,onlycall:()=>LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested').length};
+const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B'};
+const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length,onlycall:()=>LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested').length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
@@ -1146,9 +760,7 @@ const NAV_ICONS={
   contact:'<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="7" rx="2"/><rect x="17" y="12" width="4" height="7" rx="2"/><path d="M17 19a5 5 0 0 1-5 3h-1"/>',
   adminp:'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
   admin:'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z"/>',
-  leadfinder:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10h5M10.5 7.5v5"/>',
-  leadhistory:'<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
-  leadring:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.4 2.7a2 2 0 0 1-.6 1.7L7.2 9.8a16 16 0 0 0 7 7l1.7-1.7a2 2 0 0 1 1.7-.6l2.7.4a2 2 0 0 1 1.7 2Z"/>',
+
   group:'<path d="M4 5h16M4 12h16M4 19h16"/>'
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
