@@ -739,7 +739,7 @@ document.addEventListener('change',e=>{const d=e.target.dataset;if(d.uiColor&&/^
 /* ===== Menu: farvegrupper, tællere og søgning ===== */
 const GC={Dashboard:'#2540D9','Domæner og publicering':'#0E9AA7','Credits og abonnementer':'#E8730C',Finance:'#1E8E5A',System:'#6B7280','Lead værktøjer':'#7B3FD1'};
 const NC={dash:'#2540D9',domains:'#0E9AA7',credits:'#E8730C',finance:'#1E8E5A',stats:'#38A3F1',settings:'#6B7280',colors:'#D6457F',contact:'#0E9AA7',adminp:'#7B3FD1',admin:'#7B3FD1',backup:'#8A5A3B'};
-const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length,onlycall:()=>LeadStore.all().filter(x=>leadPhone(x)&&x.status!=='not_interested').length};
+const CNT={list:()=>Projects.all().length,customers:()=>Customers.all().length};
 document.addEventListener('input',e=>{if(e.target.dataset.q!==undefined){S.q=e.target.value;render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.q!==undefined){const f=$('.side .nv:not(.par)');if(f){S.q='';f.click()}}});
 /* ===== Menu v2: undermenuer, hjemmeside-vælger og egne sider til redigering ===== */
