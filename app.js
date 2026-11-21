@@ -299,21 +299,21 @@ const NAV=[
  ['Workspace',[
   ['dash','Dashboard'],
   ['new','Builder'],
-  ['templates','Templates']
+  ['templates','Templates'],
+  ['leads','Lead Finder'],
+  ['domains','Domains'],
+  ['finance','Finance'],
+  ['university','University']
  ]],
  ['Growth',[
-  ['leads','Lead Finder'],
   ['customers','Clients'],
   ['bookings','Bookings'],
   ['stats','Analytics']
  ]],
  ['Manage',[
-  ['domains','Domains & Hosting'],
-  ['finance','Finance'],
   ['credits','Plans & Credits']
  ]],
  ['Learn & Support',[
-  ['university','University'],
   ['help','Help Center']
  ]],
  ['Settings',[
