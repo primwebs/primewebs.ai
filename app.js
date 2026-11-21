@@ -694,6 +694,21 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='bookRefresh'){window.PWDB.listBookings().then(x=>{S.bookings=x;render()}).catch(err=>banner('Kunne ikke hente bookinger: '+err.message));return}
   if(a==='bookStatus'){window.PWDB.updateBookingStatus(id,b.dataset.status).then(()=>window.PWDB.listBookings()).then(x=>{S.bookings=x;banner('Bookingstatus er opdateret.');render()}).catch(err=>banner('Kunne ikke opdatere booking: '+err.message));return}
+  if(a==='grp'){const st=Storage.get('pw.nav',{});st[b.dataset.g]=st[b.dataset.g]===0?1:0;Storage.set('pw.nav',st);return render()}
+  if(a==='sub'){const st=Storage.get('pw.nav',{}),k='s:'+b.dataset.k;st[k]=st[k]===1?0:1;Storage.set('pw.nav',st);return render()}
+  if(a==='go'){
+    const target=b.dataset.v||'dash';
+    if(target==='dash')S.view='list';
+    else if(target==='edit'){S.view='mini';S.miniTab='edit'}
+    else if(target==='adminp')S.view='admin';
+    else S.view=target;
+    if(target==='list')S.view='list';
+    if(target==='new')S.err='';
+    if(target==='builder'&&!S.id){S.view='new'}
+    if(target==='edit'&&!S.id){S.view='list'}
+    S.del=null;
+    return render();
+  }
   if(ext2(a,b)||ext(a,b))return render();
   if(a==='renameStart'){const p=Projects.all().find(x=>x.id===id);if(p){S.renameId=id;S.renameValue=p.name||''}return render()}
   if(a==='renameCancel'){S.renameId=null;S.renameValue='';return render()}
