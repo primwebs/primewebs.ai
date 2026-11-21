@@ -1082,3 +1082,47 @@ body{background:radial-gradient(ellipse at 12% -18%,rgba(104,91,239,.12),transpa
 .sd-help-contact h2{margin:0 0 .25rem}.sd-help-contact p{margin:0;color:var(--mu)}
 @media(max-width:1050px){.shell{grid-template-columns:235px minmax(0,1fr)}.sd-learning-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:820px){.shell{grid-template-columns:1fr}.side{position:relative;height:auto;max-height:none;border-right:0;border-bottom:1px solid var(--ln);padding:.8rem}.main{padding:1.15rem}.sd-learning-grid,.sd-help-grid{grid-template-columns:1fr}.sd-page-hero{padding:1.35rem}.sd-hero-symbol{width:58px;height:58px;font-size:1.6rem}.sd-help-contact{align-items:flex-start;flex-direction:column}}
+
+
+/* PRIME WEBS AI — stronger SiteDrop-inspired light workspace palette */
+:root,:root[data-theme="dark"],:root[data-theme="light"]{
+ color-scheme:light !important;
+ --bg:#f5f6fb !important;
+ --sf:#ffffff !important;
+ --ink:#171927 !important;
+ --mu:#697084 !important;
+ --ln:#e5e7f0 !important;
+ --ac:#7057f5 !important;
+ --ai:#ffffff !important;
+ --so:#efedff !important;
+}
+html,body{background:#f5f6fb !important;color:#171927 !important}
+body{background:radial-gradient(ellipse at 78% -18%,rgba(112,87,245,.12),transparent 35%),#f5f6fb !important}
+.shell{background:#f5f6fb !important;grid-template-columns:264px minmax(0,1fr) !important}
+.side{background:#fff !important;color:#171927 !important;border-right:1px solid #e7e8f0 !important;box-shadow:5px 0 24px rgba(27,25,56,.035) !important}
+.logo{color:#171927 !important;border-bottom:1px solid #ececf3 !important}
+.logo:before{background:linear-gradient(135deg,#7057f5,#9c6bff) !important}
+.ms{background:#f7f7fb !important;color:#282b3a !important;border:1px solid #e7e8f0 !important}
+.gh{color:#85899a !important}
+.nv{color:#555b70 !important}
+.nv:hover:not(:disabled){background:#f5f3ff !important;color:#30245f !important}
+.nv.on,.nv.kid[aria-current=page]{background:linear-gradient(100deg,#efedff,#f7f5ff) !important;color:#563be2 !important;box-shadow:inset 3px 0 0 #765bf6 !important}
+.nv.on .nav-icon{color:#7057f5 !important}
+.who{color:#34384a !important;border-top:1px solid #ececf3 !important}
+.main{background:transparent !important;color:#171927 !important}
+.card,.lead-panel,.finance-panel,.settings-card,.sd-learning-card,.sd-help-card,.insight-panel{background:#fff !important;color:#171927 !important;border:1px solid #e7e8f0 !important;box-shadow:0 8px 30px rgba(31,29,65,.045) !important}
+.mu,.card .mu,.lead-panel p,.finance-panel p{color:#73798c !important}
+input,textarea,select,.lead-field input{background:#fff !important;color:#171927 !important;border-color:#dfe2ec !important}
+.btn{background:linear-gradient(110deg,#7057f5,#8a62f7) !important;color:#fff !important;border:1px solid #7057f5 !important;box-shadow:0 5px 16px rgba(112,87,245,.18) !important}
+.btn.ghost{background:#fff !important;color:#5b45dc !important;border-color:#e1ddfb !important;box-shadow:none !important}
+.dash-hero,.lead-hero,.finance-hero,.pricing-hero,.insight-hero,.settings-hero,.sd-page-hero{background:radial-gradient(ellipse at 82% 10%,rgba(174,151,255,.34),transparent 36%),linear-gradient(115deg,#211a49,#4931a1 58%,#7652d8) !important;border:1px solid #765de1 !important;color:#fff !important;box-shadow:0 18px 48px rgba(62,43,139,.16) !important}
+.dash-hero p,.lead-hero p,.finance-hero p,.pricing-hero p,.insight-hero p,.settings-hero p{color:#e4defe !important}
+.finance-table-wrap table{background:#fff !important;color:#222538 !important}
+.finance-table-wrap th{background:#f7f6fc !important;color:#5f6376 !important}
+.finance-table-wrap td{border-color:#ececf3 !important}
+.sd-learning-card,.sd-help-card{background:linear-gradient(145deg,#fff,#fafaff) !important}
+.sd-learning-card h2,.sd-help-card h2,.sd-help-contact h2{color:#171927 !important}
+.sd-learning-card p,.sd-help-card p,.sd-help-contact p{color:#6e7488 !important}
+.sd-help-contact{background:#fff !important;border-color:#e7e8f0 !important}
+.lead-panel a{color:#6d55ed !important}
+@media(max-width:820px){.shell{grid-template-columns:1fr !important}.side{border-right:0 !important;border-bottom:1px solid #e7e8f0 !important}}
