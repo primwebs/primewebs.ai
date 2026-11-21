@@ -57,11 +57,7 @@ const mk={
     {t:'Hurtig levering',d:'Du får svar og løsning hurtigt, uden unødige omveje.'},
     {t:'Personlig service',d:'Du taler direkte med dem, der løser opgaven.'},
     {t:'Klar pris',d:'Du ved, hvad det koster, før vi går i gang.'}]}),
-  about:(n,d)=>({id:uid(),type:'about',title:'Om '+n,text:(d?d+'
-
-':'')+'Vi er et lokalt team, der brænder for at gøre en forskel for vores kunder. Vi lytter først og leverer derefter løsninger, der er tænkt igennem.
-
-Vores mål er, at du føler dig godt hjulpet fra første henvendelse, til opgaven er løst.'}),
+  about:(n,d)=>({id:uid(),type:'about',title:'Om '+n,text:(d?d+'\n\n':'')+'Vi er et lokalt team, der brænder for at gøre en forskel for vores kunder. Vi lytter først og leverer derefter løsninger, der er tænkt igennem.\n\nVores mål er, at du føler dig godt hjulpet fra første henvendelse, til opgaven er løst.'}),
   services:()=>({id:uid(),type:'services',title:'Vores ydelser',items:[
     {t:'Rådgivning',d:'Vi starter med en uforpligtende samtale, hvor vi lytter til dine behov og finder den bedste løsning sammen med dig.'},
     {t:'Løsning og udførelse',d:'Vi udfører opgaven grundigt og med fokus på kvalitet, så resultatet holder længe.'},
@@ -199,9 +195,7 @@ const AI={mode:'api',
 const B={
   hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
-  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/
-
-+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
+  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
   services:b=>B.features(b),
   pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   team:b=>`<section class="team-section"><h2>${esc(b.title||'Mød teamet')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c team-card"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
@@ -230,12 +224,7 @@ const bookingRuntime=site=>{
   document.body.innerHTML='<main id="pw-booking-page" style="min-height:100vh;background:linear-gradient(145deg,'+c.background+','+c.surface+');color:'+c.text+';font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:clamp(18px,5vw,56px) 16px"><div style="max-width:760px;margin:0 auto"><a href="#" style="display:inline-flex;gap:8px;align-items:center;color:'+c.text+';text-decoration:none;font-weight:700">← Tilbage til hjemmesiden</a><div style="margin-top:28px;padding:clamp(22px,5vw,44px);border:1px solid '+line+';border-radius:26px;background:'+c.surface+';box-shadow:0 24px 70px #00000012"><div style="display:inline-flex;padding:7px 12px;border-radius:99px;background:'+c.accent+'18;color:'+c.accent+';font-size:12px;font-weight:800;letter-spacing:.12em">BOOKINGFORESPØRGSEL</div><h1 style="font-size:clamp(32px,6vw,48px);line-height:1.08;letter-spacing:-.04em;margin:18px 0 12px">Book en tid hos '+esc(c.title)+'</h1><p style="color:'+muted+';line-height:1.65;margin:0 0 26px">Fortæl os, hvilken ydelse du ønsker, og hvornår det passer dig. Virksomheden vender tilbage for at bekræfte tidspunktet.</p><form id="pw-booking" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px"><label style="display:grid;gap:7px;font-weight:700">Ydelse<select name="service" required style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit;grid-column:1/-1">'+(c.services.length?c.services:['Aftale / konsultation']).map(x=>'<option>'+esc(x)+'</option>').join('')+'</select></label><label style="display:grid;gap:7px;font-weight:700">Ønsket dato<input name="date" type="date" min="'+min+'" required style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit"></label><label style="display:grid;gap:7px;font-weight:700">Ønsket tidspunkt<input name="time" type="time" required style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit"></label><label style="display:grid;gap:7px;font-weight:700">Dit navn<input name="name" required autocomplete="name" maxlength="120" style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit"></label><label style="display:grid;gap:7px;font-weight:700">E-mail<input name="email" type="email" required autocomplete="email" maxlength="160" style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit"></label><label style="display:grid;gap:7px;font-weight:700">Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel" maxlength="40" style="min-width:0;width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit"></label><label style="display:grid;gap:7px;font-weight:700;grid-column:1/-1">Besked eller særlige ønsker (valgfrit)<textarea name="notes" rows="3" maxlength="1000" style="width:100%;padding:14px;border:1px solid '+line+';border-radius:12px;background:'+c.surface+';color:'+c.text+';font:inherit;resize:vertical"></textarea></label><button type="submit" style="grid-column:1/-1;border:0;border-radius:13px;padding:16px 20px;background:'+c.accent+';color:#fff;font-weight:800;font-size:16px;cursor:pointer">Fortsæt til e-mail og send forespørgsel →</button><p id="pw-booking-note" role="status" style="grid-column:1/-1;color:'+muted+';font-size:13px;margin:0">Bemærk: Din tid er først reserveret, når virksomheden har bekræftet den.</p></form></div><p style="text-align:center;color:'+muted+';font-size:12px;margin:18px 0">Bookingforespørgsel til '+esc(c.title)+'</p></div></main><style>@media(max-width:560px){#pw-booking form{grid-template-columns:1fr}#pw-booking label,#pw-booking button,#pw-booking-note{grid-column:1!important}}</style>';
   document.getElementById('pw-booking').addEventListener('submit',async function(e){e.preventDefault();const form=this,button=form.querySelector('button[type="submit"]'),note=document.getElementById('pw-booking-note'),d=Object.fromEntries(new FormData(form).entries());if(button.disabled)return;button.disabled=true;button.textContent='Sender bookingforespørgsel…';note.textContent='Gemmer din forespørgsel sikkert…';try{await submitBooking(d);form.reset();note.textContent='Tak! Din bookingforespørgsel er modtaget. Virksomheden vender tilbage for at bekræfte tidspunktet.';button.textContent='Forespørgsel sendt ✓';}catch(err){note.textContent=(err&&err.message)||'Vi kunne ikke gemme forespørgslen. Prøv igen eller kontakt virksomheden direkte.';button.disabled=false;button.textContent='Send bookingforespørgsel →';}});
   }
-  document.addEventListener('submit',function(e){if(e.target&&e.target.id==='pw-contact-form'){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(!c.email){document.getElementById('pw-contact-note').textContent='Virksomheden har endnu ikke angivet en e-mailadresse. Brug telefon eller WhatsApp.';return}const subject='Henvendelse fra hjemmesiden – '+c.title;const body='Navn: '+d.name+'\
-E-mail: '+d.email+'\
-Telefon: '+d.phone+'\
-\
-Besked:\
-'+d.message;location.href='mailto:'+encodeURIComponent(c.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);document.getElementById('pw-contact-note').textContent='Din e-mailapp åbnes. Tryk Send for at sende beskeden.'}});
+  document.addEventListener('submit',function(e){if(e.target&&e.target.id==='pw-contact-form'){e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(!c.email){document.getElementById('pw-contact-note').textContent='Virksomheden har endnu ikke angivet en e-mailadresse. Brug telefon eller WhatsApp.';return}const subject='Henvendelse fra hjemmesiden – '+c.title;const body='Navn: '+d.name+'\\nE-mail: '+d.email+'\\nTelefon: '+d.phone+'\\n\\nBesked:\\n'+d.message;location.href='mailto:'+encodeURIComponent(c.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);document.getElementById('pw-contact-note').textContent='Din e-mailapp åbnes. Tryk Send for at sende beskeden.'}});
   window.addEventListener('hashchange',render);if(location.hash==='#booking')render();
   })();</script>`;
 };
@@ -552,24 +541,7 @@ function projectSeoAudit(p){
  ['Lokal relevans',!!(p.site.meta&&p.site.meta.title),'Brug virksomhedsnavn og korrekt serviceområde naturligt i sidens indhold.'],
  ['Booking',types.has('booking'),'Tilføj kun booking, hvis virksomheden reelt tager imod tidsbestillinger.']
  ];
- return '# SEO- og kvalitetsrapport: '+p.name+'
-
-Genereret af PRIME WEBS AI. Dette er en redaktionel tjekliste – ikke en måling fra Google eller et løfte om placeringer.
-
-## Kontrolpunkter
-
-'+checks.map(([n,ok,h])=>'- ['+(ok?'x':' ')+'] **'+n+'** — '+(ok?'Fundet i hjemmesidens indhold.':h)).join('
-')+'
-
-## Anbefalinger før publicering
-
-- Kontrollér virksomhedsnavn, adresse, telefon, e-mail og åbningstider.
-- Skriv en unik sidetitel og metabeskrivelse til den færdige hjemmeside.
-- Kontrollér mobilvisning, kontrast, tastaturnavigation og formularer.
-- Tilføj korrekte juridiske oplysninger og privatlivspolitik, hvor det er relevant.
-- Tilslut eget domæne, HTTPS og Google Search Console efter publicering.
-- Test alle links og kontakt-/bookingflows med rigtige modtageroplysninger.
-';
+ return '# SEO- og kvalitetsrapport: '+p.name+'\n\nGenereret af PRIME WEBS AI. Dette er en redaktionel tjekliste – ikke en måling fra Google eller et løfte om placeringer.\n\n## Kontrolpunkter\n\n'+checks.map(([n,ok,h])=>'- ['+(ok?'x':' ')+'] **'+n+'** — '+(ok?'Fundet i hjemmesidens indhold.':h)).join('\n')+'\n\n## Anbefalinger før publicering\n\n- Kontrollér virksomhedsnavn, adresse, telefon, e-mail og åbningstider.\n- Skriv en unik sidetitel og metabeskrivelse til den færdige hjemmeside.\n- Kontrollér mobilvisning, kontrast, tastaturnavigation og formularer.\n- Tilføj korrekte juridiske oplysninger og privatlivspolitik, hvor det er relevant.\n- Tilslut eget domæne, HTTPS og Google Search Console efter publicering.\n- Test alle links og kontakt-/bookingflows med rigtige modtageroplysninger.\n';
 }
 function zipCrc32(bytes){let c=-1;for(let i=0;i<bytes.length;i++){c^=bytes[i];for(let j=0;j<8;j++)c=(c>>>1)^((c&1)?0xEDB88320:0)}return(c^-1)>>>0}
 function makeZip(files){
@@ -587,37 +559,15 @@ function downloadProjectZip(p){
  const files=[],html=Renderer.html(p);let packaged=html,n=0;
  const dataUrls=[...new Set((html.match(/data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+/g)||[]))];
  for(const url of dataUrls){const m=url.match(/^data:image\/(jpeg|png|webp|gif);base64,([\s\S]+)$/);if(!m)continue;const bin=atob(m[2]),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);const ext=m[1]==='jpeg'?'jpg':m[1],path='assets/images/image-'+(++n)+'.'+ext;files.push({name:path,data:bytes});packaged=packaged.split(url).join(path)}
- files.unshift({name:'index.html',data:packaged},{name:'site.json',data:JSON.stringify(p.site,null,2)},{name:'images.json',data:JSON.stringify(Imgs.all(),null,2)},{name:'SEO-CHECKLIST.md',data:projectSeoAudit(p)},{name:'README.md',data:'# '+p.name+'
-
-Website export from PRIME WEBS AI.
-
-- Open index.html to preview the website.
-- site.json contains the editable website structure.
-- Images embedded in the generated HTML are included in assets/images/.
-- Review all contact details, links, legal pages, forms and booking settings before publishing.
-
-This export is static HTML. Dynamic form delivery, booking storage, analytics, authentication and domain hosting require separate services and configuration.
-'});
+ files.unshift({name:'index.html',data:packaged},{name:'site.json',data:JSON.stringify(p.site,null,2)},{name:'images.json',data:JSON.stringify(Imgs.all(),null,2)},{name:'SEO-CHECKLIST.md',data:projectSeoAudit(p)},{name:'README.md',data:'# '+p.name+'\n\nWebsite export from PRIME WEBS AI.\n\n- Open index.html to preview the website.\n- site.json contains the editable website structure.\n- Images embedded in the generated HTML are included in assets/images/.\n- Review all contact details, links, legal pages, forms and booking settings before publishing.\n\nThis export is static HTML. Dynamic form delivery, booking storage, analytics, authentication and domain hosting require separate services and configuration.\n'});
  const host=String(p.domain||'').trim().replace(/^https?:\/\//i,'').replace(/\/.*$/,'').toLowerCase();
- if(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(host)){files.push({name:'sitemap.xml',data:'<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://'+host+'/</loc></url></urlset>'},{name:'robots.txt',data:'User-agent: *
-Allow: /
-Sitemap: https://'+host+'/sitemap.xml
-'})}
+ if(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(host)){files.push({name:'sitemap.xml',data:'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://'+host+'/</loc></url></urlset>'},{name:'robots.txt',data:'User-agent: *\nAllow: /\nSitemap: https://'+host+'/sitemap.xml\n'})}
  const blob=makeZip(files),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(String(p.name||'website').toLowerCase().replace(/[^a-z0-9æøå-]+/g,'-').replace(/^-|-$/g,'')||'website')+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 function vFiles(){
  const p=getP();if(!p)return vPick('files');
  const tab=S.fileTab||'index.html',files=[['index.html','HTML','Den færdige hjemmeside, som kan eksporteres.'],['site.json','JSON','Struktureret kilde til hjemmesideindhold og design.'],['README.md','DOCS','Kort projektbeskrivelse og filoversigt.'],['SEO-CHECKLIST.md','SEO','Tjekliste over indhold og publiceringsklarhed.']];
- const html=Renderer.html(p),data=tab==='index.html'?html:tab==='site.json'?JSON.stringify(p.site,null,2):tab==='SEO-CHECKLIST.md'?projectSeoAudit(p):'# '+p.name+'
-
-Dette projekt er oprettet i PRIME WEBS AI.
-
-- index.html – genereret hjemmeside.
-- site.json – struktur, sektioner og designtema.
-- SEO-CHECKLIST.md – redaktionel SEO- og kvalitetskontrol.
-- Projektet kan redigeres i AI Chat eller Visuel editor.
-';
+ const html=Renderer.html(p),data=tab==='index.html'?html:tab==='site.json'?JSON.stringify(p.site,null,2):tab==='SEO-CHECKLIST.md'?projectSeoAudit(p):'# '+p.name+'\n\nDette projekt er oprettet i PRIME WEBS AI.\n\n- index.html – genereret hjemmeside.\n- site.json – struktur, sektioner og designtema.\n- SEO-CHECKLIST.md – redaktionel SEO- og kvalitetskontrol.\n- Projektet kan redigeres i AI Chat eller Visuel editor.\n';
  const ext=tab.split('.').pop();
  return '<section class="file-workspace-head"><div><span class="dash-section-kicker">PROJECT WORKSPACE · FILES</span><h1>'+esc(p.name)+' / Filer</h1><p class="mu">Se, gennemgå og eksportér hjemmesidens filer. ZIP-eksporten indeholder HTML, JSON, billeder og en SEO-tjekliste.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="edit">AI Chat</button><button class="btn" data-act="zipDownload">Download komplet ZIP</button></div></section><div class="file-workspace"><aside class="file-tree"><strong>Projektfiler</strong><small>ROOT / '+esc(p.name.toLowerCase().replace(/[^a-z0-9-]+/g,'-'))+'</small>'+files.map(x=>'<button class="file-tree-item '+(tab===x[0]?'active':'')+'" data-act="fileTab" data-file="'+x[0]+'"><span class="file-type">'+x[1]+'</span>'+x[0]+'</button>').join('')+'</aside><section class="file-viewer"><header><div><strong>'+tab+'</strong><small>'+((files.find(x=>x[0]===tab)||[])[2]||'')+'</small></div><span class="file-readonly">READ ONLY</span></header><textarea class="code file-code" readonly spellcheck="false">'+esc(data)+'</textarea><footer><span class="mu">'+data.length.toLocaleString('da-DK')+' tegn · '+ext.toUpperCase()+'</span><button class="btn ghost" data-act="fileDownload" data-file="'+tab+'">Download '+tab+'</button><button class="btn" data-act="zipDownload">Download ZIP</button></footer></section></div>';
 }
@@ -648,14 +598,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='templateFilter'){S.templateCategory=d.filter||'Alle';return 1}
   if(a==='fileTab'){S.fileTab=d.file||'index.html';return 1}
   if(a==='zipDownload'){const p=getP();if(p)downloadProjectZip(p);return 1}
-  if(a==='fileDownload'){const p=getP();if(!p)return 1;const tab=d.file||'index.html',content=tab==='index.html'?Renderer.html(p):tab==='site.json'?JSON.stringify(p.site,null,2):tab==='SEO-CHECKLIST.md'?projectSeoAudit(p):'# '+p.name+'
-
-Genereret i PRIME WEBS AI.
-
-- index.html: hjemmeside
-- site.json: struktureret indhold og design
-- SEO-CHECKLIST.md: redaktionel tjekliste
-';const blob=new Blob([content],{type:tab.endsWith('.html')?'text/html;charset=utf-8':tab.endsWith('.json')?'application/json;charset=utf-8':'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=tab;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);return 1}
+  if(a==='fileDownload'){const p=getP();if(!p)return 1;const tab=d.file||'index.html',content=tab==='index.html'?Renderer.html(p):tab==='site.json'?JSON.stringify(p.site,null,2):tab==='SEO-CHECKLIST.md'?projectSeoAudit(p):'# '+p.name+'\n\nGenereret i PRIME WEBS AI.\n\n- index.html: hjemmeside\n- site.json: struktureret indhold og design\n- SEO-CHECKLIST.md: redaktionel tjekliste\n';const blob=new Blob([content],{type:tab.endsWith('.html')?'text/html;charset=utf-8':tab.endsWith('.json')?'application/json;charset=utf-8':'text/markdown;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=tab;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);return 1}
   if(a==='threeModelRemove'){upd(S.id,q=>{const block=q.site.blocks[+d.i];if(!block||block.type!=='threeD')return;q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];block.modelData='';block.modelName='';block.modelFormat='glb'});return 1}
   if(a==='bmove'||a==='brem'||a==='badd'){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const bl=q.site.blocks,i=+d.i;
     if(a==='badd'){const ci=bl.findIndex(x=>x.type==='contact'),nb=mk[d.t](q.site.meta.title,'');(d.t!=='contact'&&ci>-1)?bl.splice(ci,0,nb):bl.push(nb)}
@@ -1021,9 +964,7 @@ V.new=function(){
  return '<section class="pw-builder-page"><header class="pw-builder-top"><button class="btn ghost" data-act="go" data-v="dash">←</button><b>PRIME WEBS AI · Website Builder</b><span class="sp"></span><span class="pw-save-indicator">● Ready to build</span><button class="btn ghost" data-act="go" data-v="preview">Preview</button><button class="btn ghost" data-act="go" data-v="files">Code</button></header><div class="pw-builder-workspace"><aside class="pw-builder-controls"><h1>Let’s build your website</h1><p>Describe your business and see a real visual direction before you generate the full website.</p><b class="pw-example-label">✧ Choose a starting point</b><div class="pw-builder-types">'+['Business','Startup','Portfolio','Store'].map(function(x){return '<button type="button" class="'+(kind===x?'selected':'')+'" data-act="pwBuilderType" data-value="'+x+'">'+x+'</button>'}).join('')+'</div><div class="pw-builder-examples">'+ex.map(function(x){return '<button type="button" data-x="ex" data-t="'+x[0]+'. '+x[1]+'"><b>'+x[0]+'</b><small>'+x[1]+'</small></button>'}).join('')+'</div><label class="pw-builder-prompt"><textarea data-f="desc" placeholder="Describe the website you want to build…">'+esc(f.desc||'')+'</textarea><span><button class="btn" data-act="gen" '+(S.busy?'disabled':'')+'>'+(S.busy?'Building…':'↑')+'</button></span></label><label class="pw-builder-name">Business / project name<input data-f="name" value="'+esc(f.name||'')+'" placeholder="Your business name"></label>'+(S.err?'<p class="err">'+esc(S.err)+'</p>':'')+'</aside><section class="pw-builder-preview"><div class="pw-preview-browser"><span>● ● ●</span><b>'+esc((f.name||'yourbusiness')+'.com')+'</b><span class="pw-preview-label">LIVE DESIGN DIRECTION</span></div>'+frame+'</section></div></section>';
 };
 function safeView(){try{return(V[S.view]||vList)()}catch(e){console.error(e);return errCard(e)}}
-function fatal(e){console.error(e);let raw='';try{raw=Object.keys(localStorage).filter(k=>k.startsWith('pw.')).map(k=>k+' = '+localStorage.getItem(k)).join('
-
-')}catch(x){}
+function fatal(e){console.error(e);let raw='';try{raw=Object.keys(localStorage).filter(k=>k.startsWith('pw.')).map(k=>k+' = '+localStorage.getItem(k)).join('\n\n')}catch(x){}
   $('#app').innerHTML=`<main class="main" style="max-width:720px;margin:6vh auto"><div class="card"><h1>Noget gik galt</h1><p class="err">${esc((e&&e.message)||e)}</p><p>Dine data er ikke slettet. Prøv igen, eller kopiér dem herfra til en fil som sikkerhed.</p><div class="row"><button class="btn" data-x="retry">Prøv igen</button><button class="btn ghost" data-x="home">Til Dashboard</button></div><label style="margin-top:1rem">Dine data (markér og kopiér)<textarea class="code" readonly>${esc(raw)}</textarea></label></div></main>`}
 function render(){try{render0()}catch(e){fatal(e)}}
 window.addEventListener('error',e=>banner('Der opstod en fejl: '+(e.message||'ukendt')));
@@ -1034,9 +975,7 @@ window.addEventListener('unhandledrejection',e=>banner('Der opstod en fejl: '+((
 V.contact=()=>{const s=Settings.get();return '<div class="contact-page"><section class="settings-hero"><div><span class="settings-eyebrow">PRIME WEBS AI / VIRKSOMHED</span><h1>Kontakt</h1><p>Virksomhedens kontaktoplysninger og support samlet ét sted.</p></div><div class="settings-hero-icon">✉</div></section><div class="contact-layout"><section class="settings-card"><div class="contact-profile-top"><div class="settings-avatar">PW</div><div><span class="settings-overline">VIRKSOMHEDSPROFIL</span><h2>'+esc(s.company)+'</h2><p>Officielle kontaktoplysninger</p></div></div><a class="contact-detail" href="mailto:'+esc(s.email)+'"><span class="contact-detail-icon">✉</span><span><small>E-MAIL</small><strong>'+esc(s.email)+'</strong></span><b>↗</b></a><a class="contact-detail" href="tel:'+esc(s.phone.replace(/\s+/g,''))+'"><span class="contact-detail-icon">☎</span><span><small>TELEFON</small><strong>'+esc(s.phone)+'</strong></span><b>↗</b></a><a class="contact-detail" href="'+esc(s.web)+'" target="_blank" rel="noopener"><span class="contact-detail-icon">◎</span><span><small>HJEMMESIDE</small><strong>'+esc(s.web)+'</strong></span><b>↗</b></a><p class="settings-status-note">Du kan ændre oplysningerne under Indstillinger → Virksomhedsoplysninger.</p></section><section class="settings-card contact-message"><div class="settings-card-head"><span class="settings-card-icon violet">✉</span><div><h2>Send en besked</h2><p>Åbn en e-mail med din besked klar.</p></div></div><label class="settings-field"><span>Dit navn</span><input id="kn" placeholder="Skriv dit navn"></label><label class="settings-field"><span>Besked</span><textarea id="kb" rows="6" placeholder="Hvad kan vi hjælpe med?"></textarea></label><button class="btn contact-send" data-x="mail">Åbn i din mailapp <span>↗</span></button><p class="settings-status-note">Beskeden sendes først, når du selv trykker Send i din mailapp.</p></section></div></div>'};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"],[data-x="home"],[data-x="closeerr"],[data-x="mail"]');if(!b)return;const x=b.dataset.x;
   if(x==='closeerr'){const r=document.getElementById('errbar');if(r)r.remove()}
-  else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'
-
-Mvh. '+n:''));a.click()}
+  else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
@@ -1118,12 +1057,6 @@ document.addEventListener('click',function(e){
  if(a==='pwInvRemoveLine'){const x=Storage.get('pw.invoiceDraftLines',[]);x.splice(+b.dataset.i,1);Storage.set('pw.invoiceDraftLines',x.length?x:[{description:'',qty:1,price:''}]);render()}
  if(a==='pwInvSave'){const inv=pwInvCurrent();if(!inv.client||!inv.email){const d=Storage.get('pw.invoiceDraft',{});if(!d.client||!d.clientEmail){banner('Add the client name and email before saving the invoice.');return}}const list=pwInvoices(),at=list.findIndex(x=>x.id===inv.id);if(at>=0)list[at]=inv;else list.push(inv);Storage.set(PW_INVOICES_KEY,list);Storage.set('pw.invoiceDraft',{...Storage.get('pw.invoiceDraft',{}),id:inv.id,number:inv.number});banner('Invoice draft saved.');render()}
  if(a==='pwInvPrint'||a==='pwInvPrintSaved'){let inv;if(a==='pwInvPrintSaved')inv=pwInvoices().find(x=>x.id===b.dataset.id);else inv=pwInvCurrent();if(!inv){banner('Invoice not found.');return}const w=window.open('','_blank');if(!w){banner('Allow pop-ups to open the printable invoice.');return}w.document.open();w.document.write(pwInvoiceHTML(inv));w.document.close()}
- if(a==='pwInvEmail'){const inv=pwInvCurrent();if(!inv.clientEmail){banner('Add the client email first.');return}const body='Hello '+(inv.client||'')+',
-
-Please find your invoice '+inv.number+' for '+pwInvMoney(inv.total,inv.currency||'EUR')+'.
-Due date: '+(inv.due||'Please contact us')+'.
-
-Thank you,
-'+(inv.business||inv.person||'');window.location.href='mailto:'+encodeURIComponent(inv.clientEmail)+'?subject='+encodeURIComponent('Invoice '+inv.number)+'&body='+encodeURIComponent(body)}
+ if(a==='pwInvEmail'){const inv=pwInvCurrent();if(!inv.clientEmail){banner('Add the client email first.');return}const body='Hello '+(inv.client||'')+',\n\nPlease find your invoice '+inv.number+' for '+pwInvMoney(inv.total,inv.currency||'EUR')+'.\nDue date: '+(inv.due||'Please contact us')+'.\n\nThank you,\n'+(inv.business||inv.person||'');window.location.href='mailto:'+encodeURIComponent(inv.clientEmail)+'?subject='+encodeURIComponent('Invoice '+inv.number)+'&body='+encodeURIComponent(body)}
  if(a==='pwInvLoad'){const inv=pwInvoices().find(x=>x.id===b.dataset.id);if(inv){const {id,number,client,clientEmail,clientAddress,date,due,currency,tax,payment,note}=inv;Storage.set('pw.invoiceDraft',{id,number,client,clientEmail,clientAddress,date,due,currency,tax,payment,note});Storage.set('pw.invoiceDraftLines',inv.lines||[]);render()}}
 });
