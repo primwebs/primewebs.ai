@@ -842,7 +842,7 @@ const NAV_ICONS={
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
 function navHtml(){
  const mode=Storage.get('pw.workMode','clients')==='own'?'own':'clients';
- const item=(key,label)=>`<button class="sd-side-link ${(S.view===key||(S.view==='mini'&&S.miniTab===key))?'active':''}" data-act="go" data-v="${key}"><span class="sd-side-icon">${navIcon(key)}</span><span>${label}</span>${key==='new'?'<em>NEW</em>':''}</button>`;
+ const item=(key,label)=>`<button class="sd-side-link ${(S.view===key||(key==='dash'&&S.view==='list')||(S.view==='mini'&&S.miniTab===key))?'active':''}" data-act="go" data-v="${key}"><span class="sd-side-icon">${navIcon(key)}</span><span>${label}</span>${key==='new'?'<em>NEW</em>':''}</button>`;
  return `<div class="sd-side-section-label">MENU</div>
  ${item('dash','Dashboard')}${item('new','Builder')}${item('leads','Lead Finder')}${item('domains','Domains')}${item('finance','Finance')}${item('university','University')}${item('whatsnew',"What's new")}${item('help','Help')}
  <div class="sd-side-account-label">ACCOUNT</div>${item('settings','Settings')}`;
