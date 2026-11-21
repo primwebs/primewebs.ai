@@ -27,7 +27,7 @@ The current redesign branch is a draft PR (#33) against `main`; it is not produc
 | Booking requests | Public booking submission calls Supabase RPC; booking request table exists | No booking rows at audit time; test public submit, owner listing and status updates |
 | Finance | Finance UI and local `pw.finance` storage | Manual/local records only; no payment processor, invoice delivery or subscription billing |
 | Domains | Domain center UI and local domain fields | Search/availability/purchase/DNS/SSL are explicitly not connected; displayed prices are illustrative |
-| Lead Finder | Lead data appears in local workspace state and Supabase settings JSON | No verified live business-search integration or end-to-end lead acquisition in the main app |
+| Lead Finder | New preview-branch workspace: Google Maps query launcher, manual lead capture, searchable saved-lead list, delete action, and lead count | Live business search/results, deduplication, enrichment, provider-backed contact data and export are not connected; Google Maps opens externally |
 | Social scheduler | No verified scheduler/publishing integration in the main app | Not implemented |
 | Third-party connectors | No verified connector framework in the main app | Not implemented |
 
@@ -91,9 +91,10 @@ SiteDrop's visible product areas include:
 - Do not imply domain availability or prices until a real registrar API is connected.
 
 ### P3 — Lead Finder
-- Connect a legitimate business-data provider.
+- Preview branch now has a manual lead pipeline and Google Maps search launcher; no live search data is fabricated.
+- Connect a legitimate business-data provider for in-app results.
 - Search by location/category and filter no-website or outdated-website prospects.
-- Save, deduplicate, export and convert leads to projects.
+- Add provider-backed save, deduplicate, export and convert leads to projects.
 
 ### P4 — Finance and billing
 - Invoice creation/PDF/email and payment-status tracking.
