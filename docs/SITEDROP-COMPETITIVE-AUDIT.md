@@ -113,3 +113,28 @@ SiteDrop's visible product areas include:
 - Do not remove or recreate existing editor, project, customer, booking, credit or Supabase functionality.
 - Do not touch `main`, production deployment, Supabase schema or user data during preview work.
 - Do not activate paid services or payment systems without the owner's approval.
+
+## 2026-11-21 — current SiteDrop benchmark refresh
+
+The current SiteDrop product update (November 2026) adds or emphasizes:
+- An onboarding choice between building client websites and building a site/app for the user's own business.
+- A dashboard that adapts to that work mode, with the ability to switch later.
+- Payments on the user's own site, including one-off products and recurring plans.
+- Photo-to-walkthrough video creation and scheduled social publishing.
+- A broader integrations catalog (SiteDrop advertises 18 connected tools).
+
+### PRIME WEBS AI implementation status
+- Updated the workspace navigation order to put Dashboard, Builder, Templates, Lead Finder, Domains, Finance and University first, following SiteDrop's current core workflow.
+- Existing routes are retained; no existing project/editor/customer/booking data is migrated or deleted by this navigation update.
+- This navigation change does not imply that payments, video generation, social scheduling or the 18 integrations are implemented.
+
+### Next build sequence
+1. Add the first-run work-mode chooser (client websites vs own website/app) and make the dashboard/navigation adapt to the saved choice.
+2. Complete the builder workflow: multi-page/app generation, chat edits, visual editor, responsive preview, version history and rollback.
+3. Finish Lead Finder with a real licensed business-data provider, filters, contact enrichment, saved leads and lead-to-project creation.
+4. Implement domains/hosting with DNS status, SSL status, publish history and verified deployment actions.
+5. Build invoices and payment tracking first; add Stripe-powered customer checkout/subscriptions only after explicit owner approval and secure webhook implementation.
+6. Add media/video generation, social scheduling and integrations only through real connected providers, OAuth scopes, secure secret storage and tested jobs.
+7. Run end-to-end desktop/mobile QA and accessibility checks before production promotion.
+
+Do not represent placeholder cards, local browser storage, or external search launchers as live provider integrations or completed SaaS features.
