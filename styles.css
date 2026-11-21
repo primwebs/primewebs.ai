@@ -1372,3 +1372,94 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .pw-fin-hint{color:#8791a1;font-size:11px;font-weight:400}
 .pw-fin-logo-preview{display:block;max-width:150px;max-height:76px;object-fit:contain;margin-top:10px;border:1px solid #e9edf4;border-radius:9px;padding:8px;background:#fff}
 @media(max-width:640px){.sd-dashboard .sd-welcome{padding:38px 12px 34px!important}.pw-finance-page .pw-fin-card{padding:22px 18px}.pw-finance-page .pw-stepper{gap:8px;margin:24px auto}.pw-finance-page .pw-step{font-size:10px}}
+
+
+/* PRIME WEBS AI — SiteDrop-inspired builder dashboard refinement */
+.sd-dashboard{
+  background:#f7faff;
+  border-radius:22px;
+  padding:0 clamp(12px,2vw,24px) 34px;
+}
+.sd-dashboard .sd-welcome{
+  background:transparent!important;
+  background-image:none!important;
+  padding:76px 16px 58px!important;
+}
+.sd-dashboard .sd-project-library{
+  background:transparent!important;
+}
+.sd-dashboard .sd-compose{
+  width:min(100%,680px);
+  min-height:112px;
+  margin-top:30px;
+  padding:17px 18px 13px;
+  border:1px solid #e4ebf5!important;
+  border-radius:18px;
+  background:#fff!important;
+  box-shadow:0 12px 34px rgba(56,86,130,.07)!important;
+}
+.sd-dashboard .sd-compose textarea{
+  min-height:48px;
+  font-size:14px;
+  line-height:1.65;
+  color:#344258!important;
+}
+.sd-dashboard .sd-compose textarea::placeholder{color:#a5b2c4}
+.sd-dashboard .sd-compose-add{
+  width:34px;height:34px;border-radius:11px;
+  border:1px solid #e7edf5;background:#f8fbff;color:#71839b;
+}
+.sd-dashboard .sd-compose-send{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(145deg,#6f9fe0,#5686c5);
+  box-shadow:0 4px 12px rgba(79,127,190,.20);
+}
+.sd-dashboard .sd-library-head{margin-bottom:24px}
+.sd-dashboard .sd-library-title h2{font-size:19px;letter-spacing:-.035em;color:#344258}
+.sd-dashboard .sd-project-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:22px;
+}
+.sd-dashboard .sd-project-card{
+  border:1px solid #e2eaf4;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 5px 18px rgba(42,67,103,.055);
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.sd-dashboard .sd-project-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 25px rgba(42,67,103,.09);
+}
+.sd-dashboard .sd-project-preview{
+  height:205px;
+  background:#eef4fb;
+}
+.sd-dashboard .sd-project-card-foot{padding:14px 15px;min-height:66px}
+.sd-dashboard .sd-project-card-foot strong{font-size:13px;color:#344258}
+.sd-dashboard .sd-project-card-foot small{font-size:11px;color:#8998ac}
+.sd-dashboard .sd-project-state{
+  top:12px;left:12px;padding:5px 10px;
+  font-size:11px;border-radius:99px;
+}
+.sd-dashboard .sd-project-filter{margin:0 0 17px;gap:9px}
+.sd-dashboard .sd-project-filter button{
+  padding:7px 12px;border-radius:9px;font-size:12px;
+}
+.sd-dashboard .sd-project-filter button.active{
+  background:#edf4fd;color:#527eaf;border-color:#dfeaf7;
+}
+.sd-dashboard .sd-project-filter select{
+  padding:7px 10px;font-size:12px;border-radius:9px;
+  background:#fff;border-color:#e4ebf3;
+}
+@media(max-width:900px){
+  .sd-dashboard .sd-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .sd-dashboard{padding:0 10px 24px;border-radius:16px}
+  .sd-dashboard .sd-welcome{padding:44px 8px 36px!important}
+  .sd-dashboard .sd-compose{min-height:108px;padding:13px;border-radius:15px}
+  .sd-dashboard .sd-project-grid{grid-template-columns:1fr;gap:15px}
+  .sd-dashboard .sd-project-preview{height:205px}
+}
