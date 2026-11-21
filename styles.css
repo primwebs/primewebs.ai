@@ -1273,3 +1273,76 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .sd-compose:focus-within{border-color:#b9cfee;box-shadow:0 0 0 3px rgba(90,143,221,.09),0 14px 36px rgba(43,65,96,.08)}
 .sd-compose-send{background:linear-gradient(145deg,#679ee8,#4d82d0);box-shadow:0 4px 12px rgba(73,129,206,.25)}
 @media(max-width:640px){.sd-welcome{padding:54px 12px 42px}.sd-project-library{padding:0}.sd-library-title h2{font-size:15px}.sd-project-preview{height:145px}}
+
+
+/* PRIME WEBS visual quality pass — quieter surfaces, natural contrast, less synthetic gradients */
+:root{--pw-ink:#263449;--pw-muted:#738196;--pw-line:#e6eaf0;--pw-paper:#fff;--pw-canvas:#f5f7fa}
+body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.sd-sidebar{background:rgba(255,255,255,.96);border-right:1px solid #e7ebf1;box-shadow:1px 0 0 rgba(28,42,63,.015)}
+.sd-brand{gap:10px;color:#29384d;letter-spacing:-.045em;font-weight:800}
+.sd-brand-mark{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:linear-gradient(145deg,#526f9b,#344d73);color:#fff;font-size:0;box-shadow:0 3px 8px rgba(44,68,102,.18)}
+.sd-brand-mark:before{content:"P";font-size:17px;font-weight:800;letter-spacing:-.08em}
+.sd-mode-card,.sd-credit-card,.sd-user-card{border:1px solid #e9edf2;background:#fff;box-shadow:0 2px 5px rgba(27,43,66,.025)}
+.sd-mode-card:hover,.sd-credit-card:hover,.sd-user-card:hover{border-color:#d7e0ec;background:#fbfcfe}
+.sd-mode-icon,.sd-credit-icon{background:#edf2f8;color:#54749c}
+.sd-welcome{background:radial-gradient(ellipse at 94% 8%,rgba(160,181,210,.17),transparent 34%),linear-gradient(118deg,#263a56 0%,#344d6c 58%,#3d5873 100%);border:1px solid rgba(36,57,83,.14);box-shadow:0 12px 30px rgba(33,51,75,.10)}
+.sd-welcome:after{opacity:.28}
+.sd-welcome h1{letter-spacing:-.052em;font-weight:760}
+.sd-welcome p{color:#dce5ef}
+.sd-compose{background:#fff;border:1px solid #e2e8f0;box-shadow:0 8px 24px rgba(22,38,60,.10)}
+.sd-compose textarea{color:#28374b}
+.sd-compose-send{background:linear-gradient(145deg,#587fae,#416b9a);box-shadow:0 3px 9px rgba(53,91,137,.18)}
+.sd-project-card{border:1px solid #e4e9ef;background:#fff;box-shadow:0 3px 12px rgba(31,48,72,.045)}
+.sd-project-preview{background:#edf1f5}
+.sd-project-state{background:rgba(255,255,255,.94);color:#50627a;border:1px solid rgba(225,231,238,.9)}
+.sd-project-state.live{color:#267a5a}
+.sd-project-card-foot{border-top:1px solid #f0f2f5}
+.sd-project-card-foot strong{color:#29394e}
+.sd-project-card-foot small{color:#8793a3}
+.sd-project-filter button.active{background:#eaf0f7;color:#385d88;border-color:#dbe4ef}
+.sd-own-app{border:1px solid rgba(225,235,247,.2);background:rgba(255,255,255,.09);color:#eaf1fa}
+.sd-own-app:hover{background:rgba(255,255,255,.15)}
+.sd-new-pill{background:#e7edf6;color:#46658b}
+.sd-sidebar-nav .nv.on{background:#edf2f8;color:#365a83;box-shadow:inset 3px 0 #6f8eaf}
+.sd-sidebar-nav .nav-icon{color:#8290a2}
+.sd-sidebar-nav .nv.on .nav-icon{color:#47698f}
+.sd-page-hero,.settings-hero,.pw-page-head{background:linear-gradient(120deg,#fff,#f7f9fc);border:1px solid #e7ebf1;box-shadow:0 5px 18px rgba(30,48,73,.035)}
+/* Invoice workspace */
+.pw-invoice-page{max-width:1440px;margin:0 auto;color:#2b394d}
+.pw-invoice-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:2rem;overflow:hidden;margin:0 0 1.4rem;padding:2.1rem 2.3rem;border:1px solid #dfe6ee;border-radius:20px;background:linear-gradient(115deg,#fff 0%,#f5f8fb 72%,#eef3f8 100%);box-shadow:0 8px 24px rgba(35,52,76,.045)}
+.pw-invoice-hero h1{margin:.45rem 0 .55rem;font-size:clamp(1.8rem,4vw,2.55rem);letter-spacing:-.055em;color:#28384d}
+.pw-invoice-hero p{max-width:620px;color:#748196;margin:0;line-height:1.65}
+.pw-invoice-hero-mark{display:grid;place-items:center;width:112px;height:112px;flex:0 0 112px;border:1px solid #dce5ef;border-radius:28px;background:linear-gradient(145deg,#fff,#eaf0f6);color:#3e6087;font-size:27px;font-weight:850;letter-spacing:-2px;box-shadow:0 10px 25px rgba(43,67,96,.08);transform:rotate(3deg)}
+.pw-invoice-hero-mark span{font-size:11px;letter-spacing:2px;margin-left:3px;color:#8b9bb0}
+.pw-invoice-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.8fr);gap:1.15rem;align-items:start}
+.pw-invoice-compose,.pw-invoice-side{min-width:0;padding:1.35rem;border:1px solid #e4e9ef;border-radius:17px;background:#fff;box-shadow:0 5px 18px rgba(34,51,75,.035)}
+.pw-invoice-section-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:1.35rem 0 .8rem}
+.pw-invoice-section-head:first-child{margin-top:0}
+.pw-invoice-section-head h2{margin:.2rem 0;font-size:1.08rem;letter-spacing:-.025em}
+.pw-invoice-section-head p{margin:0;color:#8490a0;font-size:.82rem}
+.pw-invoice-status{padding:.35rem .65rem;border:1px solid #e5eaf0;border-radius:99px;background:#f8fafc;color:#718096;font-size:.72rem;font-weight:700}
+.pw-invoice-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.pw-inv-field{display:grid;gap:.35rem;min-width:0;color:#64748b;font-size:.77rem;font-weight:650}
+.pw-inv-field input,.pw-invoice-line input{width:100%;min-width:0;min-height:42px;border:1px solid #e1e7ee;border-radius:9px;background:#fbfcfd;padding:.65rem .75rem;color:#2e3d51;font:inherit;font-size:.86rem;outline:none}
+.pw-inv-field input:focus,.pw-invoice-line input:focus{border-color:#9db3cd;box-shadow:0 0 0 3px rgba(88,127,174,.10);background:#fff}
+.pw-invoice-lines{display:grid;gap:.55rem}
+.pw-invoice-line{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(100px,130px) 34px;gap:.55rem;align-items:end;padding:.7rem;border:1px solid #e8edf2;border-radius:12px;background:#fafbfd}
+.pw-invoice-line label{display:grid;gap:.3rem;min-width:0;color:#718096;font-size:.72rem;font-weight:650}
+.pw-inv-remove{height:40px;border:1px solid #e9edf2;border-radius:9px;background:#fff;color:#9a6570;font-size:20px;cursor:pointer}
+.pw-inv-remove:hover{background:#fff5f5;border-color:#f0d8dc}
+.pw-invoice-bottom-fields{margin-top:1rem}
+.pw-invoice-total{display:grid;grid-template-columns:1fr auto;gap:.55rem 1rem;max-width:340px;margin:1.2rem 0 1rem auto;padding:1rem 1.1rem;border:1px solid #e5eaf0;border-radius:13px;background:#f8fafc;color:#748196;font-size:.83rem}
+.pw-invoice-total strong{color:#33465e;text-align:right}
+.pw-invoice-total strong:last-child{font-size:1.2rem;color:#2c527e}
+.pw-invoice-actions{display:flex;gap:.55rem;flex-wrap:wrap;justify-content:flex-end;padding-top:1rem;border-top:1px solid #edf0f4}
+.pw-invoice-actions .btn{min-height:42px}
+.pw-invoice-side{position:sticky;top:1rem}
+.pw-invoice-saved{display:flex;justify-content:space-between;gap:.5rem;align-items:center;padding:.85rem 0;border-top:1px solid #edf0f4}
+.pw-invoice-saved>div:first-child{display:grid;gap:.15rem;min-width:0}
+.pw-invoice-saved strong{font-size:.86rem;color:#33465e}
+.pw-invoice-saved span,.pw-invoice-saved small{font-size:.75rem;color:#8490a0;overflow-wrap:anywhere}
+.pw-invoice-saved-actions{display:flex;gap:.3rem;flex-shrink:0}
+.pw-invoice-saved-actions .btn{padding:.42rem .55rem;font-size:.72rem}
+.pw-invoice-page .pw-inline-note{margin:1rem 0 0;color:#8a96a6;font-size:.74rem;line-height:1.55}
+@media(max-width:900px){.pw-invoice-layout{grid-template-columns:1fr}.pw-invoice-side{position:static}}
+@media(max-width:600px){.pw-invoice-hero{padding:1.25rem;gap:.6rem}.pw-invoice-hero-mark{width:72px;height:72px;flex-basis:72px;border-radius:20px;font-size:20px}.pw-invoice-compose,.pw-invoice-side{padding:1rem}.pw-invoice-fields{grid-template-columns:1fr}.pw-invoice-line{grid-template-columns:minmax(0,1fr) 60px 92px 30px;padding:.45rem;gap:.35rem}.pw-invoice-line input{padding:.5rem .4rem;font-size:.78rem}.pw-invoice-actions{justify-content:stretch}.pw-invoice-actions .btn{flex:1}.pw-invoice-saved{align-items:flex-start}}
