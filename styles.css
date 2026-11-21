@@ -1026,3 +1026,20 @@ input:focus,textarea:focus,select:focus{border-color:#9c80ff;box-shadow:0 0 0 4p
  .builder-ai-preview .builder-preview-head{align-items:flex-start;flex-wrap:wrap}
  .builder-ai-preview .builder-preview-head .row{width:auto}
 }
+
+
+/* Lead Finder workspace */
+.lead-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;overflow:hidden;margin:0 0 1.1rem;padding:clamp(1.4rem,3vw,2.2rem);border:1px solid rgba(169,151,255,.2);border-radius:24px;background:radial-gradient(circle at 82% 35%,rgba(151,113,255,.28),transparent 28%),linear-gradient(115deg,#111936,#24275a 58%,#3a2670);box-shadow:0 20px 55px rgba(30,22,82,.22)}
+.lead-hero h1{margin:.4rem 0;font-size:clamp(1.8rem,4vw,2.5rem)}
+.lead-hero p{max-width:680px;color:#d0cdeb;margin:0}
+.lead-hero-orb{display:grid;place-items:center;flex:0 0 100px;width:100px;height:100px;border-radius:30px;background:linear-gradient(145deg,#bba8ff,#7351dc 58%,#32266d);border:1px solid rgba(255,255,255,.3);box-shadow:inset -12px -14px 24px rgba(12,8,42,.4),0 20px 45px rgba(9,7,35,.38),0 0 55px rgba(151,113,255,.3);font-size:3rem;color:#fff;transform:rotate(-12deg)}
+.lead-panel{margin:0 0 1rem;padding:1.25rem;border:1px solid rgba(169,151,255,.15);border-radius:18px;background:linear-gradient(145deg,rgba(24,25,48,.96),rgba(14,16,31,.96));box-shadow:0 14px 42px rgba(0,0,0,.15)}
+.lead-search-grid,.lead-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin:.9rem 0}
+.lead-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.lead-field{display:block;min-width:0;margin:0}
+.lead-field span{display:block;margin-bottom:.3rem;color:#c5c1df;font-size:.8rem;font-weight:700}
+.lead-field input{margin:0}
+.lead-filter{max-width:460px;margin:0 0 1rem}
+.lead-panel a{color:#b9a8ff;text-decoration:none}
+.lead-panel a:hover{text-decoration:underline}
+@media(max-width:720px){.lead-hero{align-items:flex-start}.lead-hero-orb{width:70px;height:70px;flex-basis:70px;font-size:2rem;border-radius:22px}.lead-search-grid,.lead-form-grid{grid-template-columns:1fr}.lead-panel{padding:1rem}.lead-panel .finance-table-wrap{overflow-x:auto}}
