@@ -1149,7 +1149,7 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .sd-sidebar-nav{display:flex;flex-direction:column;gap:4px}
 .sd-side-section-label,.sd-side-account-label{font-size:10px;letter-spacing:1.2px;font-weight:750;color:#9aa5b5;padding:0 12px;margin:0 0 9px}
 .sd-side-account-label{margin:25px 0 9px}
-.sd-side-link{width:100%;min-height:39px;border:0;border-radius:9px;background:transparent;color:#68778e;display:flex;align-items:center;gap:11px;text-align:left;padding:8px 11px;font:500 13px/1.2 inherit;cursor:pointer}
+.sd-side-link{width:100%;min-height:39px;border:0;border-radius:9px;background:transparent;color:#68778e;display:flex;align-items:center;gap:11px;text-align:left;padding:8px 11px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.2;cursor:pointer}
 .sd-side-link:hover{background:#f5f8fc;color:#425a7b}
 .sd-side-link.active{background:#eaf2fc;color:#5687ca;font-weight:700}
 .sd-side-icon{width:17px;height:17px;display:grid;place-items:center;flex:0 0 17px}
@@ -1178,7 +1178,7 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .sd-welcome h1{font-size:clamp(32px,3.4vw,43px);font-weight:750;letter-spacing:-1.8px;color:#344258;margin:17px 0 5px;line-height:1.12}
 .sd-welcome>p{max-width:480px;margin:0;color:#8793a5;font-size:13px;line-height:1.5}
 .sd-compose{width:min(100%,560px);min-height:90px;margin-top:26px;background:#fff;border:1px solid #e9edf3;border-radius:14px;box-shadow:0 8px 28px rgba(43,65,96,.045);padding:13px 14px 10px;display:flex;flex-direction:column;text-align:left}
-.sd-compose textarea{width:100%;min-height:35px;max-height:120px;resize:vertical;border:0;outline:0;box-shadow:none;background:transparent;color:#344258;font:14px/1.5 inherit;padding:2px 3px;margin:0}
+.sd-compose textarea{width:100%;min-height:35px;max-height:120px;resize:vertical;border:0;outline:0;box-shadow:none;background:transparent;color:#344258;font-family:inherit;font-size:14px;line-height:1.5;padding:2px 3px;margin:0}
 .sd-compose textarea::placeholder{color:#a2adbd}
 .sd-compose textarea:focus{outline:0}
 .sd-compose-actions{display:flex;align-items:center;gap:8px;margin-top:6px}
