@@ -298,39 +298,29 @@ function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-w
 const NAV=[
  ['Workspace',[
   ['dash','Dashboard'],
-  ['new','Opret hjemmeside'],
-  ['templates','Skabeloner']
+  ['new','Builder'],
+  ['templates','Templates']
  ]],
- ['Website Studio',[
-  ['mini','Aktivt projekt',[
-   ['edit','AI Chat Editor'],
-   ['builder','Visuel editor'],
-   ['customize','Design og stil'],
-   ['preview','Live preview'],
-   ['history','Versionshistorik'],
-   ['files','Filer og eksport']
-  ]]
- ]],
- ['Kunder & drift',[
-  ['customers','Kunder'],
-  ['bookings','Bookinger']
- ]],
- ['Domæner og publicering',[['domains','Domæner og publicering']]],
- ['Finance',[
-  ['finance','Finance'],
-  ['finlist','Posteringer'],
-  ['fincust','Indtægt pr. kunde']
- ]],
- ['Vækst og abonnementer',[
+ ['Growth',[
   ['leads','Lead Finder'],
-  ['stats','Statistik og analyser'],
-  ['credits','Planer og credits']
+  ['customers','Clients'],
+  ['bookings','Bookings'],
+  ['stats','Analytics']
  ]],
- ['System',[
-  ['settings','Indstillinger'],
-  ['colors','Udseende og farver'],
-  ['contact','Kontakt'],
-  ['adminp','Admin Panel',[['admin','Roller og adgang'],['backup','Sikkerhedskopi']]]
+ ['Manage',[
+  ['domains','Domains & Hosting'],
+  ['finance','Finance'],
+  ['credits','Plans & Credits']
+ ]],
+ ['Learn & Support',[
+  ['university','University'],
+  ['help','Help Center']
+ ]],
+ ['Settings',[
+  ['settings','Settings'],
+  ['colors','Appearance'],
+  ['contact','Contact'],
+  ['adminp','Admin Panel',[['admin','Roles & access'],['backup','Backup']]]
  ]]
 ];
 const BT={hero:'Forside',features:'Fordele',about:'Om os',contact:'Kontakt',services:'Ydelser',pricing:'Priser',team:'Team',steps:'Sådan foregår det',faq:'Spørgsmål og svar',cta:'Opfordring',gallery:'Galleri',booking:'Booking',reviews:'Anmeldelser',map:'Find os',threeD:'Interaktiv 3D'},LBL={title:'Overskrift',text:'Tekst',cta:'Knaptekst',email:'E-mail',phone:'Telefon',t:'Titel',d:'Beskrivelse'};
@@ -635,6 +625,9 @@ function ext2(a,b){const d=b.dataset;
   if(a==='fdel'){if(S.fdel===d.id){Fin.save(Fin.all().filter(e=>e.id!==d.id));S.fdel=null}else S.fdel=d.id;return 1}
   return 0}
 
+
+V.university=()=>`<section class="sd-page-hero"><div><span class="sd-eyebrow">PRIME WEBS AI · LEARN</span><h1>University</h1><p>Practical guides to building, improving and launching better websites.</p></div><div class="sd-hero-symbol">✦</div></section><div class="sd-learning-grid"><a class="sd-learning-card" href="https://sitedrop.ai/tutorials" target="_blank" rel="noopener"><span>01 · GETTING STARTED</span><h2>Your first website</h2><p>Plan a website, choose a direction and turn a brief into a working first draft.</p><b>Explore learning resources ↗</b></a><a class="sd-learning-card" href="https://sitedrop.ai/tutorials" target="_blank" rel="noopener"><span>02 · DESIGN & EDITING</span><h2>Design and refine</h2><p>Learn how to structure sections, improve copy, work with images and polish responsive layouts.</p><b>Explore learning resources ↗</b></a><a class="sd-learning-card" href="https://sitedrop.ai/tutorials" target="_blank" rel="noopener"><span>03 · PUBLISHING</span><h2>Prepare to launch</h2><p>Understand domains, hosting, forms, quality checks and what a live website needs.</p><b>Explore learning resources ↗</b></a></div><p class="mu">Learning links open external resources. PRIME WEBS AI's own course library is not yet connected.</p>`;
+V.help=()=>`<section class="sd-page-hero"><div><span class="sd-eyebrow">PRIME WEBS AI · SUPPORT</span><h1>Help Center</h1><p>Find your way around the workspace and get help with the most common tasks.</p></div><div class="sd-hero-symbol">?</div></section><div class="sd-help-grid"><article class="sd-help-card"><h2>Building a website</h2><p>Start in Builder, describe the business and its goals, then generate a first draft. Open the project in Website Studio to edit it.</p><button class="btn" data-act="go" data-v="new">Open Builder</button></article><article class="sd-help-card"><h2>Editing a website</h2><p>Use AI Chat Editor for prompt-based changes, Visual Editor for sections, and Live Preview to check the result.</p><button class="btn ghost" data-act="go" data-v="edit">Open Website Studio</button></article><article class="sd-help-card"><h2>Projects and customers</h2><p>Keep customer details and website projects organised in the workspace. Check project ownership before sharing anything.</p><button class="btn ghost" data-act="go" data-v="customers">Open Clients</button></article><article class="sd-help-card"><h2>Domains and publishing</h2><p>Review the domain workspace for current project settings. Live domain purchasing and automated publishing are not connected yet.</p><button class="btn ghost" data-act="go" data-v="domains">Open Domains</button></article></div><section class="sd-help-contact"><div><h2>Need a hand?</h2><p>Contact the PRIME WEBS AI team for assistance with your workspace.</p></div><a class="btn" href="mailto:primewebssupport@gmail.com">Contact support ↗</a></section>`;
 function render0(){
   const searchWasFocused=!!document.querySelector('[data-q]:focus');
   const th=Settings.get().theme;if(th==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=th;
@@ -824,19 +817,8 @@ const NAV_ICONS={
 };
 function navIcon(k){return `<svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NAV_ICONS[k]||NAV_ICONS.group}</svg>`}
 function navHtml(){const q=(S.q||'').toLowerCase().trim(),st=Storage.get('pw.nav',{}),adm=['adminp','admin','backup'],can=k=>!adm.includes(k)||Session.can();
-  const btn=(k,t,c='')=>`<button class="nv ${c} ${(S.view===k||(S.view==='mini'&&S.miniTab===k))?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
-  return NAV.map(([g,it])=>{
-    if(g==='Dashboard'||g==='Domæner og publicering'||g==='Credits og abonnementer'||g==='Statistik og analyser'){
-      const [k,t]=it[0];return can(k)&&(!q||t.toLowerCase().includes(q))?btn(k,t):'';
-    }
-    const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{
-      if(!ch)return((!q||t.toLowerCase().includes(q))?btn(k,t):'');
-      const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';
-      const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view||(S.view==='mini'&&c[0]===S.miniTab)):v===1);
-      return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');
-    if(!rows)return '';const open=q?true:st[g]!==0;
-    const gi=g==='Finance'?'finance':g==='System'?'settings':g==='Domæner og publicering'?'domains':'dash';
-    return `<div class="gp" style="--gc:${GC[g]}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?(g==='Website Studio'?projPick():'')+rows:''}</div>`}).join('')}
+ const btn=(k,t,c='')=>`<button class="nv ${c} ${(S.view===k||(S.view==='mini'&&S.miniTab===k))?'on':''}" style="--ni:${NC[k]||'#6B7280'}" data-act="go" data-v="${k}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span>${CNT[k]?`<span class="ct">${CNT[k]()}</span>`:''}</button>`;
+ return NAV.map(([g,it])=>{const rows=it.filter(([k])=>can(k)).map(([k,t,ch])=>{if(!ch)return((!q||t.toLowerCase().includes(q)||g.toLowerCase().includes(q))?btn(k,t):'');const kids=ch.filter(([,ct])=>!q||ct.toLowerCase().includes(q)||t.toLowerCase().includes(q));if(!kids.length)return '';const v=st['s:'+k],open=q?true:(v===undefined?ch.some(c=>c[0]===S.view||(S.view==='mini'&&c[0]===S.miniTab)):v===1);return `<button class="nv par" data-act="sub" data-k="${k}" aria-expanded="${open}"><span class="nv-label">${navIcon(k)}<span>${t}</span></span><span>${open?'▾':'▸'}</span></button>${open?kids.map(([ck,ct])=>btn(ck,ct,'kid')).join(''):''}`}).join('');if(!rows)return '';const open=q?true:st[g]!==0;const gi=g==='Growth'?'leads':g==='Manage'?'domains':g==='Learn & Support'?'university':g==='Settings'?'settings':'dash';return `<div class="gp" style="--gc:${GC[g]||'#8B7CFF'}"><button class="gh" data-act="grp" data-g="${g}" aria-expanded="${open}"><span class="gh-label">${navIcon(gi)}<span>${g}</span></span><span>${open?'▾':'▸'}</span></button>${open?rows:''}</div>`}).join('')}
 const finMode=(m,title)=>{const h=vFin(),i=k=>h.indexOf('<!--'+k+'-->'),sl=(a,b)=>h.slice(i(a)+a.length+7,b?i(b):h.length);
   const head=h.slice(0,i('KPI')).replace('<h1>Finance</h1>','<h1>'+title+'</h1>');
   return head+(m==='o'?sl('KPI','FORM'):m==='l'?sl('FORM','CUST')+sl('LIST'):sl('CUST','LIST'))};
