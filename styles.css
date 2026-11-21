@@ -1253,3 +1253,23 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .pricing-card .pricing-cta{display:flex;justify-content:center;align-items:center;text-decoration:none;margin-top:1.2rem;min-height:46px}
 .pricing-note{max-width:850px;margin:1.25rem auto;line-height:1.65}
 @media(max-width:700px){.pricing-current-plan{align-items:flex-start;flex-direction:column}.pricing-heading{align-items:flex-start;gap:1rem;flex-direction:column}.pricing-period{width:100%}.pricing-period .btn{flex:1;font-size:.82rem;padding:.65rem .45rem}}
+
+
+/* Dashboard finish pass — clearer hierarchy and more tactile project cards */
+.sd-library-title{display:flex;align-items:baseline;gap:10px;min-width:0}
+.sd-library-title h2{margin:0;color:#344258;font-size:17px;font-weight:750;letter-spacing:-.35px}
+.sd-library-title>span{color:#96a2b2;font-size:11px;font-weight:550}
+.sd-project-card{border-color:#e5eaf1;box-shadow:0 2px 8px rgba(35,55,82,.035);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.sd-project-card:hover{transform:translateY(-3px);border-color:#d6e1ef;box-shadow:0 12px 28px rgba(35,55,82,.10)}
+.sd-project-preview{background:linear-gradient(145deg,#f3f6fb,#e9eef6)}
+.sd-project-preview iframe{background:#fff}
+.sd-project-state{border:1px solid rgba(224,231,240,.85);backdrop-filter:blur(8px)}
+.sd-project-card-foot{min-height:62px}
+.sd-project-card-foot strong{font-size:12.5px;font-weight:700;letter-spacing:-.1px}
+.sd-project-card-foot small{font-size:10.5px;color:#98a4b4}
+.sd-project-menu{width:29px;height:29px;border:1px solid #e8edf4;border-radius:8px;background:#fff;color:#71839b;transition:background .15s ease,color .15s ease}
+.sd-project-menu:hover{background:#edf4fd;color:#4f85cf}
+.sd-compose{border-color:#e3e9f2;box-shadow:0 12px 34px rgba(43,65,96,.075);transition:border-color .18s ease,box-shadow .18s ease}
+.sd-compose:focus-within{border-color:#b9cfee;box-shadow:0 0 0 3px rgba(90,143,221,.09),0 14px 36px rgba(43,65,96,.08)}
+.sd-compose-send{background:linear-gradient(145deg,#679ee8,#4d82d0);box-shadow:0 4px 12px rgba(73,129,206,.25)}
+@media(max-width:640px){.sd-welcome{padding:54px 12px 42px}.sd-project-library{padding:0}.sd-library-title h2{font-size:15px}.sd-project-preview{height:145px}}
