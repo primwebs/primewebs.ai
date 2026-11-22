@@ -1,6 +1,13 @@
 if(typeof structuredClone!=='function')window.structuredClone=o=>JSON.parse(JSON.stringify(o));
 /* ===== Lag 0: hjælpere ===== */
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function imgSrc(value){
+  if(typeof value!=='string'||!value.trim())return '';
+  const src=value.trim();
+  if(/^data:image\/(?:jpeg|png|webp|gif|svg\+xml);base64,/i.test(src)||/^https?:\/\//i.test(src)||src.startsWith('/'))return src;
+  const stored=Storage.get('pw.img',{});
+  return stored&&typeof stored[src]==='string'?stored[src]:'';
+}
 const uid=()=>Math.random().toString(36).slice(2,9);
 const newProjectId=()=>window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)});
 const isProjectUuid=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
