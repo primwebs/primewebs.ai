@@ -675,15 +675,54 @@ function render0(){
 function ensureIndustry3D(site,prompt,previousSite){
   if(!site||!Array.isArray(site.blocks))return site;
   const text=String(prompt||'').toLowerCase();
-  const removing=/\b(remove|delete|fjern|slet)\b.{0,30}\b(3d|three.?d|model|modeller)\b/.test(text);
+  const removing=/\\b(remove|delete|fjern|slet)\\b.{0,30}\\b(3d|three.?d|model|modeller)\\b/.test(text);
   const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(text);
+  const salon=/salon|skønhedsklinik|beauty clinic|beauty salon|kosmetolog|negletekniker|nail studio|spa|wellness/.test(text);
   const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(text);
-  const explicit=/\b3d\b|three.?d|interaktiv.{0,12}(model|figur|objekt)|drej.{0,12}(model|objekt)/.test(text);
-  const old=previousSite&&Array.isArray(previousSite.blocks)?previousSite.blocks.filter(b=>b&&b.type==='threeD'):[];
-  if(!removing&&old.length){const present=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));old.forEach(b=>{if(!present.has(b.shape)){const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,structuredClone(b));present.add(b.shape)}})}
+  const architecture=/arkitekt|arkitektur|architecture|interior design|indretningsarkitekt|ejendomsudvikling|property development/.test(text);
+  const ecommerce=/webshop|e-commerce|ecommerce|online store|produktbrand|product brand|product design|møbler|furniture|smykker|jewelry|ure|watches/.test(text);
+  const technology=/teknologi|technology|software|saas|app development|it company|tech company|gaming|spiludvikling|game studio/.test(text);
+  const fitness=/fitness|fitnesscenter|gym|personlig træner|personal trainer|yoga|pilates|sportsklub|sports club/.test(text);
+  const explicit=/\\b3d\\b|three.?d|interaktiv.{0,12}(model|figur|objekt)|drej.{0,12}(model|objekt)/.test(text);
+  const old=previousSite&&Array.isArray(previousSite.blocks)?previousSite.blocks.filter(b=>b&&b.type==='threeD'): [];
+  if(!removing&&old.length){
+    const present=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
+    old.forEach(b=>{
+      if(site.blocks.filter(x=>x&&x.type==='threeD').length>=2)return;
+      if(!present.has(b.shape)){
+        const ci=site.blocks.findIndex(x=>x&&x.type==='contact');
+        site.blocks.splice(ci<0?site.blocks.length:ci,0,structuredClone(b));
+        present.add(b.shape);
+      }
+    });
+  }
   if(removing)return site;
-  const wanted=barber?['barber-chair','barber-pole']:mechanic?['car','engine']:explicit?['orb']:[];
-  if(wanted.length){const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));wanted.filter(shape=>!have.has(shape)).forEach(shape=>{const names={'barber-chair':'Interaktiv barberstol','barber-pole':'Klassisk barberstang',car:'Interaktiv 3D-bil',engine:'Detaljeret 3D-motor',orb:'Interaktiv 3D-model'};const block={id:uid(),type:'threeD',title:names[shape],text:'Drej modellen med musen eller fingeren, og brug scroll eller zoom til at se detaljerne.',shape,color:barber?'#C9A24B':mechanic?'#3B82F6':'#6D7CFF',modelData:'',modelFormat:'glb',modelName:''};const ci=site.blocks.findIndex(b=>b&&b.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,block)});site.meta=site.meta||{};site.meta.animation={...(site.meta.animation||{}),level:'immersive',threeD:true}}
+  let wanted=[];
+  if(barber)wanted=['barber-chair','barber-pole'];
+  else if(mechanic)wanted=['car','engine'];
+  else if(salon)wanted=['shampoo-bottle','scissors'];
+  else if(architecture)wanted=['box','knot'];
+  else if(ecommerce)wanted=['box','orb'];
+  else if(technology)wanted=['torus','knot'];
+  else if(fitness)wanted=['orb','torus'];
+  else if(explicit)wanted=['orb'];
+  const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
+  const names={
+    'barber-chair':'Interaktiv barberstol','barber-pole':'Klassisk barberstang',
+    car:'Interaktiv 3D-bil',engine:'Detaljeret 3D-motor',
+    'shampoo-bottle':'3D-produktvisning','scissors':'Interaktiv 3D-saks',
+    box:'Interaktiv 3D-form',knot:'3D-designobjekt',orb:'Interaktiv 3D-model',torus:'3D-form i bevægelse'
+  };
+  const color=barber?'#C9A24B':mechanic?'#3B82F6':salon?'#D66B9B':architecture?'#A88A67':ecommerce?'#C9A24B':technology?'#6D7CFF':fitness?'#20A58A':'#6D7CFF';
+  wanted.filter(shape=>!have.has(shape)).slice(0,Math.max(0,2-site.blocks.filter(b=>b&&b.type==='threeD').length)).forEach(shape=>{
+    const block={id:uid(),type:'threeD',title:names[shape]||'Interaktiv 3D-model',text:'Drej modellen med musen eller fingeren, og brug zoom til at se detaljerne.',shape,color,modelData:'',modelFormat:'glb',modelName:''};
+    const ci=site.blocks.findIndex(b=>b&&b.type==='contact');
+    site.blocks.splice(ci<0?site.blocks.length:ci,0,block);
+  });
+  if(wanted.length){
+    site.meta=site.meta||{};
+    site.meta.animation={...(site.meta.animation||{}),level:'immersive',threeD:true};
+  }
   return site;
 }
 async function generate(){
