@@ -43,6 +43,22 @@ const Projects={
     Storage.set('pw.projects',result.projects);
   }
 };
+// Defensive record normalizers used by the project/customer repositories.
+function fixP(value){
+  if(!value || typeof value!=='object' || Array.isArray(value)) return null;
+  const p={...value};
+  p.id=String(p.id||'');
+  p.name=String(p.name||'Untitled website');
+  p.site=p.site&&typeof p.site==='object'?p.site:{};
+  p.site.blocks=Array.isArray(p.site.blocks)?p.site.blocks:[];
+  p.site.meta=p.site.meta&&typeof p.site.meta==='object'?p.site.meta:{};
+  p.chat=Array.isArray(p.chat)?p.chat:[];
+  return p;
+}
+function fixC(value){
+  if(!value || typeof value!=='object' || Array.isArray(value)) return null;
+  return {...value,id:String(value.id||''),name:String(value.name||''),email:String(value.email||'')};
+}
 const Customers={all:()=>Storage.get('pw.customers',[]).map(fixC).filter(Boolean),save:l=>Storage.set('pw.customers',l)};
 const Settings={d:{company:'PrimeWebs',email:'primewebssupport@gmail.com',phone:'+45 30 95 05 93',web:'https://primewebs.site',ownerEmail:'primewebssupport@gmail.com',theme:'auto'},get(){const s={...this.d,...Storage.get('pw.settings',{})};['company','email','phone','web','ownerEmail'].forEach(k=>{s[k]=String(s[k]??'')});return s},set(k,v){Storage.set('pw.settings',{...Storage.get('pw.settings',{}),[k]:v})}};
 
