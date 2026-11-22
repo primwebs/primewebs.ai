@@ -707,15 +707,21 @@ function ensureIndustry3D(site,prompt,previousSite){
   else if(fitness)wanted=['orb','torus'];
   else if(explicit)wanted=['orb'];
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
-  const names={
+  const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
+  const names=english?{
+    'barber-chair':'Interactive barber chair','barber-pole':'Classic barber pole',
+    car:'Interactive 3D car',engine:'Detailed 3D engine',
+    'shampoo-bottle':'3D product display',scissors:'Interactive 3D scissors',
+    box:'Interactive 3D form',knot:'3D design object',orb:'Interactive 3D model',torus:'Moving 3D form'
+  }:{
     'barber-chair':'Interaktiv barberstol','barber-pole':'Klassisk barberstang',
     car:'Interaktiv 3D-bil',engine:'Detaljeret 3D-motor',
-    'shampoo-bottle':'3D-produktvisning','scissors':'Interaktiv 3D-saks',
+    'shampoo-bottle':'3D-produktvisning',scissors:'Interaktiv 3D-saks',
     box:'Interaktiv 3D-form',knot:'3D-designobjekt',orb:'Interaktiv 3D-model',torus:'3D-form i bevægelse'
   };
   const color=barber?'#C9A24B':mechanic?'#3B82F6':salon?'#D66B9B':architecture?'#A88A67':ecommerce?'#C9A24B':technology?'#6D7CFF':fitness?'#20A58A':'#6D7CFF';
   wanted.filter(shape=>!have.has(shape)).slice(0,Math.max(0,2-site.blocks.filter(b=>b&&b.type==='threeD').length)).forEach(shape=>{
-    const block={id:uid(),type:'threeD',title:names[shape]||'Interaktiv 3D-model',text:'Drej modellen med musen eller fingeren, og brug zoom til at se detaljerne.',shape,color,modelData:'',modelFormat:'glb',modelName:''};
+    const block={id:uid(),type:'threeD',title:names[shape]||'Interaktiv 3D-model',text:english?'Rotate the model with your mouse or finger, and use zoom to explore the details.':'Drej modellen med musen eller fingeren, og brug zoom til at se detaljerne.',shape,color,modelData:'',modelFormat:'glb',modelName:''};
     const ci=site.blocks.findIndex(b=>b&&b.type==='contact');
     site.blocks.splice(ci<0?site.blocks.length:ci,0,block);
   });
