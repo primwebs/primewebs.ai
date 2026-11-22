@@ -907,7 +907,9 @@ async function boot(){
   try{
     await window.PWDB.ready;
     if(!window.PWDB.user) return loginScreen();
-    await window.PWDB.refresh();
+    // PWDB.ready already restores the Supabase session and loads cloud data.
+    // Do not immediately run a second cloud refresh during startup: it duplicates
+    // the same queries/migrations and can prevent the dashboard from rendering.
     S.bookings=await window.PWDB.listBookings();
     S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
     render();
