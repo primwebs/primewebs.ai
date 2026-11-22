@@ -740,9 +740,12 @@ async function generate(){
   try { result=await AI.generate({name:f.name.trim(),description:f.desc.trim(),style:f.style,industry:f.ind||'',city:(f.city||'').trim(),services:(f.svc||'').trim(),tone:f.tone||'Professionel',language:f.lang||'Dansk',color:f.color||'',background:f.background||'',phone:(f.phone||'').trim()||(f.desc.match(RX_TEL)||[''])[0].trim()||Settings.get().phone,email:(f.email||'').trim()||(f.desc.match(RX_MAIL)||[''])[0]||Settings.get().email}); }
   catch(error){S.busy=false;S.err=error.message||'AI-generatoren kunne ikke kontaktes.';return render()}
   if(!result||!result.site||!Array.isArray(result.site.blocks)){S.busy=false;S.err='Generatoren returnerede ikke en gyldig hjemmeside. Prøv igen.';return render()}
-  const site=ensureIndustryImages(ensureIndustry3D(result.site,[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ')),[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' '));
+  const site=result.site;
   site.meta=site.meta&&typeof site.meta==='object'?site.meta:{};
   site.meta.language=({Dansk:'da',English:'en',Español:'es',Deutsch:'de',Français:'fr'})[f.lang||'Dansk']||'da';
+  const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
+  ensureIndustry3D(site,promptText);
+  ensureIndustryImages(site,promptText);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
