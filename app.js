@@ -925,25 +925,7 @@ function openProjectFromDashboard(id){
 }
 window.PWOpenProject=openProjectFromDashboard;
 
-// Capture project-open taps before any other delegated dashboard listeners.
-// This is intentionally a single, direct route for the card, preview target,
-// and dropdown action; the menu disclosure itself remains native.
-document.addEventListener('click',e=>{
-  const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
-  const card=target&&target.closest&&target.closest('.sd-project-card');
-  if(!card)return;
-  const action=target.closest('[data-act="projectEdit"]');
-  // Keep the native three-dot disclosure itself native, but do NOT ignore
-  // its Edit project menu item: that action must open the selected project.
-  if(target.closest('.sd-project-actions')&&!action)return;
-  if(!action && !card.contains(target))return;
-  const id=action&&action.dataset.id||card.dataset.id;
-  if(!id)return;
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  openProjectFromDashboard(id);
-},true);
+// Project card and dropdown actions are handled by the single delegated listener below.
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
