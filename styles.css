@@ -1574,3 +1574,8 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .dash-project-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .dash-delete-project{background:#c62828!important;border-color:#c62828!important;color:#fff!important;min-height:42px;padding-inline:14px}
 .dash-delete-project:hover{background:#a91f1f!important;border-color:#a91f1f!important}
+
+/* Actual SD dashboard project card actions */
+.sd-project-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sd-delete-project{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 13px;border:1px solid #c62828;border-radius:10px;background:#c62828;color:#fff;font:600 13px/1.2 inherit;cursor:pointer;touch-action:manipulation}
+.sd-delete-project:hover{background:#a91f1f;border-color:#a91f1f}
