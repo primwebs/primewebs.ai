@@ -325,13 +325,13 @@ const Renderer={html(p){
 }};
 
 /* ===== Lag 4: UI ===== */
-let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',''),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',projectMenuId:null,renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
+let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',''),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
 const getP=()=>{const all=Projects.all();let p=S.id!=null?all.find(x=>String(x.id)===String(S.id)):null;if(!p){const saved=Storage.get('pw.activeProject','');p=saved?all.find(x=>String(x.id)===String(saved)):null;if(p)S.id=p.id}if(p){S.id=p.id;Storage.set('pw.activeProject',p.id)}return p||null};
 const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>String(p.id)===String(id));if(i<0)return false;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l);return true};
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" data-act="open" data-id="${p.id}">Rediger hjemmeside</button><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button class="btn" onclick="window.PWOpenProject(decodeURIComponent('${encodeURIComponent(p.id)}'));return false">Rediger hjemmeside</button><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
 function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
@@ -947,8 +947,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){e.preventDefault();openProjectFromDashboard(id);return}
-  else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Project deleted from your workspace.')}else{S.del=id;S.projectMenuId=id}}
+  else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Project deleted from your workspace.')}else{S.del=id}}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
   render();
@@ -1126,7 +1125,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   if(x==='closeerr'){const r=document.getElementById('errbar');if(r)r.remove()}
   else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.projectMenuId!==null){S.projectMenuId=null;S.del=null;render();return}if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
   try{
     await window.PWDB.ready;
