@@ -166,7 +166,6 @@
     async signUp(email,password){const clean=String(email||'').trim().toLowerCase();const {data,error}=await state.client.auth.signUp({email:clean,password:String(password||''),options:{emailRedirectTo:window.location.origin}});if(error)throw error;if(data&&data.session)state.user=data.user||data.session.user;return data;},
     async signInGoogle(){const {error}=await state.client.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});if(error)throw error;},
     async signOut(){const {error}=await state.client.auth.signOut();if(error)throw error;},
-    async signOut(){const {error}=await state.client.auth.signOut();if(error)throw error;},
     persistKey(key,value){persist(key,value);},
     async spendCredits(amount,kind,description){if(!state.client||!state.user)return false;const {data,error}=await state.client.rpc('spend_credits',{p_amount:amount,p_kind:kind||'usage',p_description:description||''});if(error)throw error;state.credits={...state.credits,balance:data.balance,unlimited:data.unlimited};return !!data.success;}
   };
