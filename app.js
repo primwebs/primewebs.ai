@@ -688,7 +688,16 @@ V.bookings=()=>{const rows=S.bookings||[],pending=rows.filter(x=>x.status==='pen
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='animationLevel'){const allowed=['none','subtle','advanced','immersive'];if(!allowed.includes(d.level))return 1;upd(S.id,q=>{q.site.meta=q.site.meta||{};q.site.meta.animation={level:d.level,scroll:d.level!=='none',floatingImages:d.level==='advanced'||d.level==='immersive',threeD:d.level==='immersive',animatedText:d.level!=='none'}});return 1}
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(d.v==='edit'){S.view='edit';S.miniTab='edit'}else if(inner.includes(d.v)){S.view='builder';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='go'){
+     const target=d.v||'dash';
+     if(target==='dash'||target==='list')S.view='dash';
+     else if(target==='adminp')S.view='admin';
+     else if(target==='edit'){S.view=S.id?'edit':'dash';S.miniTab='edit'}
+     else if(target==='builder'){S.view=S.id?'builder':'new';S.miniTab='builder'}
+     else if(['customize','media','preview','history','export'].includes(target)){S.view='builder';S.miniTab=target}
+     else S.view=target;
+     S.err='';S.out=null;S.msg='';S.rc=0;return 1;
+   }
   if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Du er tilbage på Dashboard; dine gemte projekter er bevaret. Opdatér Dashboard, og prøv igen.');return 1}S.view='builder';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.msg='';S.err='';return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='tpl'){const t=TPL[+d.i];if(!t)return 1;S.form={name:'',desc:t.d,style:t.s,ind:t.industry||'',svc:'',tone:'Professionel'};S.view='new';S.err='';return 1}
@@ -936,19 +945,6 @@ document.addEventListener('click',e=>{
   if(a==='bookStatus'){window.PWDB.updateBookingStatus(id,b.dataset.status).then(()=>window.PWDB.listBookings()).then(x=>{S.bookings=x;banner('Bookingstatus er opdateret.');render()}).catch(err=>banner('Kunne ikke opdatere booking: '+err.message));return}
   if(a==='grp'){const st=Storage.get('pw.nav',{});st[b.dataset.g]=st[b.dataset.g]===0?1:0;Storage.set('pw.nav',st);return render()}
   if(a==='sub'){const st=Storage.get('pw.nav',{}),k='s:'+b.dataset.k;st[k]=st[k]===1?0:1;Storage.set('pw.nav',st);return render()}
-  if(a==='go'){
-    const target=b.dataset.v||'dash';
-    if(target==='dash')S.view='list';
-    else if(target==='edit'){S.view='edit';S.miniTab='edit'}
-    else if(target==='adminp')S.view='admin';
-    else S.view=target;
-    if(target==='list')S.view='list';
-    if(target==='new')S.err='';
-    if(target==='builder'&&!S.id){S.view='new'}
-    if(target==='edit'&&!S.id){S.view='list'}
-    S.del=null;
-    return render();
-  }
   if(ext2(a,b)||ext(a,b))return render();
   if(a==='renameStart'){const p=Projects.all().find(x=>x.id===id);if(p){S.renameId=id;S.renameValue=p.name||''}return render()}
   if(a==='renameCancel'){S.renameId=null;S.renameValue='';return render()}
