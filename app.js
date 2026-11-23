@@ -839,6 +839,8 @@ function keepImages(previousSite, nextSite) {
   return nextSite;
 }
 async function generate(){
+  // Prevent duplicate project creation when mobile taps are delivered twice.
+  if(S.busy)return;
   const f=S.form;
   if(!f.name.trim()){S.err='Skriv et navn til projektet.';return render()}
   if(Credits.balance()<Credits.cost.generate){S.err='Du har ikke nok credits.';return render()}
