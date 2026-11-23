@@ -903,27 +903,9 @@ function openProjectFromDashboard(id){
 }
 window.PWOpenProject=openProjectFromDashboard;
 
-// Capture project-menu actions before other handlers can swallow or rerender the click.
 document.addEventListener('click',e=>{
-  const button=e.target&&e.target.closest&&e.target.closest('.sd-project-dropdown button[data-act]');
-  if(!button)return;
-  const action=button.dataset.act,id=button.dataset.id;
-  if(action!=='projectEdit'&&action!=='del')return;
-  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  if(action==='projectEdit'){openProjectFromDashboard(id);return;}
-  if(String(S.del)===String(id)){
-    const all=Projects.all(),next=all.filter(p=>String(p.id)!==String(id));
-    if(next.length===all.length){banner('Projektet blev ikke fundet. Ingen projekter blev slettet.');return;}
-    Projects.save(next);
-    if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null);}
-    S.del=null;S.projectMenuId=null;
-    banner('Project deleted from your workspace.');
-  }else{S.del=id;S.projectMenuId=id;}
-  render();
-},true);
-
-document.addEventListener('click',e=>{
-  const b=e.target&&e.target.closest&&e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
+  const b=target&&target.closest&&target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='projectEdit'&&b.closest('.sd-project-dropdown')){
     e.preventDefault();e.stopPropagation();
     openProjectFromDashboard(id);
