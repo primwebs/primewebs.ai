@@ -354,11 +354,15 @@ function openProjectImmediately(id){
 }
 document.addEventListener('click',function(e){
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
-  const opener=target&&target.closest&&target.closest('[data-project-open-id]');
+  const opener=target&&target.closest&&target.closest('[data-project-open-id],a[href^="#project/"]');
   if(!opener)return;
+  const hrefId=opener.getAttribute('href')||'';
+  let id=opener.getAttribute('data-project-open-id')||hrefId.slice('#project/'.length);
+  try{id=decodeURIComponent(id)}catch(_){}
+  if(!id)return;
   e.preventDefault();
   e.stopImmediatePropagation();
-  openProjectImmediately(opener.getAttribute('data-project-open-id'));
+  openProjectImmediately(id);
 },true);
 document.addEventListener('change',function(e){
   const select=e.target&&e.target.closest&&e.target.closest('[data-project-open-select]');
@@ -370,7 +374,7 @@ const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><a class="btn" href="#project/${encodeURIComponent(p.id)}">Rediger hjemmeside</a><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><a class="btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}">Rediger hjemmeside</a><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
 function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
