@@ -34,7 +34,7 @@ const Storage={mem:{},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}if(window.PWDB)window.PWDB.persistKey(k,v)}};
 // Session og credits hentes fra Supabase efter login.
 const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,name:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.display_name)||'Bruger',role:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.role)||'user',email:(window.PWDB&&window.PWDB.user&&window.PWDB.user.email)||''}),can:()=>['owner','admin'].includes(Session.user().role)};
-const Credits={cost:{generate:10,edit:1},
+const Credits={cost:{generate:6,edit:1},
   unlimited:()=>Session.can()||!!(window.PWDB&&window.PWDB.credits&&window.PWDB.credits.unlimited),
   balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
   spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
@@ -462,7 +462,77 @@ function vDom(){
   </section>
   <div class="domain-store-note"><span>ⓘ</span><div><strong>Designet er klar – forbindelserne aktiveres senere</strong><p>Domænesøgning, betaling, registrering, DNS-verifikation og SSL er endnu ikke tilsluttet. Prisoversigten er kun en offentlig reference – der foretages ingen søgninger eller køb i denne version.</p></div></div>`;
 }
-function vCred(){return `<h1>Credits og abonnementer</h1><div class="card" style="margin-bottom:1rem"><span class="badge">OWNER / ADMIN</span><h3 style="margin-top:.6rem">Din konto: ubegrænsede credits</h3><p class="mu">Intet trækkes, når du selv genererer, tester eller redigerer.</p></div><h3>Credit-forbrug for kunder</h3><table><tr><th>Handling</th><th>Credits</th></tr><tr><td>Generér hjemmeside</td><td>${Credits.cost.generate}</td></tr><tr><td>Chat-ændring</td><td>${Credits.cost.edit}</td></tr></table><h3 style="margin-top:1.5rem">Abonnementer (udkast)</h3><table><tr><th>Plan</th><th>Credits pr. måned</th></tr>${PLANS.map(([n,c])=>`<tr><td>${n}</td><td>${c}</td></tr>`).join('')}</table><p class="mu">Der er ikke tilsluttet nogen betaling. Priser og betalingssystem tilføjes først, når du har godkendt det.</p>`}
+function vCred(){
+ const plans=[
+  {name:'Starter',price:'$25',credits:100,searches:5,features:['100 AI credits / month','Lead Finder: 5 searches / month','50 results per search','Invoicing overview','AI website generation'],button:'Get Starter'},
+  {name:'Pro',price:'$50',credits:200,searches:25,features:['200 AI credits / month','Lead Finder: 25 searches / month','50 results per search','Invoicing overview','AI website generation','Priority support'],button:'Current plan',popular:true},
+  {name:'Business',price:'$100',credits:500,searches:100,features:['500 AI credits / month','Lead Finder: 100 searches / month','50 results per search','Invoicing overview','AI website generation','Priority support'],button:'Get Business'}
+ ];
+ const check='<span class="pw-credit-check">✓</span>';
+ return \`<section class="pw-credits-page">
+ <style>
+ .pw-credits-page{max-width:1180px;margin:0 auto;padding:30px 24px 54px;color:#182238}
+ .pw-credits-page *{box-sizing:border-box}
+ .pw-credits-head{text-align:center;margin:4px auto 30px;max-width:760px}
+ .pw-credits-head .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#6474b8}
+ .pw-credits-head h1{font-size:clamp(34px,5vw,54px);letter-spacing:-.055em;line-height:1.02;margin:12px 0;background:linear-gradient(100deg,#172033 25%,#8b83db 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+ .pw-credits-head p{color:#68748a;font-size:15px;line-height:1.65;margin:0}
+ .pw-credit-account{display:flex;align-items:center;gap:16px;justify-content:space-between;padding:19px 22px;border:1px solid #e7eaf2;border-radius:18px;background:linear-gradient(110deg,#fff,#f6f7ff);box-shadow:0 12px 32px #1720330a;margin:0 auto 30px;max-width:900px}
+ .pw-credit-account-main{display:flex;align-items:center;gap:14px;min-width:0}
+ .pw-credit-crown{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:#eef0ff;color:#5969c9;font-size:24px}
+ .pw-credit-account strong{display:block;font-size:16px}
+ .pw-credit-account small{display:block;color:#778196;margin-top:4px;line-height:1.4}
+ .pw-credit-account .pw-credit-unlimited{font-weight:800;color:#4758bd;white-space:nowrap}
+ .pw-credit-section-title{text-align:center;margin:32px 0 17px}
+ .pw-credit-section-title h2{font-size:22px;letter-spacing:-.035em;margin:0 0 6px}
+ .pw-credit-section-title p{color:#7a8497;margin:0;font-size:13px}
+ .pw-credit-usage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:760px;margin:0 auto 34px}
+ .pw-credit-usage article{padding:19px 20px;border:1px solid #e7eaf1;border-radius:16px;background:#fff;display:flex;align-items:center;gap:15px}
+ .pw-credit-usage .usage-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#f0f2ff;color:#5667c5;font-size:20px}
+ .pw-credit-usage b{display:block;font-size:24px;letter-spacing:-.04em}
+ .pw-credit-usage small{display:block;color:#778196;margin-top:3px}
+ .pw-credit-billing{text-align:center;margin:0 0 18px;color:#68748a;font-size:13px}
+ .pw-credit-billing span{display:inline-block;padding:8px 16px;border:1px solid #e5e8f0;border-radius:99px;background:#f7f8fc;color:#34405a;font-weight:700}
+ .pw-credit-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+ .pw-credit-plan{position:relative;display:flex;flex-direction:column;padding:25px 23px 22px;border:1px solid #e6e9f0;border-radius:23px;background:linear-gradient(160deg,#fff,#fafbff);box-shadow:0 12px 34px #17203309;min-width:0}
+ .pw-credit-plan.popular{background:linear-gradient(155deg,#315fe5 0%,#293fc0 60%,#352f91 100%);border-color:#3156d7;color:#fff;box-shadow:0 18px 44px #304fc733;transform:translateY(-7px)}
+ .pw-credit-plan h3{font-size:21px;margin:0 0 7px;letter-spacing:-.03em}
+ .pw-credit-plan .plan-desc{font-size:12px;line-height:1.5;color:#788397;min-height:36px;margin:0 0 18px}
+ .pw-credit-plan.popular .plan-desc{color:#dce5ff}
+ .pw-credit-plan .plan-price{font-size:46px;font-weight:850;letter-spacing:-.065em;line-height:1;margin:0 0 17px}
+ .pw-credit-plan .plan-price small{font-size:13px;font-weight:500;letter-spacing:0;color:#778196}
+ .pw-credit-plan.popular .plan-price small{color:#dce5ff}
+ .pw-credit-plan .plan-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:19px}
+ .pw-credit-plan .plan-metrics div{padding:12px 8px;border-radius:13px;background:#f2f4fa;text-align:center}
+ .pw-credit-plan.popular .plan-metrics div{background:#ffffff19}
+ .pw-credit-plan .plan-metrics b{display:block;font-size:20px;letter-spacing:-.03em}
+ .pw-credit-plan .plan-metrics small{display:block;font-size:10px;line-height:1.35;color:#758096;margin-top:3px}
+ .pw-credit-plan.popular .plan-metrics small{color:#e1e7ff}
+ .pw-credit-plan ul{list-style:none;padding:16px 0 0;margin:0;border-top:1px solid #e9ecf2;display:grid;gap:12px;flex:1}
+ .pw-credit-plan.popular ul{border-color:#ffffff35}
+ .pw-credit-plan li{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.45;color:#4f5a70}
+ .pw-credit-plan.popular li{color:#f3f5ff}
+ .pw-credit-check{color:#6b7bd2;font-weight:900}
+ .pw-credit-plan.popular .pw-credit-check{color:#fff}
+ .pw-credit-popular{display:inline-flex;align-self:flex-start;padding:6px 10px;border-radius:99px;background:#ffffff20;color:#fff;font-size:10px;font-weight:800;letter-spacing:.06em;margin-bottom:15px}
+ .pw-credit-plan button{width:100%;margin-top:22px;padding:13px 15px;border:1px solid #dfe4ef;border-radius:12px;background:#fff;color:#26365c;font-weight:750;font-size:13px;cursor:not-allowed;opacity:.85}
+ .pw-credit-plan.popular button{background:#ffffffde;border-color:#ffffffde;color:#2d429e}
+ .pw-credit-plan button:disabled{opacity:.8}
+ .pw-credit-note{max-width:900px;margin:22px auto 0;padding:14px 16px;border-radius:13px;background:#f5f7fc;border:1px solid #e7ebf4;color:#6d7890;font-size:12px;line-height:1.6}
+ .pw-credit-note strong{color:#3f4b68}
+ @media(max-width:850px){.pw-credit-plans{grid-template-columns:1fr;max-width:520px;margin:auto}.pw-credit-plan.popular{transform:none;order:-1}}
+ @media(max-width:560px){.pw-credits-page{padding:20px 13px 36px}.pw-credit-account{align-items:flex-start;padding:15px}.pw-credit-account .pw-credit-unlimited{font-size:12px}.pw-credit-usage{grid-template-columns:1fr}.pw-credit-plan{padding:22px 19px}}
+ </style>
+ <header class="pw-credits-head"><span class="eyebrow">PRIME WEBS AI · CREDITS & PLANS</span><h1>Your Plan</h1><p>Choose the right plan for your workflow. Build websites, make AI-powered edits and manage your projects from one place.</p></header>
+ <div class="pw-credit-account"><div class="pw-credit-account-main"><span class="pw-credit-crown">♛</span><div><strong>Owner workspace · Unlimited access</strong><small>Your owner account keeps unlimited credits. No credits are deducted when you build or edit your own projects.</small></div></div><div class="pw-credit-unlimited">∞ Unlimited</div></div>
+ <div class="pw-credit-section-title"><h2>How credits work</h2><p>Simple, predictable usage for every customer.</p></div>
+ <div class="pw-credit-usage"><article><span class="usage-icon">✦</span><div><b>6 credits</b><small>Generate one website</small></div></article><article><span class="usage-icon">↗</span><div><b>1 credit</b><small>Make one AI edit or change</small></div></article></div>
+ <div class="pw-credit-section-title"><h2>Choose your plan</h2><p>Monthly plans · Pick the credit allowance that fits your needs.</p></div>
+ <div class="pw-credit-billing"><span>Monthly billing</span></div>
+ <div class="pw-credit-plans">\${plans.map(p=>\`<article class="pw-credit-plan \${p.popular?'popular':''}">\${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>\${p.name}</h3><p class="plan-desc">\${p.name==='Starter'?'For freelancers getting started':p.name==='Pro'?'For growing teams and agencies':'For teams with high-volume website projects'}</p><div class="plan-price">\${p.price}<small> /mo</small></div><div class="plan-metrics"><div><b>\${p.credits}</b><small>AI credits / month</small></div><div><b>\${p.searches}</b><small>searches / month</small></div></div><ul>\${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>\${p.button} · Coming soon</button></article>\`).join('')}</div>
+ <div class="pw-credit-note"><strong>Important:</strong> Subscription checkout and payment processing are not connected yet, so these plans are displayed as a pricing preview only. Lead Finder search allowances will become active when its verified data provider is connected. Your OWNER / ADMIN unlimited-credit access is preserved.</div>
+ </section>\`;
+}
 
 function vCust(){const c=Customers.all(),l=Projects.all(),f=S.cf,po=(v)=>PLANS.map(([n])=>`<option ${v===n?'selected':''}>${n}</option>`).join('');
   return `<h1>Kundehjemmesider</h1><div class="card form" style="margin-bottom:1rem"><h3>Ny kunde</h3><label>Navn<input data-g="name" value="${esc(f.name)}"></label><label>E-mail<input data-g="email" value="${esc(f.email)}"></label><label>Plan<select data-g="plan">${po(f.plan)}</select></label>${S.err?`<p class="err">${esc(S.err)}</p>`:''}<button class="btn" data-act="cadd">Tilføj kunde</button></div><h3>Kunder</h3>`+(c.length?`<table><tr><th>Kunde</th><th>Plan</th><th>Credits</th><th></th></tr>${c.map(u=>`<tr><td>${esc(u.name)}<div class="mu" style="margin:0">${esc(u.email)}</div></td><td><select data-cu="${u.id}" data-cf="plan">${po(u.plan)}</select></td><td>${u.credits}</td><td><div class="row"><button class="btn ghost" data-act="cc" data-id="${u.id}" data-n="-10">−10</button><button class="btn ghost" data-act="cc" data-id="${u.id}" data-n="10">+10</button><button class="btn ghost" data-act="cdel" data-id="${u.id}">${S.cdel===u.id?'Bekræft':'Slet'}</button></div></td></tr>`).join('')}</table>`:'<p class="mu">Ingen kunder endnu.</p>')+`<h3 style="margin-top:1.5rem">Projekter</h3>`+(l.length?`<table><tr><th>Hjemmeside</th><th>Kunde</th></tr>${l.map(p=>`<tr><td>${esc(p.name)}</td><td><select data-cp="${p.id}"><option value="">Intern (mig)</option>${c.map(u=>`<option value="${u.id}" ${p.customerId===u.id?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td></tr>`).join('')}</table>`:'<p class="mu">Ingen hjemmesider endnu.</p>')}
