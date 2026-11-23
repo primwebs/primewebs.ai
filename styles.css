@@ -1460,8 +1460,14 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
   .sd-dashboard{padding:0 10px 24px;border-radius:16px}
   .sd-dashboard .sd-welcome{padding:44px 8px 36px!important}
   .sd-dashboard .sd-compose{min-height:108px;padding:13px;border-radius:15px}
-  .sd-dashboard .sd-project-grid{grid-template-columns:1fr;gap:15px}
-  .sd-dashboard .sd-project-preview{height:205px}
+  /* Keep the project library compact on phones instead of stretching each site full-width. */
+  .sd-dashboard .sd-project-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .sd-dashboard .sd-project-card{min-width:0;border-radius:13px}
+  .sd-dashboard .sd-project-preview{height:132px}
+  .sd-dashboard .sd-project-card-foot{min-width:0;gap:7px;padding:10px;min-height:58px}
+  .sd-dashboard .sd-project-card-foot>div{min-width:0;overflow:hidden}
+  .sd-dashboard .sd-project-card-foot strong,.sd-dashboard .sd-project-card-foot small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sd-dashboard .sd-project-menu{width:28px;height:28px;font-size:20px}
 }
 
 /* Dashboard project-card action menu */
