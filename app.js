@@ -926,14 +926,43 @@ document.addEventListener('click',e=>{
   const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
   if(!target)return;
   const action=target.dataset.act;
+  const id=String(target.dataset.id||'');
+  // Keep every project-card interaction in this one capture handler. This
+  // prevents later delegated handlers from closing the menu or swallowing taps.
   if(action==='projectMenu'){
     e.preventDefault();e.stopImmediatePropagation();
     toggleProjectActions(target);
     return;
   }
-  if(action==='openProjectCard'){
+  if(action==='openProjectCard'||(action==='open'&&target.closest('.sd-project-dropdown'))){
     e.preventDefault();e.stopImmediatePropagation();
-    openProjectFromDashboard(target.dataset.id);
+    openProjectFromDashboard(id);
+    return;
+  }
+  if(action==='del'&&target.closest('.sd-project-dropdown')){
+    e.preventDefault();e.stopImmediatePropagation();
+    if(S.del===id){
+      Projects.save(Projects.all().filter(p=>String(p.id)!==id));
+      if(String(S.id)===id){S.id=null;Storage.set('pw.activeProject',null);}
+      S.del=null;S.projectMenuId=null;
+      banner('Project deleted from your workspace.');
+    }else{
+      S.del=id;S.projectMenuId=id;
+    }
+    render();
+    return;
+  }
+  if(action==='projectUnpublish'&&target.closest('.sd-project-dropdown')){
+    e.preventDefault();e.stopImmediatePropagation();
+    const project=Projects.all().find(p=>String(p.id)===id);
+    if(!project)return;
+    const ok=window.confirm('Move this project back to Draft? This changes your PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');
+    if(!ok)return;
+    upd(id,p=>{p.status='draft';p.isPublished=false;delete p.publishedAt;delete p.publishedUrl;delete p.liveUrl;});
+    S.projectMenuId=null;S.del=null;
+    banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');
+    render();
+    return;
   }
 },true);
 
