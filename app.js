@@ -39,14 +39,36 @@ const Credits={cost:{generate:6,edit:1},
   balance(){return this.unlimited()?Infinity:(window.PWDB&&window.PWDB.credits?window.PWDB.credits.balance:Storage.get('pw.credits',50))},
   spend(a){if(this.unlimited())return true;const b=this.balance(),c=this.cost[a];if(b<c)return false;if(window.PWDB&&window.PWDB.spendCredits)window.PWDB.spendCredits(c,a,'PRIME WEBS AI '+a).then(ok=>{if(!ok)banner('Credits kunne ikke trækkes. Prøv igen.');if(window.render)window.render()}).catch(e=>banner(e.message));else Storage.set('pw.credits',b-c);return true}};
 // Projects: repository, samme interface mod database senere
+function projectContentKey(p){
+  // IDs are deliberately excluded: this key detects the same saved website
+  // copied into Supabase under multiple IDs, while preserving genuinely
+  // different versions of a project (including the two distinct barbershops).
+  return JSON.stringify([
+    p.name||'',p.status||'draft',p.domain||null,p.plan||null,
+    p.site||{},p.history||[],p.future||[],p.chat||[]
+  ]);
+}
+function dedupeProjectRecords(list){
+  const active=String(S.id||Storage.get('pw.activeProject','')||'');
+  const byContent=new Map();
+  for(const p of list){
+    const key=projectContentKey(p),old=byContent.get(key);
+    if(!old || String(p.id)===active ||
+       (String(old.id)!==active && Number(p.updatedAt||0)>Number(old.updatedAt||0))){
+      byContent.set(key,p);
+    }
+  }
+  return Array.from(byContent.values());
+}
 const Projects={
   all(){
     const result=normalizeProjectIds(Storage.get('pw.projects',[]).map(fixP).filter(Boolean));
-    if(result.changed)Storage.set('pw.projects',result.projects);
-    return result.projects;
+    const unique=dedupeProjectRecords(result.projects);
+    if(result.changed||unique.length!==result.projects.length)Storage.set('pw.projects',unique);
+    return unique;
   },
   save(list){
-    const result=normalizeProjectIds(list);
+    const result=normalizeProjectIds(dedupeProjectRecords((Array.isArray(list)?list:[]).map(fixP).filter(Boolean)));
     Storage.set('pw.projects',result.projects);
   }
 };
