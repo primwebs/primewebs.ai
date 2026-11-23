@@ -473,7 +473,7 @@ function vCred(){
  const multiplier=billing==='six'?.8:billing==='annual'?.67:1;
  const period=billing==='six'?'6-Month':billing==='annual'?'Annual':'Monthly';
  const saving=billing==='six'?'Save ~20%':billing==='annual'?'Save ~33%':'';
- const money=n=>'$'+(n*multiplier).toFixed(2).replace(/\\.00$/,'');
+ const money=n=>'$'+(n*multiplier).toFixed(2).replace(/\.00$/,'');
  return `<section class="pw-credits-page">
  <style>
  .pw-credits-page{max-width:1180px;margin:0 auto;padding:30px 24px 54px;color:#182238}
