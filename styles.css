@@ -1556,7 +1556,15 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 /* PRIME WEBS AI — reliable project options menu */
 .sd-project-card-foot{overflow:visible}
 /* Project cards: one direct edit action, no overflow/menu control. */
-.sd-edit-project-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border:1px solid #347fe5;border-radius:8px;background:#347fe5;color:#fff;font:700 11px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;white-space:nowrap;text-decoration:none;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 9px rgba(52,127,229,.16);transition:background .15s ease,transform .15s ease}
+.sd-edit-project-btn{position:relative;z-index:10;pointer-events:auto;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border:1px solid #347fe5;border-radius:8px;background:#347fe5;color:#fff;font:700 12px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;white-space:nowrap;text-decoration:none;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 9px rgba(52,127,229,.16);transition:background .15s ease,transform .15s ease}
 .sd-edit-project-btn:hover,.sd-edit-project-btn:focus-visible{background:#286bc8;border-color:#286bc8;outline:none}
 .sd-edit-project-btn:active{transform:translateY(1px)}
 @media(max-width:520px){.sd-edit-project-btn{min-height:34px;padding:7px 9px;font-size:10px}}
+
+
+/* Direct project access fallback: the selector is independent of project-card hit areas. */
+.sd-project-open-fallback{display:flex;justify-content:flex-end;margin:0 0 14px;padding:0 2px}
+.sd-project-open-fallback label{display:flex;align-items:center;gap:10px;max-width:100%;font-size:12px;font-weight:700;color:#64748b}
+.sd-project-open-fallback select{min-width:190px;max-width:100%;min-height:40px;padding:8px 12px;border:1px solid #d7e0ed;border-radius:9px;background:#fff;color:#1e293b;font:600 12px system-ui,-apple-system,sans-serif;touch-action:manipulation}
+.sd-project-open-target{pointer-events:auto!important;touch-action:manipulation!important}
+@media(max-width:640px){.sd-project-open-fallback{justify-content:stretch}.sd-project-open-fallback label{width:100%;align-items:stretch;flex-direction:column;gap:6px}.sd-project-open-fallback select{width:100%;min-height:46px}}
