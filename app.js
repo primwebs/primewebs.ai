@@ -469,7 +469,7 @@ function vCred(){
   {name:'Business',price:'$100',credits:500,searches:100,features:['500 AI credits / month','Lead Finder: 100 searches / month','50 results per search','Invoicing overview','AI website generation','Priority support'],button:'Get Business'}
  ];
  const check='<span class="pw-credit-check">✓</span>';
- return \`<section class="pw-credits-page">
+ return `<section class="pw-credits-page">
  <style>
  .pw-credits-page{max-width:1180px;margin:0 auto;padding:30px 24px 54px;color:#182238}
  .pw-credits-page *{box-sizing:border-box}
@@ -529,9 +529,9 @@ function vCred(){
  <div class="pw-credit-usage"><article><span class="usage-icon">✦</span><div><b>6 credits</b><small>Generate one website</small></div></article><article><span class="usage-icon">↗</span><div><b>1 credit</b><small>Make one AI edit or change</small></div></article></div>
  <div class="pw-credit-section-title"><h2>Choose your plan</h2><p>Monthly plans · Pick the credit allowance that fits your needs.</p></div>
  <div class="pw-credit-billing"><span>Monthly billing</span></div>
- <div class="pw-credit-plans">\${plans.map(p=>\`<article class="pw-credit-plan \${p.popular?'popular':''}">\${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>\${p.name}</h3><p class="plan-desc">\${p.name==='Starter'?'For freelancers getting started':p.name==='Pro'?'For growing teams and agencies':'For teams with high-volume website projects'}</p><div class="plan-price">\${p.price}<small> /mo</small></div><div class="plan-metrics"><div><b>\${p.credits}</b><small>AI credits / month</small></div><div><b>\${p.searches}</b><small>searches / month</small></div></div><ul>\${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>\${p.button} · Coming soon</button></article>\`).join('')}</div>
+ <div class="pw-credit-plans">${plans.map(p=>`<article class="pw-credit-plan ${p.popular?'popular':''}">${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>${p.name}</h3><p class="plan-desc">${p.name==='Starter'?'For freelancers getting started':p.name==='Pro'?'For growing teams and agencies':'For teams with high-volume website projects'}</p><div class="plan-price">${p.price}<small> /mo</small></div><div class="plan-metrics"><div><b>${p.credits}</b><small>AI credits / month</small></div><div><b>${p.searches}</b><small>searches / month</small></div></div><ul>${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>${p.button} · Coming soon</button></article>`).join('')}</div>
  <div class="pw-credit-note"><strong>Important:</strong> Subscription checkout and payment processing are not connected yet, so these plans are displayed as a pricing preview only. Lead Finder search allowances will become active when its verified data provider is connected. Your OWNER / ADMIN unlimited-credit access is preserved.</div>
- </section>\`;
+ </section>`;
 }
 
 function vCust(){const c=Customers.all(),l=Projects.all(),f=S.cf,po=(v)=>PLANS.map(([n])=>`<option ${v===n?'selected':''}>${n}</option>`).join('');
