@@ -906,7 +906,11 @@ window.PWOpenProject=openProjectFromDashboard;
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
   const b=target&&target.closest&&target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
-  if(a==='projectEdit'&&b.closest('.sd-project-dropdown')){
+  // One route for BOTH entry points: the card preview overlay and the
+  // three-dot "Edit project" menu item. The old condition only accepted the
+  // menu item, so tapping the actual project card fell through to render()
+  // and simply repainted the dashboard instead of opening the editor.
+  if(a==='projectEdit'){
     e.preventDefault();e.stopPropagation();
     openProjectFromDashboard(id);
     return;
@@ -939,7 +943,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='edit';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
+  else if(a==='open'){openProjectFromDashboard(id);return}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;S.projectMenuId=null;banner('Project deleted from your workspace.')}else{S.del=id;S.projectMenuId=id}}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
