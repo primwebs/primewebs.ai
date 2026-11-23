@@ -1463,3 +1463,13 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
   .sd-dashboard .sd-project-grid{grid-template-columns:1fr;gap:15px}
   .sd-dashboard .sd-project-preview{height:205px}
 }
+
+/* Dashboard project-card action menu */
+.sd-project-actions{position:relative;flex:0 0 auto}
+.sd-project-menu{display:grid;place-items:center;font-size:22px;line-height:1;font-weight:700;letter-spacing:1px}
+.sd-project-menu:hover,.sd-project-menu[aria-expanded="true"]{background:#f1f5fb;color:#2540D9;border-color:#dbe4f2}
+.sd-project-dropdown{position:absolute;z-index:40;right:0;bottom:calc(100% + 7px);width:184px;padding:5px;background:#fff;border:1px solid #e5eaf1;border-radius:10px;box-shadow:0 12px 32px rgba(22,39,67,.16);display:grid;gap:2px}
+.sd-project-dropdown button{width:100%;border:0;background:transparent;color:#34445c;text-align:left;padding:9px 10px;border-radius:7px;font:600 12px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer}
+.sd-project-dropdown button:hover{background:#f1f5fb;color:#2540D9}
+.sd-project-dropdown button.danger{color:#c43c4d}
+.sd-project-dropdown button.danger:hover{background:#fff1f2;color:#a91f32}
