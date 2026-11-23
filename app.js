@@ -412,7 +412,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="open" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><button type="button" class="sd-edit-project-btn" data-act="open" data-id="${esc(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</button></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -927,6 +927,19 @@ function openProjectFromDashboard(id){
 }
 window.PWOpenProject=openProjectFromDashboard;
 
+// Project navigation uses a native URL fragment instead of delegated click
+// handlers. This remains reliable even when preview/menu scripts add listeners.
+function routeProjectHash(){
+  const match=location.hash.match(/^#open-project\/([^/?#]+)$/);
+  if(!match)return false;
+  let id='';
+  try{id=decodeURIComponent(match[1])}catch(_){id=match[1]}
+  history.replaceState(null,'',location.pathname+location.search);
+  openProjectFromDashboard(id);
+  return true;
+}
+window.addEventListener('hashchange',routeProjectHash);
+
 // Project card and dropdown actions are handled by the single delegated listener below.
 
 document.addEventListener('click',e=>{
@@ -1138,7 +1151,7 @@ async function boot(){
     // the same queries/migrations and can prevent the dashboard from rendering.
     S.bookings=await window.PWDB.listBookings();
     S.auth={enabled:true,authenticated:true,email:window.PWDB.user.email};
-    render();
+    if(!routeProjectHash())render();
   }catch(e){
     window.__pwInitError=e&&e.message||'Supabase kunne ikke indlæses';
     // A cloud refresh/load failure is not proof that the user is signed out.
