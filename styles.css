@@ -1525,3 +1525,12 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-open-target{position:absolute;inset:0;z-index:3;display:block;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:0;background:transparent;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sd-project-state,.sd-project-open{pointer-events:none!important;z-index:2}
 .sd-project-open-target:focus-visible{outline:3px solid #3158d8;outline-offset:-4px;border-radius:8px}
+
+
+/* Native project actions disclosure: dependable tap target on iPhone and desktop. */
+.sd-project-actions{position:relative;display:block;flex:0 0 auto;z-index:71}
+.sd-project-menu{display:grid;place-items:center;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sd-project-menu::-webkit-details-marker{display:none}
+.sd-project-actions[open] .sd-project-menu{background:#f1f5fb;color:#2540D9;border-color:#dbe4f2}
+.sd-project-actions .sd-project-dropdown{position:absolute;right:0;bottom:calc(100% + 7px);z-index:100}
+.sd-project-card{overflow:visible}
