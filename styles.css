@@ -1502,20 +1502,9 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 @media(prefers-reduced-motion:reduce){.typing-dots i{animation:none}.msgs{scroll-behavior:auto}}
 
 
-/* Mobile project-card interaction fix: keep the action menu visible and tappable. */
-.sd-project-card{overflow:visible;position:relative}
-.sd-project-card:has(.sd-project-menu[aria-expanded="true"]){z-index:70}
-.sd-project-card-foot{position:relative;z-index:2}
-.sd-project-actions{position:relative;z-index:71}
-.sd-project-dropdown{z-index:90;max-height:min(60vh,320px);overflow-y:auto;overscroll-behavior:contain}
-.sd-project-preview{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:11px 11px 0 0}
-.sd-project-preview iframe{pointer-events:none!important}
-.sd-project-menu,.sd-project-dropdown button{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-
-
 /* Reliable dashboard project-card taps and unclipped action menu (mobile + desktop). */
 .sd-project-card{overflow:visible;position:relative}
-.sd-project-card:has(.sd-project-menu[aria-expanded="true"]){z-index:70}
+.sd-project-card:has(.sd-project-actions[open]){z-index:70}
 .sd-project-card-foot{position:relative;z-index:2}
 .sd-project-actions{position:relative;z-index:71}
 .sd-project-dropdown{z-index:90;max-height:min(60vh,320px);overflow-y:auto;overscroll-behavior:contain}
