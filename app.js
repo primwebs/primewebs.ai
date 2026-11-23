@@ -922,7 +922,7 @@ function toggleProjectActions(trigger){
   addItem('del','Delete project','danger');
   host.appendChild(menu);
 }
-document.addEventListener('pointerdown',e=>{
+document.addEventListener('click',e=>{
   const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
   if(!target)return;
   const action=target.dataset.act;
@@ -936,29 +936,10 @@ document.addEventListener('pointerdown',e=>{
     openProjectFromDashboard(target.dataset.id);
   }
 },true);
-document.addEventListener('keydown',e=>{
-  const target=e.target&&e.target.closest&&e.target.closest('.sd-project-open-target[data-act="openProjectCard"]');
-  if(!target||(e.key!=='Enter'&&e.key!==' '))return;
-  e.preventDefault();e.stopImmediatePropagation();
-  openProjectFromDashboard(target.dataset.id);
-},true);
-document.addEventListener('click',e=>{
-  const target=e.target&&e.target.closest&&e.target.closest('.sd-project-open-target[data-act="openProjectCard"]');
-  if(!target||e.detail!==0)return;
-  e.preventDefault();e.stopImmediatePropagation();
-  openProjectFromDashboard(target.dataset.id);
-},true);
-document.addEventListener('click',e=>{
-  const target=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!target)return;
-  e.preventDefault();e.stopImmediatePropagation();
-  if(e.detail===0)toggleProjectActions(target);
-},true);
 
 document.addEventListener('click',e=>{
   if(S.projectMenuId&&!e.target.closest('.sd-project-actions')){S.projectMenuId=null;if(!e.target.closest('[data-act]')){render();return}}
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
-  if(a==='projectMenu'){S.projectMenuId=S.projectMenuId===id?null:id;S.del=null;return render()}
   if(a==='projectUnpublish'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p)return;const ok=window.confirm('Move this project back to Draft? This changes its PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');if(!ok)return;upd(id,q=>{q.status='draft';q.isPublished=false;delete q.publishedAt;delete q.publishedUrl;delete q.liveUrl});S.projectMenuId=null;S.del=null;banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');return render()}
   if(a==='bookRefresh'){window.PWDB.listBookings().then(x=>{S.bookings=x;render()}).catch(err=>banner('Kunne ikke hente bookinger: '+err.message));return}
   if(a==='bookStatus'){window.PWDB.updateBookingStatus(id,b.dataset.status).then(()=>window.PWDB.listBookings()).then(x=>{S.bookings=x;banner('Bookingstatus er opdateret.');render()}).catch(err=>banner('Kunne ikke opdatere booking: '+err.message));return}
