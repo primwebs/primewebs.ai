@@ -390,7 +390,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" onclick="return window.PWOpenProject('${esc(p.id)}')" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><details class="sd-project-actions" ${String(S.del)===String(p.id)?'open':'' }><summary class="sd-project-menu" aria-label="Project actions" aria-haspopup="menu">⋯</summary><div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" onclick="return window.PWOpenProject('${esc(p.id)}')">Edit project</button>${live?`<button type="button" role="menuitem" data-act="projectUnpublish" data-id="${p.id}">Unpublish</button>`:''}<button type="button" role="menuitem" class="danger" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Confirm delete project':'Delete project'}</button></div></details></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="projectEdit" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><details class="sd-project-actions" ${String(S.del)===String(p.id)?'open':'' }><summary class="sd-project-menu" aria-label="Project actions" aria-haspopup="menu">⋯</summary><div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" onclick="return window.PWOpenProject('${esc(p.id)}')">Edit project</button>${live?`<button type="button" role="menuitem" data-act="projectUnpublish" data-id="${p.id}">Unpublish</button>`:''}<button type="button" role="menuitem" class="danger" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Confirm delete project':'Delete project'}</button></div></details></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -888,12 +888,10 @@ async function send(t){
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
-// Project card actions use pointerdown capture so preview/iframe layers and
-// other delegated click handlers cannot swallow the user's first interaction.
+// Dashboard project actions share one delegated click handler below.
 function openProjectFromDashboard(id){
   const project=Projects.all().find(item=>String(item.id)===String(id));
   if(!project){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return false;}
-  // Set the selected project and route in one place before rendering the AI chat editor.
   S.id=project.id;
   S.view='edit';
   S.miniTab='edit';
@@ -904,18 +902,19 @@ function openProjectFromDashboard(id){
   return false;
 }
 window.PWOpenProject=openProjectFromDashboard;
-// Project actions use the browser's native <details>/<summary> disclosure.
-// No delegated click or pointer handlers are needed to open/close this menu.
-document.addEventListener('pointerdown',e=>{
-  const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
-  if(!target)return;
-  const action=target.dataset.act;
-  const id=String(target.dataset.id||'');
-  if(action==='del'&&target.closest('.sd-project-dropdown')){
-    e.preventDefault();e.stopImmediatePropagation();
-    if(S.del===id){
-      Projects.save(Projects.all().filter(p=>String(p.id)!==id));
-      if(String(S.id)===id){S.id=null;Storage.set('pw.activeProject',null);}
+
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  if(a==='projectEdit'&&b.closest('.sd-project-dropdown')){
+    e.preventDefault();e.stopPropagation();
+    openProjectFromDashboard(id);
+    return;
+  }
+  if(a==='del'&&b.closest('.sd-project-dropdown')){
+    e.preventDefault();e.stopPropagation();
+    if(String(S.del)===String(id)){
+      Projects.save(Projects.all().filter(p=>String(p.id)!==String(id)));
+      if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null);}
       S.del=null;S.projectMenuId=null;
       banner('Project deleted from your workspace.');
     }else{
@@ -924,22 +923,6 @@ document.addEventListener('pointerdown',e=>{
     render();
     return;
   }
-  if(action==='projectUnpublish'&&target.closest('.sd-project-dropdown')){
-    e.preventDefault();e.stopImmediatePropagation();
-    const project=Projects.all().find(p=>String(p.id)===id);
-    if(!project)return;
-    const ok=window.confirm('Move this project back to Draft? This changes your PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');
-    if(!ok)return;
-    upd(id,p=>{p.status='draft';p.isPublished=false;delete p.publishedAt;delete p.publishedUrl;delete p.liveUrl;});
-    S.projectMenuId=null;S.del=null;
-    banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');
-    render();
-    return;
-  }
-},true);
-
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='projectUnpublish'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p)return;const ok=window.confirm('Move this project back to Draft? This changes its PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');if(!ok)return;upd(id,q=>{q.status='draft';q.isPublished=false;delete q.publishedAt;delete q.publishedUrl;delete q.liveUrl});S.projectMenuId=null;S.del=null;banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');return render()}
   if(a==='bookRefresh'){window.PWDB.listBookings().then(x=>{S.bookings=x;render()}).catch(err=>banner('Kunne ikke hente bookinger: '+err.message));return}
   if(a==='bookStatus'){window.PWDB.updateBookingStatus(id,b.dataset.status).then(()=>window.PWDB.listBookings()).then(x=>{S.bookings=x;banner('Bookingstatus er opdateret.');render()}).catch(err=>banner('Kunne ikke opdatere booking: '+err.message));return}
