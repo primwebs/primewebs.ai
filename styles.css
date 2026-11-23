@@ -1573,3 +1573,11 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
     box-sizing:border-box!important;
   }
 }
+
+
+/* Fresh three-line project editor button */
+.sd-project-menu{width:34px;height:34px;min-width:34px;padding:0;border:1px solid #e5eaf1;border-radius:9px;background:#fff;color:#34445c;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;z-index:5}
+.sd-project-menu:hover,.sd-project-menu:focus-visible{background:#f1f5fb;color:#2540D9;border-color:#cdd9f4;outline:none}
+.sd-menu-lines{display:flex;width:15px;flex-direction:column;gap:3px;align-items:stretch;pointer-events:none}
+.sd-menu-lines i{display:block;width:15px;height:2px;border-radius:2px;background:currentColor}
+.sd-project-actions{display:none!important}
