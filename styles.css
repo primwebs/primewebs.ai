@@ -1505,3 +1505,14 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-preview{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border-radius:11px 11px 0 0}
 .sd-project-preview iframe{pointer-events:none!important}
 .sd-project-menu,.sd-project-dropdown button{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+
+/* Reliable dashboard project-card taps and unclipped action menu (mobile + desktop). */
+.sd-project-card{overflow:visible;position:relative}
+.sd-project-card:has(.sd-project-menu[aria-expanded="true"]){z-index:70}
+.sd-project-card-foot{position:relative;z-index:2}
+.sd-project-actions{position:relative;z-index:71}
+.sd-project-dropdown{z-index:90;max-height:min(60vh,320px);overflow-y:auto;overscroll-behavior:contain}
+.sd-project-preview{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sd-project-preview iframe,.sd-project-preview>.sd-project-state,.sd-project-preview>.sd-project-open{pointer-events:none!important}
+.sd-project-menu,.sd-project-dropdown button{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
