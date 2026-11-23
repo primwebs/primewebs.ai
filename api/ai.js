@@ -257,8 +257,10 @@ module.exports = async (req, res) => {
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: SYSTEM + "\\nReturn only a JSON object with keys site and reply." }] },
               contents: [{ role: "user", parts: [{ text: task }] }],
-              generationConfig: { responseMimeType: "application/json", temperature: 0.7, maxOutputTokens: 12000 }
-            })
+              generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 9000 }
+            }),
+            // Bound each upstream attempt so Vercel never has to kill the whole request at 300s.
+            signal: AbortSignal.timeout(65000)
           });
           const result = await upstream.json().catch(() => ({}));
           if (upstream.ok) return (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\\n");
@@ -278,7 +280,9 @@ module.exports = async (req, res) => {
       const upstream = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 12000, system: SYSTEM, messages: [{ role: "user", content: task }] })
+        body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 9000, system: SYSTEM, messages: [{ role: "user", content: task }] }),
+        // Keep the paid fallback bounded as well; the editor receives a controlled error instead of a Vercel timeout.
+        signal: AbortSignal.timeout(70000)
       });
       const result = await upstream.json().catch(() => ({}));
       if (!upstream.ok) {
