@@ -381,7 +381,7 @@ function duplicateProject(id){
  copy.customerId=null;copy.customer=null;copy.isPublished=false;delete copy.publishedAt;delete copy.publishedUrl;delete copy.liveUrl;
  if(copy.site&&Array.isArray(copy.site.blocks))copy.site.blocks=copy.site.blocks.map(b=>({...b,id:uid()}));
  Projects.save([copy,...Projects.all()]);
- S.id=copy.id;Storage.set('pw.activeProject',copy.id);S.view='mini';S.miniTab='edit';S.err='';
+ S.id=copy.id;Storage.set('pw.activeProject',copy.id);S.view='builder';S.miniTab='edit';S.err='';
  banner('Projektet er kopieret. Originalen er uændret.');
 }
 function vDash(){
@@ -611,8 +611,8 @@ V.bookings=()=>{const rows=S.bookings||[],pending=rows.filter(x=>x.status==='pen
 
 function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='animationLevel'){const allowed=['none','subtle','advanced','immersive'];if(!allowed.includes(d.level))return 1;upd(S.id,q=>{q.site.meta=q.site.meta||{};q.site.meta.animation={level:d.level,scroll:d.level!=='none',floatingImages:d.level==='advanced'||d.level==='immersive',threeD:d.level==='immersive',animatedText:d.level!=='none'}});return 1}
-  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='mini';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
-  if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Du er tilbage på Dashboard; dine gemte projekter er bevaret. Opdatér Dashboard, og prøv igen.');return 1}S.view='mini';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.msg='';S.err='';return 1}
+  if(a==='go'){const inner=['list','templates','edit','builder','customize','media','preview','history','export','files'];if(inner.includes(d.v)){S.view='builder';S.miniTab=d.v}else S.view=d.v;S.err='';S.out=null;S.msg='';S.rc=0;return 1}
+  if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Du er tilbage på Dashboard; dine gemte projekter er bevaret. Opdatér Dashboard, og prøv igen.');return 1}S.view='builder';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.msg='';S.err='';return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='tpl'){const t=TPL[+d.i];if(!t)return 1;S.form={name:'',desc:t.d,style:t.s,ind:t.industry||'',svc:'',tone:'Professionel'};S.view='new';S.err='';return 1}
   if(a==='workMode'){Storage.set('pw.workMode',d.mode==='own'?'own':'clients');S.dashPrompt='';S.err='';S.view='list';return render()}
@@ -646,7 +646,7 @@ function ext2(a,b){const d=b.dataset;
   if(a==='domSearch'){S.domainQuery=String(document.querySelector('[data-dom-query]')?.value||'').trim();S.domSearched=true;return 1}
 
   if(a==='grp'){const n=Storage.get('pw.nav',{});n[d.g]=n[d.g]===0?1:0;Storage.set('pw.nav',n);return 1}
-  if(a==='miniTab'){S.view='mini';S.miniTab=d.tab;S.err='';S.out=null;return 1}
+  if(a==='miniTab'){S.view='builder';S.miniTab=d.tab;S.err='';S.out=null;return 1}
   if(a==='billing'){S.pricingPeriod=['monthly','sixmonth','annual'].includes(d.p)?d.p:'monthly';return 1}
   if(a==='fp'){S.fp=d.p;return 1}
   if(a==='fadd'){const f=S.ff,amt=parseFloat(String(f.amount).replace(',','.'));
@@ -781,7 +781,7 @@ async function generate(){
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
   S.id=p.id;Storage.set('pw.activeProject',p.id);
-  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='mini';S.miniTab='edit';S.id=p.id;render();
+  S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='builder';S.miniTab='edit';S.id=p.id;render();
 }
 async function send(t){
   t=(t||'').trim();if(!t||S.busy)return;const p=getP();
@@ -809,7 +809,7 @@ document.addEventListener('click',e=>{
   if(a==='go'){
     const target=b.dataset.v||'dash';
     if(target==='dash')S.view='list';
-    else if(target==='edit'){S.view='mini';S.miniTab='edit'}
+    else if(target==='edit'){S.view='builder';S.miniTab='edit'}
     else if(target==='adminp')S.view='admin';
     else S.view=target;
     if(target==='list')S.view='list';
@@ -825,11 +825,11 @@ document.addEventListener('click',e=>{
   if(a==='renameSave'){const name=String(S.renameValue||'').trim().slice(0,80),all=Projects.all(),p=all.find(x=>x.id===id);if(!p||!name){banner('Skriv et projektnavn før du gemmer.');return render()}p.name=name;p.updatedAt=Date.now();Projects.save(all);S.renameId=null;S.renameValue='';banner('Projektnavnet er opdateret.');return render()}
   if(a==='duplicate'){duplicateProject(id);return render()}
   if(a==='gen')return generate();
-  if(a==='dashGen'){const prompt=String(S.dashPrompt||'').trim();if(!prompt){S.err='Beskriv først, hvad du gerne vil bygge.';return render()}const words=prompt.replace(/^(build|create|make|lav|byg|opret)\s+(a|an|en|et)?\s*(website|site|hjemmeside|app|applikation)?\s*(for|til)?\s*/i,'').trim().split(/\s+/).slice(0,6).join(' ');S.form={...S.form,name:(words||'Nyt projekt').slice(0,48),desc:prompt,style:'Moderne'};S.err='';return generate()}
+  if(a==='dashGen'){const prompt=String(S.dashPrompt||'').trim();if(!prompt){S.err='Beskriv først, hvad du gerne vil bygge.';return render()}const words=prompt.replace(/^(build|create|make|lav|byg|opret)\s+(a|an|en|et)?\s*(website|site|hjemmeside|app|applikation)?\s*(for|til)?\s*/i,'').trim().split(/\s+/).slice(0,6).join(' ');S.form={...S.form,name:(words||'Nyt projekt').slice(0,48),desc:prompt,style:'Moderne'};S.err='';S.view='new';return generate()}
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='mini';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
+  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='builder';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Hjemmesiden er slettet fra dit workspace.')}else S.del=id}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
@@ -839,7 +839,7 @@ document.addEventListener('input',e=>{const d=e.target.dataset;if(d.renameInput!
 document.addEventListener('input',e=>{if(e.target.matches('[data-dash-search],[data-template-q]')){const selector=e.target.matches('[data-dash-search]')?'[data-dash-search]':'[data-template-q]',value=e.target.value,at=e.target.selectionStart;render();const next=document.querySelector(selector);if(next){next.focus();try{next.setSelectionRange(at,at)}catch(_){}}}});
 document.addEventListener('change',e=>{const d=e.target.dataset,v=e.target.value;
   if(d.dashSort!==undefined){S.dashSort=v;render();return}
-  if(d.proj!==undefined){const p=Projects.all().find(x=>String(x.id)===String(v));S.id=p?p.id:null;Storage.set('pw.activeProject',S.id);if(p){S.view='mini';if(!['edit','builder','customize','media','preview','history'].includes(S.miniTab))S.miniTab='edit'}render();return}
+  if(d.proj!==undefined){const p=Projects.all().find(x=>String(x.id)===String(v));S.id=p?p.id:null;Storage.set('pw.activeProject',S.id);if(p){S.view='builder';if(!['edit','builder','customize','media','preview','history'].includes(S.miniTab))S.miniTab='edit'}render();return}
   if(d.b!==undefined){upd(S.id,q=>{q.history=[...q.history,structuredClone(q.site)].slice(-30);q.future=[];const b=q.site.blocks[+d.b];if(d.i!==undefined){const arr=Array.isArray(b[d.k])?b[d.k]:b.items;if(d.ik)arr[+d.i][d.ik]=v;else arr[+d.i]=v}else b[d.k]=v})}
   else if(d.dom)upd(d.dom,q=>{q.domain=v.trim()||null});
   else if(d.cp)upd(d.cp,q=>{q.customerId=v||null});
