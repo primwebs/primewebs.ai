@@ -884,7 +884,7 @@ function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='u
 function openProjectFromDashboard(id){
   const project=Projects.all().find(item=>String(item.id)===String(id));
   if(!project){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return;}
-  S.view='builder';
+  S.view='edit';
   S.miniTab='edit';
   S.id=project.id;
   S.projectMenuId=null;
@@ -961,7 +961,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='builder';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
+  else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='edit';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;S.projectMenuId=null;banner('Project deleted from your workspace.')}else{S.del=id;S.projectMenuId=id}}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
