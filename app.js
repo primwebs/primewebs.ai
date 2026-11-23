@@ -932,8 +932,10 @@ document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
   const card=target&&target.closest&&target.closest('.sd-project-card');
   if(!card)return;
-  if(target.closest('.sd-project-actions'))return;
   const action=target.closest('[data-act="projectEdit"]');
+  // Keep the native three-dot disclosure itself native, but do NOT ignore
+  // its Edit project menu item: that action must open the selected project.
+  if(target.closest('.sd-project-actions')&&!action)return;
   if(!action && !card.contains(target))return;
   const id=action&&action.dataset.id||card.dataset.id;
   if(!id)return;
