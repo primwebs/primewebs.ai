@@ -877,62 +877,20 @@ async function send(t){
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
-// Project menu: handle pointer input before other delegated dashboard handlers.
-function openProjectActions(trigger){
-  if(!trigger||!trigger.matches('button[data-act="projectMenu"]'))return false;
-  const id=String(trigger.dataset.id||'');
-  const host=trigger.closest('.sd-project-actions');
-  if(!id||!host)return false;
-  const wasOpen=trigger.getAttribute('aria-expanded')==='true';
-  document.querySelectorAll('.sd-project-dropdown').forEach(menu=>menu.remove());
-  document.querySelectorAll('button[data-act="projectMenu"][aria-expanded="true"]').forEach(button=>button.setAttribute('aria-expanded','false'));
-  if(wasOpen){S.projectMenuId=null;return true;}
-  const project=Projects.all().find(item=>String(item.id)===id);
-  if(!project)return true;
-  S.projectMenuId=id;
+// Project card actions use pointerdown capture so preview/iframe layers and
+// other delegated click handlers cannot swallow the user's first interaction.
+function openProjectFromDashboard(id){
+  const project=Projects.all().find(item=>String(item.id)===String(id));
+  if(!project){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return;}
+  S.view='builder';
+  S.miniTab='edit';
+  S.id=project.id;
+  S.projectMenuId=null;
   S.del=null;
-  trigger.setAttribute('aria-expanded','true');
-  const menu=document.createElement('div');
-  menu.className='sd-project-dropdown';
-  menu.setAttribute('role','menu');
-  const addItem=(action,label,extraClass='')=>{
-    const item=document.createElement('button');
-    item.type='button';
-    item.setAttribute('role','menuitem');
-    item.dataset.act=action;
-    item.dataset.id=id;
-    item.textContent=label;
-    if(extraClass)item.className=extraClass;
-    menu.appendChild(item);
-  };
-  addItem('open','Edit project');
-  const live=project.status==='published'||project.isPublished===true||!!project.publishedAt;
-  if(live)addItem('projectUnpublish','Unpublish');
-  addItem('del','Delete project','danger');
-  host.appendChild(menu);
-  return true;
+  Storage.set('pw.activeProject',project.id);
+  render();
 }
-document.addEventListener('pointerdown',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!trigger)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  openProjectActions(trigger);
-},true);
-// Keep keyboard and assistive-technology activation working as well.
-document.addEventListener('click',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!trigger)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  if(e.detail===0)openProjectActions(trigger);
-},true);
-
-document.addEventListener('click',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!trigger)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
+function toggleProjectActions(trigger){
   const id=String(trigger.dataset.id||'');
   const host=trigger.closest('.sd-project-actions');
   if(!id||!host)return;
@@ -963,18 +921,26 @@ document.addEventListener('click',e=>{
   if(live)addItem('projectUnpublish','Unpublish');
   addItem('del','Delete project','danger');
   host.appendChild(menu);
+}
+document.addEventListener('pointerdown',e=>{
+  const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
+  if(!target)return;
+  const action=target.dataset.act;
+  if(action==='projectMenu'){
+    e.preventDefault();e.stopImmediatePropagation();
+    toggleProjectActions(target);
+    return;
+  }
+  if(action==='open'&&(target.matches('.sd-project-preview')||target.closest('.sd-project-dropdown'))){
+    e.preventDefault();e.stopImmediatePropagation();
+    openProjectFromDashboard(target.dataset.id);
+  }
 },true);
-
 document.addEventListener('click',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!trigger)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  const id=String(trigger.dataset.id||'');
-  if(!id)return;
-  S.projectMenuId=S.projectMenuId===id?null:id;
-  S.del=null;
-  render();
+  const target=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
+  if(!target)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(e.detail===0)toggleProjectActions(target);
 },true);
 
 document.addEventListener('click',e=>{
