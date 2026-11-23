@@ -877,8 +877,45 @@ async function send(t){
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
-// Handle the project kebab menu in the capture phase so another delegated click
-// handler cannot swallow the action before the dashboard can render the menu.
+// Open the project actions menu in-place. Avoid a full dashboard render on the
+// initial click, which can reset the project grid while the browser is handling it.
+document.addEventListener('click',e=>{
+  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
+  if(!trigger)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const id=String(trigger.dataset.id||'');
+  const host=trigger.closest('.sd-project-actions');
+  if(!id||!host)return;
+  const wasOpen=trigger.getAttribute('aria-expanded')==='true';
+  document.querySelectorAll('.sd-project-dropdown').forEach(menu=>menu.remove());
+  document.querySelectorAll('button[data-act="projectMenu"][aria-expanded="true"]').forEach(button=>button.setAttribute('aria-expanded','false'));
+  if(wasOpen){S.projectMenuId=null;return;}
+  const project=Projects.all().find(item=>String(item.id)===id);
+  if(!project)return;
+  S.projectMenuId=id;
+  S.del=null;
+  trigger.setAttribute('aria-expanded','true');
+  const menu=document.createElement('div');
+  menu.className='sd-project-dropdown';
+  menu.setAttribute('role','menu');
+  const addItem=(action,label,extraClass='')=>{
+    const item=document.createElement('button');
+    item.type='button';
+    item.setAttribute('role','menuitem');
+    item.dataset.act=action;
+    item.dataset.id=id;
+    item.textContent=label;
+    if(extraClass)item.className=extraClass;
+    menu.appendChild(item);
+  };
+  addItem('open','Edit project');
+  const live=project.status==='published'||project.isPublished===true||!!project.publishedAt;
+  if(live)addItem('projectUnpublish','Unpublish');
+  addItem('del','Delete project','danger');
+  host.appendChild(menu);
+},true);
+
 document.addEventListener('click',e=>{
   const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
   if(!trigger)return;
