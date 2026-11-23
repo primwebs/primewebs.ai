@@ -890,48 +890,15 @@ function openProjectFromDashboard(id){
   Storage.set('pw.activeProject',project.id);
   render();
 }
+// The dashboard renders the menu from state. Never append a second menu
+// directly to the DOM: that caused duplicate menu layers and stale hit targets.
 function toggleProjectActions(trigger){
   const id=String(trigger.dataset.id||'');
-  const host=trigger.closest('.sd-project-actions');
-  if(!id||!host)return;
-  const wasOpen=trigger.getAttribute('aria-expanded')==='true';
-  document.querySelectorAll('.sd-project-dropdown').forEach(menu=>menu.remove());
-  document.querySelectorAll('button[data-act="projectMenu"][aria-expanded="true"]').forEach(button=>button.setAttribute('aria-expanded','false'));
-  if(wasOpen){S.projectMenuId=null;return;}
-  const project=Projects.all().find(item=>String(item.id)===id);
-  if(!project)return;
-  S.projectMenuId=id;
+  if(!id||!Projects.all().some(item=>String(item.id)===id))return;
+  S.projectMenuId=String(S.projectMenuId)===id?null:id;
   S.del=null;
-  trigger.setAttribute('aria-expanded','true');
-  const menu=document.createElement('div');
-  menu.className='sd-project-dropdown';
-  menu.setAttribute('role','menu');
-  const addItem=(action,label,extraClass='')=>{
-    const item=document.createElement('button');
-    item.type='button';
-    item.setAttribute('role','menuitem');
-    item.dataset.act=action;
-    item.dataset.id=id;
-    item.textContent=label;
-    if(extraClass)item.className=extraClass;
-    menu.appendChild(item);
-  };
-  addItem('open','Edit project');
-  const live=project.status==='published'||project.isPublished===true||!!project.publishedAt;
-  if(live)addItem('projectUnpublish','Unpublish');
-  addItem('del','Delete project','danger');
-  host.appendChild(menu);
+  render();
 }
-// iOS/mobile pointer-first handling: open the menu on the initial physical tap,
-// then consume its synthetic click so it cannot immediately toggle closed.
-document.addEventListener('pointerdown',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
-  if(!trigger||e.button!==0)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  toggleProjectActions(trigger);
-  trigger.dataset.pwPointerHandled='1';
-},true);
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
@@ -942,7 +909,6 @@ document.addEventListener('click',e=>{
   // prevents later delegated handlers from closing the menu or swallowing taps.
   if(action==='projectMenu'){
     e.preventDefault();e.stopImmediatePropagation();
-    if(target.dataset.pwPointerHandled==='1'){delete target.dataset.pwPointerHandled;return;}
     toggleProjectActions(target);
     return;
   }
