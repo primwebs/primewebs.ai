@@ -331,7 +331,7 @@ const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button type="button" class="btn" data-open-project="${esc(p.id)}">Rediger hjemmeside</button><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><button type="button" class="btn" data-act="pick" data-t="edit" data-id="${esc(p.id)}">Rediger hjemmeside</button><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
 function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
@@ -412,7 +412,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-open-project="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><button type="button" class="sd-edit-project-btn" data-open-project="${esc(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</button></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="pick" data-t="edit" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><button type="button" class="sd-edit-project-btn" data-act="pick" data-t="edit" data-id="${esc(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</button></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -720,7 +720,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
      else S.view=target;
      S.err='';S.out=null;S.msg='';S.rc=0;return 1;
    }
-  if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Du er tilbage på Dashboard; dine gemte projekter er bevaret. Opdatér Dashboard, og prøv igen.');return 1}S.view='builder';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.msg='';S.err='';return 1}
+  if(a==='pick'||a==='build'){const chosen=Projects.all().find(p=>String(p.id)===String(id));if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.miniTab='edit';banner('Projektet kunne ikke åbnes. Dine gemte projekter er bevaret.');return 1}S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);S.view=d.t==='edit'?'edit':'builder';S.miniTab=a==='build'?'edit':(d.t==='builder'?'builder':d.t==='customize'?'customize':d.t==='media'?'media':d.t==='preview'?'preview':d.t==='history'?'history':'edit');S.msg='';S.err='';S.del=null;return 1}
   if(a==='unpick'){S.id=null;return 1}
   if(a==='tpl'){const t=TPL[+d.i];if(!t)return 1;S.form={name:'',desc:t.d,style:t.s,ind:t.industry||'',svc:'',tone:'Professionel'};S.view='new';S.err='';return 1}
   if(a==='workMode'){Storage.set('pw.workMode',d.mode==='own'?'own':'clients');S.dashPrompt='';S.err='';S.view='list';return render()}
@@ -911,29 +911,6 @@ async function send(t){
   S.busy=false;render();
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
-
-// Open a saved project in-place. The control never navigates or reloads the document.
-async function openProjectFromControl(id){
-  if(window.__pwOpeningProject)return;
-  window.__pwOpeningProject=true;
-  try{
-    await window.PWDB.ready;
-    let project=Projects.all().find(item=>String(item.id)===String(id));
-    if(!project&&window.PWDB.refresh){await window.PWDB.refresh();project=Projects.all().find(item=>String(item.id)===String(id));}
-    if(!project){banner('Projektet blev ikke fundet i dine gemte hjemmesider. Ingen projekter er blevet slettet.');return;}
-    S.id=project.id;S.view='edit';S.miniTab='edit';S.del=null;S.err='';
-    Storage.set('pw.activeProject',project.id);
-    render();
-  }catch(error){banner('Projektet kunne ikke åbnes: '+((error&&error.message)||'Ukendt fejl'));}
-  finally{window.__pwOpeningProject=false;}
-}
-document.addEventListener('click',function(event){
-  const target=event.target&&event.target.nodeType===1?event.target:event.target&&event.target.parentElement;
-  const control=target&&target.closest?target.closest('[data-open-project]'):null;
-  if(!control)return;
-  event.preventDefault();
-  openProjectFromControl(control.getAttribute('data-open-project'));
-});
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
