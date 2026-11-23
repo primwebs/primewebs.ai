@@ -417,8 +417,8 @@ function vBuilder(){const p=getP();if(!p)return vPick('builder');const blocks=p.
 <section class="ed builder-ai-workspace">
  <section class="chat builder-ai-chat">
   <div class="editor-section"><span class="badge">✦ PRIME AI</span><h3>Hvad skal vi ændre?</h3><p class="mu">Beskriv ændringer med dine egne ord. AI'en opdaterer hjemmesiden og viser resultatet i previewet.</p></div>
-  <div class="msgs builder-ai-messages">${(p.chat||[]).slice(-12).map(m=>'<div class="m '+m.r+'">'+esc(m.t)+'</div>').join('')}${S.busy?'<div class="m ai">Arbejder på din hjemmeside…</div>':''}</div>
-  <div class="prompt-box builder-ai-prompt"><textarea id="chatin" rows="3" placeholder="Fx: Gør forsiden mere eksklusiv, tilføj en prissektion eller skift farver…" ${S.busy?'disabled':''}></textarea><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send til AI ↗</button><small class="mu">Dine tidligere ændringer og versioner bevares.</small></div>
+  <div class="builder-ai-private-status" role="status">${S.busy?'Arbejder på din hjemmeside…':'Klar til din næste ændring.'}</div>
+  <div class="prompt-box builder-ai-prompt"><textarea id="chatin" rows="3" placeholder="Fx: Gør forsiden mere eksklusiv, tilføj en prissektion eller skift farver…" ${S.busy?'disabled':''}></textarea><button class="btn" data-act="send" ${S.busy?'disabled':''}>Send til AI ↗</button><small class="mu">Tidligere AI-samtaler og interne ændringsdetaljer vises ikke her.</small></div>
  </section>
  <section class="builder-preview builder-ai-preview"><div class="builder-preview-head"><div><strong>Live preview</strong><small class="mu">Opdateres efter AI-ændringer</small></div><div class="row"><button class="chip ${S.device==='desktop'?'is-selected':''}" data-act="dev" data-d="desktop">Computer</button><button class="chip ${S.device==='mobile'?'is-selected':''}" data-act="dev" data-d="mobile">Mobil</button></div></div><div class="pv"><iframe class="${S.device}" title="Live website preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></div></section>
 </section>
