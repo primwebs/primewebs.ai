@@ -51,14 +51,23 @@ function projectContentKey(p){
 function dedupeProjectRecords(list){
   const active=String(S.id||Storage.get('pw.activeProject','')||'');
   const byContent=new Map();
-  for(const p of list){
+  // Supabase does not guarantee row order. Pick one stable canonical ID for
+  // identical copies so a dashboard card never changes identity between loads.
+  const ordered=(Array.isArray(list)?list:[]).slice().sort((a,b)=>{
+    const createdA=Number(a.createdAt||0),createdB=Number(b.createdAt||0);
+    if(createdA!==createdB)return createdA-createdB;
+    return String(a.id||'').localeCompare(String(b.id||''));
+  });
+  for(const p of ordered){
     const key=projectContentKey(p),old=byContent.get(key);
-    if(!old || String(p.id)===active ||
-       (String(old.id)!==active && Number(p.updatedAt||0)>Number(old.updatedAt||0))){
-      byContent.set(key,p);
-    }
+    if(!old || String(p.id)===active)byContent.set(key,p);
   }
   return Array.from(byContent.values());
+}
+function projectFingerprint(p){
+  const value=projectContentKey(p);let hash=2166136261;
+  for(let i=0;i<value.length;i++)hash=Math.imul(hash^value.charCodeAt(i),16777619);
+  return (hash>>>0).toString(16);
 }
 const Projects={
   all(){
@@ -341,14 +350,22 @@ function pwProjectDiag(step,details={}){
   }
   panel.textContent='PRIME WEBS AI · FEJLFINDING\\n'+JSON.stringify(state,null,2);
 }
-function openSavedProject(id){
+function openSavedProject(id,fingerprint){
   const all=Projects.all();
-  const chosen=all.find(p=>String(p.id)===String(id));
-  pwProjectDiag('project-lookup',{requestedId:String(id),projectCount:all.length,found:!!chosen,viewBefore:S.view});
-  if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.err='';banner('Projektet kunne ikke åbnes. Dine gemte hjemmesider er stadig bevaret.');return false}
+  let chosen=all.find(p=>String(p.id)===String(id));
+  let resolvedBy='id';
+  // A stale dashboard link can outlive a cloud ID refresh. Resolve it against
+  // the saved project's content fingerprint rather than failing or opening
+  // an arbitrary project.
+  if(!chosen&&fingerprint){
+    chosen=all.find(p=>projectFingerprint(p)===String(fingerprint));
+    if(chosen)resolvedBy='content-fingerprint';
+  }
+  pwProjectDiag('project-lookup',{requestedId:String(id),projectCount:all.length,found:!!chosen,resolvedBy:chosen?resolvedBy:null,viewBefore:S.view});
+  if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.err='';banner('Projektet kunne ikke findes i dine gemte data. Dine hjemmesider er bevaret.');return false}
   S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);
-  S.view='builder';S.miniTab='builder';S.msg='';S.err='';S.del=null;S.busy=false;
-  pwProjectDiag('project-selected',{selectedId:S.id,view:S.view,chatCount:Array.isArray(chosen.chat)?chosen.chat.length:null});
+  S.view='edit';S.miniTab='edit';S.msg='';S.err='';S.del=null;S.busy=false;
+  pwProjectDiag('project-selected',{selectedId:S.id,view:S.view,chatCount:Array.isArray(chosen.chat)?chosen.chat.length:null,resolvedBy});
   return true;
 }
 function openProjectRoute(){
@@ -362,9 +379,9 @@ function openProjectRoute(){
 window.addEventListener('hashchange',openProjectRoute);
 // Direct capture-phase project opening: this runs before every delegated bubble handler,
 // so dashboard overlays or unrelated click handlers cannot swallow the project action.
-function openProjectImmediately(id){
-  pwProjectDiag('open-start',{requestedId:String(id),view:S.view});
-  const opened=openSavedProject(id);
+function openProjectImmediately(id,fingerprint){
+  pwProjectDiag('open-start',{requestedId:String(id),fingerprint:fingerprint||null,view:S.view});
+  const opened=openSavedProject(id,fingerprint);
   if(!opened){pwProjectDiag('open-failed',{requestedId:String(id),view:S.view});render();return false}
   try{window.history.replaceState(null,'',window.location.pathname+window.location.search)}catch(_){}
   render();
@@ -379,12 +396,13 @@ document.addEventListener('click',function(e){
   if(!opener)return;
   const hrefId=opener.getAttribute('href')||'';
   let id=opener.getAttribute('data-project-open-id')||hrefId.slice('#project/'.length);
+  const fingerprint=opener.getAttribute('data-project-fingerprint')||'';
   try{id=decodeURIComponent(id)}catch(_){}
   if(!id)return;
   e.preventDefault();
   e.stopImmediatePropagation();
-  pwProjectDiag('project-link-captured',{requestedId:id,href:hrefId||null});
-  openProjectImmediately(id);
+  pwProjectDiag('project-link-captured',{requestedId:id,fingerprint:fingerprint||null,href:hrefId||null});
+  openProjectImmediately(id,fingerprint);
 },true);
 document.addEventListener('change',function(e){
   const select=e.target&&e.target.closest&&e.target.closest('[data-project-open-select]');
@@ -397,7 +415,7 @@ const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>
 
 function vList(){const l=Projects.all();
   if(!l.length)return `<div class="empty"><h1>Mine hjemmesider</h1><h3>Du har ingen projekter endnu</h3><p class="mu">Opret dit første projekt, og få en komplet hjemmeside på få sekunder.</p><button class="btn" data-act="new">Nyt projekt</button></div>`;
-  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><a class="btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}">Rediger hjemmeside</a><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
+  return `<h1>Mine hjemmesider</h1><div class="grid">${l.map(p=>`<div class="card">${S.renameId===p.id?`<div class="dash-rename-inline"><input data-rename-input data-id="${p.id}" value="${esc(S.renameValue)}" aria-label="Nyt projektnavn" maxlength="80"><button class="btn" data-act="renameSave" data-id="${p.id}">Gem</button><button class="btn ghost" data-act="renameCancel">Annuller</button></div>`:`<h3>${esc(p.name)}</h3>`}<p class="mu">${p.status==='ready'?'Klar til udgivelse':'Kladde'}, ændret ${new Date(p.updatedAt).toLocaleDateString('da-DK')}</p><div class="row"><a class="btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" data-project-fingerprint="${projectFingerprint(p)}">Rediger hjemmeside</a><button class="btn ghost" data-act="renameStart" data-id="${p.id}">Omdøb</button><button class="btn ghost" data-act="duplicate" data-id="${p.id}">Kopiér</button><button class="btn ghost" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Bekræft sletning':'Slet'}</button></div></div>`).join('')}</div>`}
 
 
 function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
@@ -478,7 +496,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" data-project-fingerprint="${projectFingerprint(p)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" data-project-fingerprint="${projectFingerprint(p)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
