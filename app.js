@@ -343,6 +343,29 @@ function openProjectRoute(){
   return true;
 }
 window.addEventListener('hashchange',openProjectRoute);
+// Direct capture-phase project opening: this runs before every delegated bubble handler,
+// so dashboard overlays or unrelated click handlers cannot swallow the project action.
+function openProjectImmediately(id){
+  const opened=openSavedProject(id);
+  if(!opened){render();return false}
+  try{window.history.replaceState(null,'',window.location.pathname+window.location.search)}catch(_){}
+  render();
+  return true;
+}
+document.addEventListener('click',function(e){
+  const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
+  const opener=target&&target.closest&&target.closest('[data-project-open-id]');
+  if(!opener)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  openProjectImmediately(opener.getAttribute('data-project-open-id'));
+},true);
+document.addEventListener('change',function(e){
+  const select=e.target&&e.target.closest&&e.target.closest('[data-project-open-select]');
+  if(!select||!select.value)return;
+  e.stopImmediatePropagation();
+  openProjectImmediately(select.value);
+},true);
 const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>String(p.id)===String(id));if(i<0)return false;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l);return true};
 
 function vList(){const l=Projects.all();
@@ -428,7 +451,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#project/${encodeURIComponent(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#project/${encodeURIComponent(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#project/${encodeURIComponent(p.id)}" data-project-open-id="${esc(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -442,6 +465,7 @@ function vDash(){
   </section>
   <section class="sd-project-library">
    <div class="sd-library-head"><div class="sd-library-title"><h2>My projects</h2><span>${l.length} ${l.length===1?'project':'projects'}</span></div><label class="sd-project-search"><span>⌕</span><input data-dash-search type="search" value="${esc(S.dashSearch||'')}" placeholder="Search projects" aria-label="Search projects"></label></div>
+   <div class="sd-project-open-fallback"><label><span>Open a saved project directly</span><select data-project-open-select aria-label="Choose a saved project"><option value="">Choose a website…</option>${all.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>').join('')}</select></label></div>
    ${all.length?`<div class="sd-project-filter"><button class="${filter==='all'?'active':''}" data-act="dashFilter" data-filter="all">All</button><button class="${filter==='published'?'active':''}" data-act="dashFilter" data-filter="published">Live</button><button class="${filter==='draft'?'active':''}" data-act="dashFilter" data-filter="draft">Drafts</button><select data-dash-sort aria-label="Sort projects"><option value="updated" ${sort==='updated'?'selected':''}>Recently updated</option><option value="oldest" ${sort==='oldest'?'selected':''}>Oldest</option><option value="name" ${sort==='name'?'selected':''}>Name</option></select></div>${cards?'<div class="sd-project-grid">'+cards+'</div>':'<div class="sd-no-projects">No projects match your search.</div>'}`:`<div class="sd-empty-projects"><div class="sd-empty-icon">✦</div><strong>Your projects will appear here</strong><p>Describe what you want to build above to create your first website.</p></div>`}
   </section>
  </div>`;
