@@ -310,9 +310,48 @@ module.exports = async (req, res) => {
     if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
       throw new Error("AI'en returnerede en ufuldstændig hjemmeside.");
     }
+    const safeSite = sanitizeSite(parsed.site, action === "generate" ? body.language : (body.site && body.site.meta && body.site.meta.language));
+    let reply = String(parsed.reply || (action === "generate" ? "Din hjemmeside er genereret. Fortæl mig, hvad du vil ændre." : "Ændringerne er udført.")).slice(0, 1000);
+    let conversationProvider = activeProvider;
+    // Gemini handles the actual website JSON. Claude then acts as the conversational
+    // partner: it receives the user's request and the real result, and writes the reply.
+    // This is collaboration, not failover. Both API keys remain server-side.
+    if (activeProvider === "gemini" && ANTHROPIC_API_KEY) {
+      try {
+        const language = String((safeSite.meta && safeSite.meta.language) || "da");
+        const conversationTask = [
+          "User's latest request: " + String(action === "generate" ? (body.description || body.name || "") : body.message || "").slice(0, 3000),
+          "Recent conversation: " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-8).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 700) })) : []).slice(0, 6000),
+          "Website engine result: " + reply,
+          "Actual resulting website: " + JSON.stringify({ title: safeSite.meta && safeSite.meta.title, language, pages: (safeSite.pages || []).map(p => p.title), sections: (safeSite.blocks || []).map(b => b.type) })
+        ].join("\\n\\n");
+        const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: 700,
+            system: "You are the friendly, highly capable conversational assistant inside PRIME WEBS AI. Gemini has already performed the website-generation or editing task. Reply naturally and specifically in the user's language (Danish, English or Spanish). Explain what actually happened using the supplied result; never claim a change, feature, integration or test that the result does not confirm. If the user asked a question rather than requesting a change, answer the question directly. Be concise, warm and human, not robotic. Return plain text only, with no JSON and no markdown fences.",
+            messages: [{ role: "user", content: conversationTask }],
+          }),
+          signal: AbortSignal.timeout(25000)
+        });
+        const result = await upstream.json().catch(() => ({}));
+        if (upstream.ok) {
+          const naturalReply = (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\\n").trim();
+          if (naturalReply) { reply = naturalReply.slice(0, 1000); conversationProvider = "anthropic"; }
+        } else {
+          console.warn("Claude conversation layer unavailable:", result && result.error && result.error.message || upstream.status);
+        }
+      } catch (conversationError) {
+        // The website result remains valid even if Claude's optional reply layer is unavailable.
+        console.warn("Claude conversation layer failed:", conversationError && conversationError.message || "unknown error");
+      }
+    }
     return res.status(200).json({
-      site: sanitizeSite(parsed.site, action === "generate" ? body.language : (body.site && body.site.meta && body.site.meta.language)),
-      reply: String(parsed.reply || (action === "generate" ? "Din hjemmeside er genereret. Fortæl mig, hvad du vil ændre." : "Ændringerne er udført.")).slice(0, 1000)
+      site: safeSite,
+      reply,
+      providers: { website: activeProvider, conversation: conversationProvider }
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Der opstod en fejl i AI-generatoren." });
