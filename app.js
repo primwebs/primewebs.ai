@@ -419,6 +419,7 @@ function vDash(){
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
    <h1>${workMode==='own'?'What are you building?':"What's on your mind?"}</h1>
    <p>${workMode==='own'?'Describe your idea and build your own website, app or digital product.':'Describe a site for your client and watch PRIME WEBS AI build it — no code, no designers.'}</p>
+   <button class="btn sd-create-website" type="button" data-act="go" data-v="new" style="margin-top:14px">＋ Lav en hjemmeside</button>
    <div class="sd-compose">
     <textarea data-dash-prompt rows="2" aria-label="Describe your website" placeholder="Make ${workMode==='own'?'an app for my business...':'a website for...'}">${esc(prompt)}</textarea>
     <div class="sd-compose-actions"><button class="sd-compose-add" data-act="go" data-v="templates" aria-label="Browse templates" title="Browse templates">＋</button><span class="sp"></span><button class="sd-compose-send" data-act="dashGen" ${S.busy?'disabled':''} aria-label="Start building" title="Start building">${S.busy?'…':'➤'}</button></div>
