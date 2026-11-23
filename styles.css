@@ -1516,3 +1516,12 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-preview{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sd-project-preview iframe,.sd-project-preview>.sd-project-state,.sd-project-preview>.sd-project-open{pointer-events:none!important}
 .sd-project-menu,.sd-project-dropdown button{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+
+/* Full-card native tap target sits above the preview iframe without nesting
+   interactive content inside a button. Decorative labels never intercept taps. */
+.sd-project-preview{position:relative;isolation:isolate}
+.sd-project-preview iframe{z-index:0;pointer-events:none!important}
+.sd-project-open-target{position:absolute;inset:0;z-index:3;display:block;width:100%;height:100%;margin:0;padding:0;border:0;border-radius:0;background:transparent;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sd-project-state,.sd-project-open{pointer-events:none!important;z-index:2}
+.sd-project-open-target:focus-visible{outline:3px solid #3158d8;outline-offset:-4px;border-radius:8px}
