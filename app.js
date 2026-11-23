@@ -390,7 +390,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="openProjectCard" data-id="${p.id}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><div class="sd-project-actions"><button class="sd-project-menu" type="button" data-act="projectMenu" data-id="${p.id}" aria-label="Project actions" aria-haspopup="menu" aria-expanded="${String(S.projectMenuId)===String(p.id)?'true':'false'}">⋯</button>${String(S.projectMenuId)===String(p.id)?`<div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" data-act="open" data-id="${p.id}">Edit project</button>${live?`<button type="button" role="menuitem" data-act="projectUnpublish" data-id="${p.id}">Unpublish</button>`:'' }<button type="button" role="menuitem" class="danger" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Confirm delete project':'Delete project'}</button></div>`:''}</div></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="openProjectCard" data-id="${p.id}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><details class="sd-project-actions"><summary class="sd-project-menu" aria-label="Project actions" aria-haspopup="menu">⋯</summary><div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" data-act="open" data-id="${p.id}">Edit project</button>${live?`<button type="button" role="menuitem" data-act="projectUnpublish" data-id="${p.id}">Unpublish</button>`:''}<button type="button" role="menuitem" class="danger" data-act="del" data-id="${p.id}">${String(S.del)===String(p.id)?'Confirm delete project':'Delete project'}</button></div></details></div></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -892,43 +892,13 @@ function openProjectFromDashboard(id){
   Storage.set('pw.activeProject',project.id);
   render();
 }
-// The dashboard renders the menu from state. Never append a second menu
-// directly to the DOM: that caused duplicate menu layers and stale hit targets.
-function toggleProjectActions(trigger){
-  const id=String(trigger.dataset.id||'');
-  if(!id||!Projects.all().some(item=>String(item.id)===id))return;
-  S.projectMenuId=String(S.projectMenuId)===id?null:id;
-  S.del=null;
-  render();
-}
-// Mobile Safari can delay or retarget delegated click events after a dashboard
-// rerender. Handle physical taps on the three-dot trigger at pointerdown so
-// the menu opens on the first tap; keep click handling as a keyboard fallback.
-let projectMenuPointerHandledAt=0;
-document.addEventListener('pointerdown',e=>{
-  const trigger=e.target&&e.target.closest&&e.target.closest('button.sd-project-menu[data-act="projectMenu"]');
-  if(!trigger)return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  projectMenuPointerHandledAt=Date.now();
-  toggleProjectActions(trigger);
-},true);
-
+// Project actions use the browser's native <details>/<summary> disclosure.
+// No delegated click or pointer handlers are needed to open/close this menu.
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
   if(!target)return;
   const action=target.dataset.act;
   const id=String(target.dataset.id||'');
-  // Keep every project-card interaction in this one capture handler. This
-  // prevents later delegated handlers from closing the menu or swallowing taps.
-  if(action==='projectMenu'){
-    e.preventDefault();e.stopImmediatePropagation();
-    // A pointer tap was already handled above. Suppress any compatibility
-    // click some browsers may still dispatch after pointerdown was cancelled.
-    if(e.detail>0&&Date.now()-projectMenuPointerHandledAt<1000)return;
-    toggleProjectActions(target);
-    return;
-  }
   if(action==='openProjectCard'||(action==='open'&&target.closest('.sd-project-dropdown'))){
     e.preventDefault();e.stopImmediatePropagation();
     openProjectFromDashboard(id);
@@ -962,7 +932,6 @@ document.addEventListener('click',e=>{
 },true);
 
 document.addEventListener('click',e=>{
-  if(S.projectMenuId&&!e.target.closest('.sd-project-actions')){S.projectMenuId=null;if(!e.target.closest('[data-act]')){render();return}}
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
   if(a==='projectUnpublish'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p)return;const ok=window.confirm('Move this project back to Draft? This changes its PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');if(!ok)return;upd(id,q=>{q.status='draft';q.isPublished=false;delete q.publishedAt;delete q.publishedUrl;delete q.liveUrl});S.projectMenuId=null;S.del=null;banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');return render()}
   if(a==='bookRefresh'){window.PWDB.listBookings().then(x=>{S.bookings=x;render()}).catch(err=>banner('Kunne ikke hente bookinger: '+err.message));return}
