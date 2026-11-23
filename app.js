@@ -70,6 +70,7 @@ const Projects={
   save(list){
     const result=normalizeProjectIds(dedupeProjectRecords((Array.isArray(list)?list:[]).map(fixP).filter(Boolean)));
     Storage.set('pw.projects',result.projects);
+    return result.projects;
   }
 };
 // Defensive record normalizers used by the project/customer repositories.
@@ -398,7 +399,7 @@ function duplicateProject(id){
  const source=Projects.all().find(p=>p.id===id);
  if(!source){banner('Projektet kunne ikke findes.');return}
  const copy=structuredClone(source),now=Date.now();
- copy.id=uid();copy.name=(String(source.name||'Hjemmeside').trim()+' (kopi)').slice(0,80);
+ copy.id=newProjectId();copy.name=(String(source.name||'Hjemmeside').trim()+' (kopi)').slice(0,80);
  copy.status='draft';copy.domain=null;copy.createdAt=now;copy.updatedAt=now;
  copy.history=[];copy.future=[];copy.chat=[{r:'ai',t:'Kopi oprettet fra '+String(source.name||'det oprindelige projekt')+'. Originalen er bevaret uændret.'}];
  copy.customerId=null;copy.customer=null;copy.isPublished=false;delete copy.publishedAt;delete copy.publishedUrl;delete copy.liveUrl;
@@ -412,7 +413,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><a class="sd-project-open-target" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Open ${esc(p.name)}"></a></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><a class="sd-edit-project-btn" data-act="open" data-id="${esc(p.id)}" href="#open-project/${encodeURIComponent(p.id)}" aria-label="Rediger hjemmeside: ${esc(p.name)}">Rediger hjemmeside</a><details class="sd-project-actions sd-project-menu-wrap" ${S.projectMenuId===p.id?'open':''}><summary class="sd-project-menu" aria-label="Projektmenu" title="Projektmenu"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></summary><div class="sd-project-dropdown"><button type="button" data-act="open" data-id="${esc(p.id)}">Rediger projekt</button><button type="button" data-act="del" data-id="${esc(p.id)}">${S.del===p.id?'Bekræft sletning':'Slet projekt'}</button></div></details></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -889,7 +890,7 @@ async function generate(){
   ensureIndustry3D(site,promptText);
   ensureIndustryImages(site,promptText);
   Credits.spend('generate');
-  const now=Date.now(),p={v:1,id:uid(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
+  const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'ai',t:'Din hjemmeside er klar. Skriv, hvad du vil ændre.'}]};
   if(result.reply)p.chat=[{r:'ai',t:result.reply}];
   Projects.save([p,...Projects.all()]);
   S.id=p.id;Storage.set('pw.activeProject',p.id);
@@ -962,7 +963,7 @@ document.addEventListener('click',e=>{
   if(a==='send')return send($('#chatin').value);
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='open'){openProjectFromDashboard(id);return}
+  else if(a==='open'){e.preventDefault();openProjectFromDashboard(id);return}
   else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;S.projectMenuId=null;banner('Project deleted from your workspace.')}else{S.del=id;S.projectMenuId=id}}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
