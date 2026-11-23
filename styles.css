@@ -1592,3 +1592,8 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-menu-wrap .sd-project-dropdown button.danger:hover{background:#fff1f2;color:#a91f32}
 .sd-project-card:has(.sd-project-menu-wrap .sd-project-dropdown){z-index:130}
 .sd-project-card-foot{overflow:visible}
+/* Project cards: one direct edit action, no overflow/menu control. */
+.sd-edit-project-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border:1px solid #347fe5;border-radius:8px;background:#347fe5;color:#fff;font:700 11px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;white-space:nowrap;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 9px rgba(52,127,229,.16);transition:background .15s ease,transform .15s ease}
+.sd-edit-project-btn:hover,.sd-edit-project-btn:focus-visible{background:#286bc8;border-color:#286bc8;outline:none}
+.sd-edit-project-btn:active{transform:translateY(1px)}
+@media(max-width:520px){.sd-edit-project-btn{min-height:34px;padding:7px 9px;font-size:10px}}
