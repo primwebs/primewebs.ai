@@ -327,11 +327,28 @@ const Renderer={html(p){
 /* ===== Lag 4: UI ===== */
 let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',''),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
 const getP=()=>{const all=Projects.all();let p=S.id!=null?all.find(x=>String(x.id)===String(S.id)):null;if(!p){const saved=Storage.get('pw.activeProject','');p=saved?all.find(x=>String(x.id)===String(saved)):null;if(p)S.id=p.id}if(p){S.id=p.id;Storage.set('pw.activeProject',p.id)}return p||null};
+const PW_PROJECT_DIAGNOSTICS=new URLSearchParams(location.search).get('pwdiag')==='1';
+function pwProjectDiag(step,details={}){
+  if(!PW_PROJECT_DIAGNOSTICS)return;
+  const state={time:new Date().toISOString(),step,...details};
+  window.__pwProjectDiagnostics=state;
+  let panel=document.getElementById('pw-project-diagnostics');
+  if(!panel){
+    panel=document.createElement('pre');
+    panel.id='pw-project-diagnostics';
+    panel.style.cssText='position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;max-height:38vh;overflow:auto;margin:0;padding:10px;border:2px solid #f0c64b;border-radius:9px;background:#10131b;color:#fff;font:11px/1.4 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 4px 24px #0008;pointer-events:none';
+    document.body.appendChild(panel);
+  }
+  panel.textContent='PRIME WEBS AI · FEJLFINDING\\n'+JSON.stringify(state,null,2);
+}
 function openSavedProject(id){
-  const chosen=Projects.all().find(p=>String(p.id)===String(id));
+  const all=Projects.all();
+  const chosen=all.find(p=>String(p.id)===String(id));
+  pwProjectDiag('project-lookup',{requestedId:String(id),projectCount:all.length,found:!!chosen,viewBefore:S.view});
   if(!chosen){S.id=null;Storage.set('pw.activeProject','');S.view='dash';S.err='';banner('Projektet kunne ikke åbnes. Dine gemte hjemmesider er stadig bevaret.');return false}
   S.id=chosen.id;Storage.set('pw.activeProject',chosen.id);
   S.view='builder';S.miniTab='builder';S.msg='';S.err='';S.del=null;S.busy=false;
+  pwProjectDiag('project-selected',{selectedId:S.id,view:S.view,chatCount:Array.isArray(chosen.chat)?chosen.chat.length:null});
   return true;
 }
 function openProjectRoute(){
@@ -346,15 +363,19 @@ window.addEventListener('hashchange',openProjectRoute);
 // Direct capture-phase project opening: this runs before every delegated bubble handler,
 // so dashboard overlays or unrelated click handlers cannot swallow the project action.
 function openProjectImmediately(id){
+  pwProjectDiag('open-start',{requestedId:String(id),view:S.view});
   const opened=openSavedProject(id);
-  if(!opened){render();return false}
+  if(!opened){pwProjectDiag('open-failed',{requestedId:String(id),view:S.view});render();return false}
   try{window.history.replaceState(null,'',window.location.pathname+window.location.search)}catch(_){}
   render();
+  const selected=getP();
+  pwProjectDiag('open-rendered',{selectedId:S.id,view:S.view,projectFound:!!selected,chatCount:selected&&Array.isArray(selected.chat)?selected.chat.length:null});
   return true;
 }
 document.addEventListener('click',function(e){
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
   const opener=target&&target.closest&&target.closest('[data-project-open-id],a[href^="#project/"]');
+  if(PW_PROJECT_DIAGNOSTICS)pwProjectDiag('click-capture',{targetTag:target&&target.tagName||null,targetClass:target&&String(target.className||'').slice(0,100)||'',openerFound:!!opener,openerTag:opener&&opener.tagName||null,openerClass:opener&&String(opener.className||'').slice(0,100)||''});
   if(!opener)return;
   const hrefId=opener.getAttribute('href')||'';
   let id=opener.getAttribute('data-project-open-id')||hrefId.slice('#project/'.length);
@@ -362,10 +383,12 @@ document.addEventListener('click',function(e){
   if(!id)return;
   e.preventDefault();
   e.stopImmediatePropagation();
+  pwProjectDiag('project-link-captured',{requestedId:id,href:hrefId||null});
   openProjectImmediately(id);
 },true);
 document.addEventListener('change',function(e){
   const select=e.target&&e.target.closest&&e.target.closest('[data-project-open-select]');
+  if(PW_PROJECT_DIAGNOSTICS)pwProjectDiag('select-change',{selectFound:!!select,value:select&&select.value||null});
   if(!select||!select.value)return;
   e.stopImmediatePropagation();
   openProjectImmediately(select.value);
@@ -1140,7 +1163,7 @@ function errCard(e){
   const detail=e&&e.stack?String(e.stack):'';
   return '<section class="finance-panel" role="alert" style="max-width:760px;margin:3rem auto;padding:2rem"><span class="finance-section-kicker">PRIME WEBS AI · FEJL I VISNING</span><h1>Dette område kunne ikke indlæses</h1><p class="mu">Dine gemte data er bevaret. Fejlen er vist her, så den ikke bliver skjult af en ekstra opstartsfejl.</p><pre class="code" style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(message)+'</pre>'+(detail?'<details><summary>Tekniske detaljer</summary><pre class="code" style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(detail)+'</pre></details>':'')+'<div class="row" style="margin-top:1rem"><button class="btn" data-x="retry">Prøv igen</button><button class="btn ghost" data-act="go" data-v="dash">Til Dashboard</button></div></section>';
 }
-function safeView(){try{return(V[S.view]||vList)()}catch(e){console.error('PRIME WEBS AI view error:',e);return errCard(e)}}
+function safeView(){try{return(V[S.view]||vList)()}catch(e){console.error('PRIME WEBS AI view error:',e);pwProjectDiag('view-render-error',{view:S.view,selectedId:S.id||null,error:e&&e.message||String(e)});return errCard(e)}}
 function fatal(e){console.error(e);let raw='';try{raw=Object.keys(localStorage).filter(k=>k.startsWith('pw.')).map(k=>k+' = '+localStorage.getItem(k)).join('\n\n')}catch(x){}
   $('#app').innerHTML=`<main class="main" style="max-width:720px;margin:6vh auto"><div class="card"><h1>Noget gik galt</h1><p class="err">${esc((e&&e.message)||e)}</p><p>Dine data er ikke slettet. Prøv igen, eller kopiér dem herfra til en fil som sikkerhed.</p><div class="row"><button class="btn" data-x="retry">Prøv igen</button><button class="btn ghost" data-x="home">Til Dashboard</button></div><label style="margin-top:1rem">Dine data (markér og kopiér)<textarea class="code" readonly>${esc(raw)}</textarea></label></div></main>`}
 function render(){try{render0()}catch(e){fatal(e)}}
