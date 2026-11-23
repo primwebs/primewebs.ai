@@ -464,43 +464,46 @@ function vDom(){
 }
 function vCred(){
  const plans=[
-  {name:'Starter',price:'$25',credits:100,searches:5,features:['100 AI credits / month','Lead Finder: 5 searches / month','50 results per search','Invoicing overview','AI website generation'],button:'Get Starter'},
-  {name:'Pro',price:'$50',credits:200,searches:25,features:['200 AI credits / month','Lead Finder: 25 searches / month','50 results per search','Invoicing overview','AI website generation','Priority support'],button:'Current plan',popular:true},
-  {name:'Business',price:'$100',credits:500,searches:100,features:['500 AI credits / month','Lead Finder: 100 searches / month','50 results per search','Invoicing overview','AI website generation','Priority support'],button:'Get Business'}
+  {name:'Starter',description:'For freelancers getting started with lead generation',price:25,credits:100,searches:5,features:['100 AI credits / month','Lead generation (5 searches / mo)','50 results per search','Invoicing (full access)','AI website generation'],button:'Get Starter'},
+  {name:'Pro',description:'For agencies scaling their outreach pipeline',price:50,credits:200,searches:25,features:['200 AI credits / month','Lead generation (25 searches / mo)','50 results per search','Invoicing (full access)','AI website generation','Priority support'],button:'Current plan',popular:true},
+  {name:'Business',description:'For teams with high-volume prospecting needs',price:100,credits:500,searches:100,features:['500 AI credits / month','Lead generation (100 searches / mo)','50 results per search','Invoicing (full access)','AI website generation','Priority support'],button:'Get Business'}
  ];
- const check='<span class="pw-credit-check">✓</span>';
+ const check='<span class="pw-credit-check" aria-hidden="true">✓</span>';
  const billing=Storage.get('pw.creditBilling','monthly');
- const billingText=billing==='six'?'6-Month billing · Save ~20%':billing==='annual'?'Annual billing · Save ~33%':'Monthly billing';
- const discounted=p=>{const n=Number(String(p.price).replace(/[^0-9.]/g,''));return '
+ const multiplier=billing==='six'?.8:billing==='annual'?.67:1;
+ const period=billing==='six'?'6-Month':billing==='annual'?'Annual':'Monthly';
+ const saving=billing==='six'?'Save ~20%':billing==='annual'?'Save ~33%':'';
+ const money=n=>'$'+(n*multiplier).toFixed(2).replace(/\\.00$/,'');
  return `<section class="pw-credits-page">
  <style>
  .pw-credits-page{max-width:1180px;margin:0 auto;padding:30px 24px 54px;color:#182238}
  .pw-credits-page *{box-sizing:border-box}
  .pw-credits-head{text-align:center;margin:4px auto 30px;max-width:760px}
- .pw-credits-head .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#6474b8}
- .pw-credits-head h1{font-size:clamp(34px,5vw,54px);letter-spacing:-.055em;line-height:1.02;margin:12px 0;background:linear-gradient(100deg,#172033 25%,#8b83db 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+ .pw-credits-head h1{font-size:clamp(36px,5vw,56px);letter-spacing:-.055em;line-height:1.02;margin:8px 0 12px;background:linear-gradient(100deg,#172033 25%,#8b83db 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
  .pw-credits-head p{color:#68748a;font-size:15px;line-height:1.65;margin:0}
- .pw-credit-account{display:flex;align-items:center;gap:16px;justify-content:space-between;padding:19px 22px;border:1px solid #e7eaf2;border-radius:18px;background:linear-gradient(110deg,#fff,#f6f7ff);box-shadow:0 12px 32px #1720330a;margin:0 auto 30px;max-width:900px}
- .pw-credit-account-main{display:flex;align-items:center;gap:14px;min-width:0}
- .pw-credit-crown{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:#eef0ff;color:#5969c9;font-size:24px}
- .pw-credit-account strong{display:block;font-size:16px}
- .pw-credit-account small{display:block;color:#778196;margin-top:4px;line-height:1.4}
- .pw-credit-account .pw-credit-unlimited{font-weight:800;color:#4758bd;white-space:nowrap}
- .pw-credit-billing{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 auto 22px}.pw-credit-billing button{border:1px solid #e4e8f1;background:#fff;color:#536078;border-radius:999px;padding:10px 16px;font:700 13px inherit;cursor:pointer}.pw-credit-billing button.active{background:#eef1ff;border-color:#cdd4ff;color:#344eb2}.pw-credit-billing button small{font-size:10px;color:#16845b;margin-left:5px}.pw-credit-subscription{max-width:900px;margin:0 auto 28px;padding:18px 22px;border:1px solid #e7eaf2;border-radius:18px;background:linear-gradient(110deg,#fff,#f6f7ff);display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 12px 32px #1720330a}.pw-credit-subscription-main{display:flex;align-items:center;gap:14px}.pw-credit-subscription-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#eef0ff;color:#5969c9;font-size:24px}.pw-credit-subscription strong{display:block;font-size:16px}.pw-credit-subscription small{display:block;color:#778196;margin-top:4px}.pw-credit-section-title{text-align:center;margin:32px 0 17px}
+ .pw-credit-subscription{max-width:900px;margin:0 auto 30px;padding:18px 22px;border:1px solid #e7eaf2;border-radius:18px;background:linear-gradient(110deg,#fff,#f6f7ff);display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 12px 32px #1720330a}
+ .pw-credit-subscription-main{display:flex;align-items:center;gap:14px;min-width:0}
+ .pw-credit-subscription-icon{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:#eef0ff;color:#5969c9;font-size:24px}
+ .pw-credit-subscription strong{display:block;font-size:16px}
+ .pw-credit-subscription small{display:block;color:#778196;margin-top:4px;line-height:1.45}
+ .pw-credit-unlimited{font-weight:800;color:#4758bd;white-space:nowrap}
+ .pw-credit-section-title{text-align:center;margin:30px 0 16px}
  .pw-credit-section-title h2{font-size:22px;letter-spacing:-.035em;margin:0 0 6px}
  .pw-credit-section-title p{color:#7a8497;margin:0;font-size:13px}
- .pw-credit-usage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:760px;margin:0 auto 34px}
- .pw-credit-usage article{padding:19px 20px;border:1px solid #e7eaf1;border-radius:16px;background:#fff;display:flex;align-items:center;gap:15px}
+ .pw-credit-usage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:760px;margin:0 auto 30px}
+ .pw-credit-usage article{padding:17px 20px;border:1px solid #e7eaf1;border-radius:16px;background:#fff;display:flex;align-items:center;gap:15px}
  .pw-credit-usage .usage-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#f0f2ff;color:#5667c5;font-size:20px}
  .pw-credit-usage b{display:block;font-size:24px;letter-spacing:-.04em}
  .pw-credit-usage small{display:block;color:#778196;margin-top:3px}
- .pw-credit-billing{text-align:center;margin:0 0 18px;color:#68748a;font-size:13px}
- .pw-credit-billing span{display:inline-block;padding:8px 16px;border:1px solid #e5e8f0;border-radius:99px;background:#f7f8fc;color:#34405a;font-weight:700}
+ .pw-credit-billing{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 auto 22px}
+ .pw-credit-billing button{border:1px solid #e4e8f1;background:#fff;color:#536078;border-radius:999px;padding:10px 16px;font:700 13px inherit;cursor:pointer}
+ .pw-credit-billing button.active{background:#eef1ff;border-color:#cdd4ff;color:#344eb2}
+ .pw-credit-billing button small{font-size:10px;color:#16845b;margin-left:5px}
  .pw-credit-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
  .pw-credit-plan{position:relative;display:flex;flex-direction:column;padding:25px 23px 22px;border:1px solid #e6e9f0;border-radius:23px;background:linear-gradient(160deg,#fff,#fafbff);box-shadow:0 12px 34px #17203309;min-width:0}
  .pw-credit-plan.popular{background:linear-gradient(155deg,#315fe5 0%,#293fc0 60%,#352f91 100%);border-color:#3156d7;color:#fff;box-shadow:0 18px 44px #304fc733;transform:translateY(-7px)}
  .pw-credit-plan h3{font-size:21px;margin:0 0 7px;letter-spacing:-.03em}
- .pw-credit-plan .plan-desc{font-size:12px;line-height:1.5;color:#788397;min-height:36px;margin:0 0 18px}
+ .pw-credit-plan .plan-desc{font-size:12px;line-height:1.5;color:#788397;min-height:38px;margin:0 0 18px}
  .pw-credit-plan.popular .plan-desc{color:#dce5ff}
  .pw-credit-plan .plan-price{font-size:46px;font-weight:850;letter-spacing:-.065em;line-height:1;margin:0 0 17px}
  .pw-credit-plan .plan-price small{font-size:13px;font-weight:500;letter-spacing:0;color:#778196}
@@ -524,79 +527,15 @@ function vCred(){
  .pw-credit-note{max-width:900px;margin:22px auto 0;padding:14px 16px;border-radius:13px;background:#f5f7fc;border:1px solid #e7ebf4;color:#6d7890;font-size:12px;line-height:1.6}
  .pw-credit-note strong{color:#3f4b68}
  @media(max-width:850px){.pw-credit-plans{grid-template-columns:1fr;max-width:520px;margin:auto}.pw-credit-plan.popular{transform:none;order:-1}}
- @media(max-width:560px){.pw-credits-page{padding:20px 13px 36px}.pw-credit-account{align-items:flex-start;padding:15px}.pw-credit-account .pw-credit-unlimited{font-size:12px}.pw-credit-usage{grid-template-columns:1fr}.pw-credit-plan{padding:22px 19px}}
+ @media(max-width:560px){.pw-credits-page{padding:20px 13px 36px}.pw-credit-subscription{align-items:flex-start;padding:15px}.pw-credit-unlimited{font-size:12px}.pw-credit-usage{grid-template-columns:1fr}.pw-credit-plan{padding:22px 19px}}
  </style>
- <header class="pw-credits-head"><span class="eyebrow">PRIME WEBS AI · CREDITS & PLANS</span><h1>Your Plan</h1><p>Choose the right plan for your workflow. Build websites, make AI-powered edits and manage your projects from one place.</p></header>
- <div class="pw-credit-subscription"><div class="pw-credit-subscription-main"><span class="pw-credit-subscription-icon">♛</span><div><strong>PRIME WEBS AI · Owner workspace</strong><small>Unlimited owner access is active. Your own website builds and edits do not use credits.</small></div></div><div class="pw-credit-unlimited">∞ Unlimited</div></div>
+ <header class="pw-credits-head"><h1>Your Plan</h1><p>Unlock the full power of PRIME WEBS AI. Build websites, make AI-powered edits and manage your projects from one place.</p></header>
+ <div class="pw-credit-subscription"><div class="pw-credit-subscription-main"><span class="pw-credit-subscription-icon">♛</span><div><strong>Owner workspace · Unlimited access</strong><small>Your owner account keeps unlimited credits. Your own website builds and edits do not use credits.</small></div></div><div class="pw-credit-unlimited">∞ Unlimited</div></div>
  <div class="pw-credit-section-title"><h2>How credits work</h2><p>Simple, predictable usage for every customer.</p></div>
  <div class="pw-credit-usage"><article><span class="usage-icon">✦</span><div><b>6 credits</b><small>Generate one website</small></div></article><article><span class="usage-icon">↗</span><div><b>1 credit</b><small>Make one AI edit or change</small></div></article></div>
- <div class="pw-credit-section-title"><h2>Choose your plan</h2><p>${billingText} · Pick the credit allowance that fits your needs.</p></div>
+ <div class="pw-credit-section-title"><h2>Choose your plan</h2><p>${period} billing ${saving?'· '+saving:''} · Pick the credit allowance that fits your needs.</p></div>
  <div class="pw-credit-billing"><button type="button" data-act="pwCreditBilling" data-billing="monthly" class="${billing==='monthly'?'active':''}">Monthly</button><button type="button" data-act="pwCreditBilling" data-billing="six" class="${billing==='six'?'active':''}">6-Month <small>Save ~20%</small></button><button type="button" data-act="pwCreditBilling" data-billing="annual" class="${billing==='annual'?'active':''}">Annual <small>Save ~33%</small></button></div>
- <div class="pw-credit-plans">${plans.map(p=>`<article class="pw-credit-plan ${p.popular?'popular':''}">${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>${p.name}</h3><p class="plan-desc">${p.name==='Starter'?'For freelancers getting started':p.name==='Pro'?'For growing teams and agencies':'For teams with high-volume website projects'}</p><div class="plan-price">${discounted(p)}<small> /mo</small></div><div class="plan-metrics"><div><b>${p.credits}</b><small>AI credits / month</small></div><div><b>${p.searches}</b><small>searches / month</small></div></div><ul>${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>${p.button} · Coming soon</button></article>`).join('')}</div>
- <div class="pw-credit-note"><strong>Important:</strong> Subscription checkout and payment processing are not connected yet, so these plans are displayed as a pricing preview only. Lead Finder search allowances will become active when its verified data provider is connected. Your OWNER / ADMIN unlimited-credit access is preserved.</div>
- </section>`;
-}+(n*(billing==='six'?.8:billing==='annual'?.67:1)).toFixed(2).replace(/\\.00$/,'')};
- return `<section class="pw-credits-page">
- <style>
- .pw-credits-page{max-width:1180px;margin:0 auto;padding:30px 24px 54px;color:#182238}
- .pw-credits-page *{box-sizing:border-box}
- .pw-credits-head{text-align:center;margin:4px auto 30px;max-width:760px}
- .pw-credits-head .eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:#6474b8}
- .pw-credits-head h1{font-size:clamp(34px,5vw,54px);letter-spacing:-.055em;line-height:1.02;margin:12px 0;background:linear-gradient(100deg,#172033 25%,#8b83db 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
- .pw-credits-head p{color:#68748a;font-size:15px;line-height:1.65;margin:0}
- .pw-credit-account{display:flex;align-items:center;gap:16px;justify-content:space-between;padding:19px 22px;border:1px solid #e7eaf2;border-radius:18px;background:linear-gradient(110deg,#fff,#f6f7ff);box-shadow:0 12px 32px #1720330a;margin:0 auto 30px;max-width:900px}
- .pw-credit-account-main{display:flex;align-items:center;gap:14px;min-width:0}
- .pw-credit-crown{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:15px;background:#eef0ff;color:#5969c9;font-size:24px}
- .pw-credit-account strong{display:block;font-size:16px}
- .pw-credit-account small{display:block;color:#778196;margin-top:4px;line-height:1.4}
- .pw-credit-account .pw-credit-unlimited{font-weight:800;color:#4758bd;white-space:nowrap}
- .pw-credit-section-title{text-align:center;margin:32px 0 17px}
- .pw-credit-section-title h2{font-size:22px;letter-spacing:-.035em;margin:0 0 6px}
- .pw-credit-section-title p{color:#7a8497;margin:0;font-size:13px}
- .pw-credit-usage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:760px;margin:0 auto 34px}
- .pw-credit-usage article{padding:19px 20px;border:1px solid #e7eaf1;border-radius:16px;background:#fff;display:flex;align-items:center;gap:15px}
- .pw-credit-usage .usage-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#f0f2ff;color:#5667c5;font-size:20px}
- .pw-credit-usage b{display:block;font-size:24px;letter-spacing:-.04em}
- .pw-credit-usage small{display:block;color:#778196;margin-top:3px}
- .pw-credit-billing{text-align:center;margin:0 0 18px;color:#68748a;font-size:13px}
- .pw-credit-billing span{display:inline-block;padding:8px 16px;border:1px solid #e5e8f0;border-radius:99px;background:#f7f8fc;color:#34405a;font-weight:700}
- .pw-credit-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
- .pw-credit-plan{position:relative;display:flex;flex-direction:column;padding:25px 23px 22px;border:1px solid #e6e9f0;border-radius:23px;background:linear-gradient(160deg,#fff,#fafbff);box-shadow:0 12px 34px #17203309;min-width:0}
- .pw-credit-plan.popular{background:linear-gradient(155deg,#315fe5 0%,#293fc0 60%,#352f91 100%);border-color:#3156d7;color:#fff;box-shadow:0 18px 44px #304fc733;transform:translateY(-7px)}
- .pw-credit-plan h3{font-size:21px;margin:0 0 7px;letter-spacing:-.03em}
- .pw-credit-plan .plan-desc{font-size:12px;line-height:1.5;color:#788397;min-height:36px;margin:0 0 18px}
- .pw-credit-plan.popular .plan-desc{color:#dce5ff}
- .pw-credit-plan .plan-price{font-size:46px;font-weight:850;letter-spacing:-.065em;line-height:1;margin:0 0 17px}
- .pw-credit-plan .plan-price small{font-size:13px;font-weight:500;letter-spacing:0;color:#778196}
- .pw-credit-plan.popular .plan-price small{color:#dce5ff}
- .pw-credit-plan .plan-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:19px}
- .pw-credit-plan .plan-metrics div{padding:12px 8px;border-radius:13px;background:#f2f4fa;text-align:center}
- .pw-credit-plan.popular .plan-metrics div{background:#ffffff19}
- .pw-credit-plan .plan-metrics b{display:block;font-size:20px;letter-spacing:-.03em}
- .pw-credit-plan .plan-metrics small{display:block;font-size:10px;line-height:1.35;color:#758096;margin-top:3px}
- .pw-credit-plan.popular .plan-metrics small{color:#e1e7ff}
- .pw-credit-plan ul{list-style:none;padding:16px 0 0;margin:0;border-top:1px solid #e9ecf2;display:grid;gap:12px;flex:1}
- .pw-credit-plan.popular ul{border-color:#ffffff35}
- .pw-credit-plan li{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.45;color:#4f5a70}
- .pw-credit-plan.popular li{color:#f3f5ff}
- .pw-credit-check{color:#6b7bd2;font-weight:900}
- .pw-credit-plan.popular .pw-credit-check{color:#fff}
- .pw-credit-popular{display:inline-flex;align-self:flex-start;padding:6px 10px;border-radius:99px;background:#ffffff20;color:#fff;font-size:10px;font-weight:800;letter-spacing:.06em;margin-bottom:15px}
- .pw-credit-plan button{width:100%;margin-top:22px;padding:13px 15px;border:1px solid #dfe4ef;border-radius:12px;background:#fff;color:#26365c;font-weight:750;font-size:13px;cursor:not-allowed;opacity:.85}
- .pw-credit-plan.popular button{background:#ffffffde;border-color:#ffffffde;color:#2d429e}
- .pw-credit-plan button:disabled{opacity:.8}
- .pw-credit-note{max-width:900px;margin:22px auto 0;padding:14px 16px;border-radius:13px;background:#f5f7fc;border:1px solid #e7ebf4;color:#6d7890;font-size:12px;line-height:1.6}
- .pw-credit-note strong{color:#3f4b68}
- @media(max-width:850px){.pw-credit-plans{grid-template-columns:1fr;max-width:520px;margin:auto}.pw-credit-plan.popular{transform:none;order:-1}}
- @media(max-width:560px){.pw-credits-page{padding:20px 13px 36px}.pw-credit-account{align-items:flex-start;padding:15px}.pw-credit-account .pw-credit-unlimited{font-size:12px}.pw-credit-usage{grid-template-columns:1fr}.pw-credit-plan{padding:22px 19px}}
- </style>
- <header class="pw-credits-head"><span class="eyebrow">PRIME WEBS AI · CREDITS & PLANS</span><h1>Your Plan</h1><p>Choose the right plan for your workflow. Build websites, make AI-powered edits and manage your projects from one place.</p></header>
- <div class="pw-credit-account"><div class="pw-credit-account-main"><span class="pw-credit-crown">♛</span><div><strong>Owner workspace · Unlimited access</strong><small>Your owner account keeps unlimited credits. No credits are deducted when you build or edit your own projects.</small></div></div><div class="pw-credit-unlimited">∞ Unlimited</div></div>
- <div class="pw-credit-section-title"><h2>How credits work</h2><p>Simple, predictable usage for every customer.</p></div>
- <div class="pw-credit-usage"><article><span class="usage-icon">✦</span><div><b>6 credits</b><small>Generate one website</small></div></article><article><span class="usage-icon">↗</span><div><b>1 credit</b><small>Make one AI edit or change</small></div></article></div>
- <div class="pw-credit-section-title"><h2>Choose your plan</h2><p>Monthly plans · Pick the credit allowance that fits your needs.</p></div>
- <div class="pw-credit-billing"><span>Monthly billing</span></div>
- <div class="pw-credit-plans">${plans.map(p=>`<article class="pw-credit-plan ${p.popular?'popular':''}">${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>${p.name}</h3><p class="plan-desc">${p.name==='Starter'?'For freelancers getting started':p.name==='Pro'?'For growing teams and agencies':'For teams with high-volume website projects'}</p><div class="plan-price">${p.price}<small> /mo</small></div><div class="plan-metrics"><div><b>${p.credits}</b><small>AI credits / month</small></div><div><b>${p.searches}</b><small>searches / month</small></div></div><ul>${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>${p.button} · Coming soon</button></article>`).join('')}</div>
+ <div class="pw-credit-plans">${plans.map(p=>`<article class="pw-credit-plan ${p.popular?'popular':''}">${p.popular?'<span class="pw-credit-popular">★ MOST POPULAR</span>':''}<h3>${p.name}</h3><p class="plan-desc">${p.description}</p><div class="plan-price">${money(p.price)}<small> /mo</small></div><div class="plan-metrics"><div><b>${p.credits}</b><small>AI credits / month</small></div><div><b>${p.searches}</b><small>searches / month</small></div></div><ul>${p.features.map(x=>'<li>'+check+x+'</li>').join('')}</ul><button type="button" disabled>${p.button} · Coming soon</button></article>`).join('')}</div>
  <div class="pw-credit-note"><strong>Important:</strong> Subscription checkout and payment processing are not connected yet, so these plans are displayed as a pricing preview only. Lead Finder search allowances will become active when its verified data provider is connected. Your OWNER / ADMIN unlimited-credit access is preserved.</div>
  </section>`;
 }
