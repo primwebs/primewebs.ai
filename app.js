@@ -731,6 +731,36 @@ function ensureIndustry3D(site,prompt,previousSite){
   }
   return site;
 }
+// Image helpers: keep generation independent of optional image-enrichment logic.
+function ensureIndustryImages(site, prompt) {
+  if (!site || !Array.isArray(site.blocks)) return site;
+  // Only retain explicitly supplied, usable image sources; never invent URLs.
+  const validImage = value => typeof value === 'string' &&
+    (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(value.trim()) || value.trim().startsWith('/'));
+  site.blocks = site.blocks.map(block => {
+    if (!block || typeof block !== 'object') return block;
+    const copy = { ...block };
+    if (typeof copy.image === 'string' && !validImage(copy.image)) delete copy.image;
+    if (Array.isArray(copy.images)) copy.images = copy.images.filter(validImage);
+    return copy;
+  });
+  return site;
+}
+function keepImages(previousSite, nextSite) {
+  if (!nextSite || !Array.isArray(nextSite.blocks)) return nextSite;
+  const previous = new Map(((previousSite && previousSite.blocks) || [])
+    .filter(block => block && block.id).map(block => [String(block.id), block]));
+  nextSite.blocks = nextSite.blocks.map(block => {
+    if (!block || typeof block !== 'object') return block;
+    const old = previous.get(String(block.id));
+    if (!old) return block;
+    const copy = { ...block };
+    if (!copy.image && old.image) copy.image = old.image;
+    if ((!Array.isArray(copy.images) || !copy.images.length) && Array.isArray(old.images)) copy.images = old.images;
+    return copy;
+  });
+  return nextSite;
+}
 async function generate(){
   const f=S.form;
   if(!f.name.trim()){S.err='Skriv et navn til projektet.';return render()}
