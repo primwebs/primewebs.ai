@@ -1,7 +1,7 @@
 /* PRIME WEBS AI — Supabase Auth + cloud persistence.
    Only the public publishable key is used in the browser. */
 (function () {
-  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[],images:{}}, settingsData: {}, writeQueue: Promise.resolve() };
+  const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, loadPromise: null, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[],images:{}}, settingsData: {}, writeQueue: Promise.resolve() };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return c==='x'?r:(r&3|8); }));
   const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(String(v||''));
   const local = (key, fallback) => { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (_) { return fallback; } };
@@ -26,6 +26,10 @@
     state.settingsData=next;
   }
   async function loadCloud() {
+    // Serialize cloud loads: concurrent auth callbacks must never migrate the same
+    // browser-local projects with newly generated IDs into duplicate database rows.
+    if(state.loadPromise) return state.loadPromise;
+    state.loadPromise=(async()=>{
     const db=state.client, user=state.user;
     if (!user) return;
     const [profiles, projects, customers, settings, credits] = await Promise.all([
@@ -84,6 +88,9 @@
       state.workspaceData={finance:[],leads:[],images:{}};
       put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});
     }
+    })();
+    try { return await state.loadPromise; }
+    finally { state.loadPromise=null; }
   }
   const persist = (key, value) => {
     put(key,value);
