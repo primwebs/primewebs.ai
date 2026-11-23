@@ -303,7 +303,7 @@ const Renderer={html(p){
 }};
 
 /* ===== Lag 4: UI ===== */
-let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',''),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
+let S={view:'dash',miniTab:'list',pricingPeriod:'monthly',cf:{name:'',email:'',plan:'Gratis'},out:null,outId:null,msg:'',rv:'',rc:0,cdel:null,id:Storage.get('pw.activeProject',''),device:'desktop',busy:false,err:'',del:null,fileTab:'index.html',dashSearch:'',dashFilter:'all',dashSort:'updated',projectMenuId:null,renameId:null,renameValue:'',templateQuery:'',templateCategory:'Alle',form:{name:'',desc:'',style:'Moderne'}};
 const getP=()=>{const all=Projects.all();let p=S.id!=null?all.find(x=>String(x.id)===String(S.id)):null;if(!p){const saved=Storage.get('pw.activeProject','');p=saved?all.find(x=>String(x.id)===String(saved)):null;if(p)S.id=p.id}if(p){S.id=p.id;Storage.set('pw.activeProject',p.id)}return p||null};
 const upd=(id,fn)=>{if(!id)return false;const l=Projects.all(),i=l.findIndex(p=>String(p.id)===String(id));if(i<0)return false;fn(l[i]);l[i].updatedAt=Date.now();Projects.save(l);return true};
 
@@ -389,7 +389,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><button class="sd-project-preview" data-act="open" data-id="${p.id}" aria-label="Open ${esc(p.name)}"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span></button><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><button class="sd-project-menu" data-act="open" data-id="${p.id}" aria-label="Open project">↗</button></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card"><button class="sd-project-preview" data-act="open" data-id="${p.id}" aria-label="Open ${esc(p.name)}"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span></button><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><div class="sd-project-actions"><button class="sd-project-menu" type="button" data-act="projectMenu" data-id="${p.id}" aria-label="Project actions" aria-haspopup="menu" aria-expanded="${S.projectMenuId===p.id?'true':'false'}">⋯</button>${S.projectMenuId===p.id?`<div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" data-act="open" data-id="${p.id}">Edit project</button>${live?`<button type="button" role="menuitem" data-act="projectUnpublish" data-id="${p.id}">Unpublish</button>`:'' }<button type="button" role="menuitem" class="danger" data-act="del" data-id="${p.id}">${S.del===p.id?'Confirm delete project':'Delete project'}</button></div>`:''}</div></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -801,7 +801,10 @@ async function send(t){
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
 document.addEventListener('click',e=>{
+  if(S.projectMenuId&&!e.target.closest('.sd-project-actions')){S.projectMenuId=null;if(!e.target.closest('[data-act]')){render();return}}
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  if(a==='projectMenu'){S.projectMenuId=S.projectMenuId===id?null:id;S.del=null;return render()}
+  if(a==='projectUnpublish'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p)return;const ok=window.confirm('Move this project back to Draft? This changes its PRIME WEBS AI dashboard status only; it does not disconnect an external host or take an externally hosted website offline.');if(!ok)return;upd(id,q=>{q.status='draft';q.isPublished=false;delete q.publishedAt;delete q.publishedUrl;delete q.liveUrl});S.projectMenuId=null;S.del=null;banner('Project moved to Draft in the dashboard. Check your hosting provider separately to take any live website offline.');return render()}
   if(a==='bookRefresh'){window.PWDB.listBookings().then(x=>{S.bookings=x;render()}).catch(err=>banner('Kunne ikke hente bookinger: '+err.message));return}
   if(a==='bookStatus'){window.PWDB.updateBookingStatus(id,b.dataset.status).then(()=>window.PWDB.listBookings()).then(x=>{S.bookings=x;banner('Bookingstatus er opdateret.');render()}).catch(err=>banner('Kunne ikke opdatere booking: '+err.message));return}
   if(a==='grp'){const st=Storage.get('pw.nav',{});st[b.dataset.g]=st[b.dataset.g]===0?1:0;Storage.set('pw.nav',st);return render()}
@@ -830,7 +833,7 @@ document.addEventListener('click',e=>{
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
   else if(a==='open'){const p=Projects.all().find(x=>String(x.id)===String(id));if(!p){banner('Projektet kunne ikke findes. Dine gemte hjemmesider er bevaret.');return render()}S.view='builder';S.miniTab='edit';S.id=p.id;Storage.set('pw.activeProject',p.id)}
-  else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Hjemmesiden er slettet fra dit workspace.')}else S.del=id}
+  else if(a==='del'){if(S.del===id){Projects.save(Projects.all().filter(p=>p.id!==id));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;S.projectMenuId=null;banner('Project deleted from your workspace.')}else{S.del=id;S.projectMenuId=id}}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
   render();
