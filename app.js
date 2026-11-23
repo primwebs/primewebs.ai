@@ -412,7 +412,7 @@ function vDash(){
  const l=all.filter(p=>(!q||String(p.name||'').toLowerCase().includes(q)||String(p.domain||'').toLowerCase().includes(q))&&(filter==='all'||(filter==='published'&&(p.status==='published'||p.isPublished===true||!!p.publishedAt))||(filter==='ready'&&p.status==='ready')||(filter==='draft'&&p.status!=='ready'&&p.status!=='published'&&!p.isPublished&&!p.publishedAt)));
  const sort=S.dashSort||'updated';l.sort((a,b)=>sort==='name'?String(a.name||'').localeCompare(String(b.name||''),'da'):sort==='oldest'?Number(a.updatedAt||0)-Number(b.updatedAt||0):Number(b.updatedAt||0)-Number(a.updatedAt||0));
  const prompt=String(S.dashPrompt||'');
- const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="open" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><button type="button" class="sd-project-menu" data-act="open" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)} in editor" title="Open in editor"><span class="sd-menu-lines" aria-hidden="true"><i></i><i></i><i></i></span></button></div></article>`}).join('');
+ const cards=l.map(p=>{const live=p.status==='published'||p.isPublished===true||!!p.publishedAt;return `<article class="sd-project-card" data-id="${esc(p.id)}"><div class="sd-project-preview"><iframe title="Preview: ${esc(p.name)}" sandbox="allow-scripts" loading="lazy" srcdoc="${esc(previewDoc(p))}"></iframe><span class="sd-project-state ${live?'live':'draft'}"><i></i>${live?'Live':'Draft'}</span><span class="sd-project-open">Open project ↗</span><button type="button" class="sd-project-open-target" data-act="open" data-id="${esc(p.id)}" aria-label="Open ${esc(p.name)}"></button></div><div class="sd-project-card-foot"><div><strong>${esc(p.name)}</strong><small>${esc(p.domain|| (live?'Published website':'Updated '+new Date(p.updatedAt||Date.now()).toLocaleDateString('en-GB')))}</small></div><div class="sd-project-menu-wrap"><button type="button" class="sd-project-menu" data-act="projectMenuToggle" data-id="${esc(p.id)}" aria-label="Project options for ${esc(p.name)}" aria-haspopup="menu" aria-expanded="${String(S.projectMenuId)===String(p.id)?'true':'false'}" title="Project options"><span class="sd-menu-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>${String(S.projectMenuId)===String(p.id)?'<div class="sd-project-dropdown" role="menu"><button type="button" role="menuitem" data-act="projectEdit" data-id="'+esc(p.id)+'">Edit project</button><button type="button" role="menuitem" data-act="renameStart" data-id="'+esc(p.id)+'">Rename project</button><button type="button" role="menuitem" data-act="duplicate" data-id="'+esc(p.id)+'">Duplicate project</button>'+(live?'<button type="button" role="menuitem" data-act="projectUnpublish" data-id="'+esc(p.id)+'">Move to Draft</button>':'')+'<button type="button" role="menuitem" class="danger" data-act="del" data-id="'+esc(p.id)+'">'+(String(S.del)===String(p.id)?'Confirm delete':'Delete project')+'</button></div>':''}</div></div></article>`}).join('');
  return `<div class="sd-dashboard">
   <section class="sd-welcome">
    <button class="sd-own-app" data-act="workMode" data-mode="${workMode==='own'?'clients':'own'}"><span class="sd-new-pill">NEW</span><span>${workMode==='own'?'Build for clients':'Build for yourself — launch your own app'}</span><b>→</b></button>
@@ -929,11 +929,21 @@ window.PWOpenProject=openProjectFromDashboard;
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
-  const b=target&&target.closest&&target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+  const b=target&&target.closest&&target.closest('[data-act]');
+  if(!b){if(S.projectMenuId!==null){S.projectMenuId=null;S.del=null;render()}return;}
+  if(S.projectMenuId!==null&&!target.closest('.sd-project-menu-wrap')){S.projectMenuId=null;S.del=null;}
+  const a=b.dataset.act,id=b.dataset.id;
   // One route for BOTH entry points: the card preview overlay and the
   // three-dot "Edit project" menu item. The old condition only accepted the
   // menu item, so tapping the actual project card fell through to render()
   // and simply repainted the dashboard instead of opening the editor.
+  if(a==='projectMenuToggle'){
+    e.preventDefault();e.stopPropagation();
+    S.projectMenuId=String(S.projectMenuId)===String(id)?null:id;
+    S.del=null;
+    render();
+    return;
+  }
   if(a==='projectEdit'){
     // The whole card is clickable, except its native three-dot disclosure.
     // Menu items and the preview overlay carry their own data-act and are
@@ -1150,7 +1160,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   if(x==='closeerr'){const r=document.getElementById('errbar');if(r)r.remove()}
   else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.projectMenuId!==null){S.projectMenuId=null;S.del=null;render();return}if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();send(e.target.value)}});
 async function boot(){
   try{
     await window.PWDB.ready;
