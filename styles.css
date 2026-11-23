@@ -1215,7 +1215,6 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .sd-project-card-foot>div{display:flex;flex-direction:column;gap:3px;min-width:0}
 .sd-project-card-foot strong{font-size:12px;color:#4b5c74;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sd-project-card-foot small{font-size:10px;color:#9aa5b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sd-project-menu{width:27px;height:27px;border:1px solid #edf1f5;border-radius:7px;background:#fff;color:#8492a6;cursor:pointer}
 .sd-empty-projects,.sd-no-projects{padding:34px 20px;text-align:center;border:1px dashed #dfe6ef;border-radius:12px;background:rgba(255,255,255,.6);color:#7f8ca0}
 .sd-empty-icon{margin:0 auto 9px;width:38px;height:38px;border-radius:12px;background:#eaf2fc;color:#5a8ed5;display:grid;place-items:center;font-size:20px}
 .sd-empty-projects strong{font-size:13px;color:#53637a}
@@ -1267,8 +1266,6 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fo
 .sd-project-card-foot{min-height:62px}
 .sd-project-card-foot strong{font-size:12.5px;font-weight:700;letter-spacing:-.1px}
 .sd-project-card-foot small{font-size:10.5px;color:#98a4b4}
-.sd-project-menu{width:29px;height:29px;border:1px solid #e8edf4;border-radius:8px;background:#fff;color:#71839b;transition:background .15s ease,color .15s ease}
-.sd-project-menu:hover{background:#edf4fd;color:#4f85cf}
 .sd-compose{border-color:#e3e9f2;box-shadow:0 12px 34px rgba(43,65,96,.075);transition:border-color .18s ease,box-shadow .18s ease}
 .sd-compose:focus-within{border-color:#b9cfee;box-shadow:0 0 0 3px rgba(90,143,221,.09),0 14px 36px rgba(43,65,96,.08)}
 .sd-compose-send{background:linear-gradient(145deg,#679ee8,#4d82d0);box-shadow:0 4px 12px rgba(73,129,206,.25)}
@@ -1467,18 +1464,8 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
   .sd-dashboard .sd-project-card-foot{min-width:0;gap:7px;padding:10px;min-height:58px}
   .sd-dashboard .sd-project-card-foot>div{min-width:0;overflow:hidden}
   .sd-dashboard .sd-project-card-foot strong,.sd-dashboard .sd-project-card-foot small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sd-dashboard .sd-project-menu{width:28px;height:28px;font-size:20px}
 }
 
-/* Dashboard project-card action menu */
-.sd-project-actions{position:relative;flex:0 0 auto}
-.sd-project-menu{display:grid;place-items:center;font-size:22px;line-height:1;font-weight:700;letter-spacing:1px}
-.sd-project-menu:hover,.sd-project-menu[aria-expanded="true"]{background:#f1f5fb;color:#2540D9;border-color:#dbe4f2}
-.sd-project-dropdown{position:absolute;z-index:40;right:0;bottom:calc(100% + 7px);width:184px;padding:5px;background:#fff;border:1px solid #e5eaf1;border-radius:10px;box-shadow:0 12px 32px rgba(22,39,67,.16);display:grid;gap:2px}
-.sd-project-dropdown button{width:100%;border:0;background:transparent;color:#34445c;text-align:left;padding:9px 10px;border-radius:7px;font:600 12px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer}
-.sd-project-dropdown button:hover{background:#f1f5fb;color:#2540D9}
-.sd-project-dropdown button.danger{color:#c43c4d}
-.sd-project-dropdown button.danger:hover{background:#fff1f2;color:#a91f32}
 
 
 /* PRIME WEBS AI conversational editor */
@@ -1502,15 +1489,10 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 @media(prefers-reduced-motion:reduce){.typing-dots i{animation:none}.msgs{scroll-behavior:auto}}
 
 
-/* Reliable dashboard project-card taps and unclipped action menu (mobile + desktop). */
 .sd-project-card{overflow:visible;position:relative}
-.sd-project-card:has(.sd-project-actions[open]){z-index:70}
 .sd-project-card-foot{position:relative;z-index:2}
-.sd-project-actions{position:relative;z-index:71}
-.sd-project-dropdown{z-index:90;max-height:min(60vh,320px);overflow-y:auto;overscroll-behavior:contain}
 .sd-project-preview{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sd-project-preview iframe,.sd-project-preview>.sd-project-state,.sd-project-preview>.sd-project-open{pointer-events:none!important}
-.sd-project-menu,.sd-project-dropdown button{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 
 /* Full-card native tap target sits above the preview iframe without nesting
@@ -1522,12 +1504,6 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-open-target:focus-visible{outline:3px solid #3158d8;outline-offset:-4px;border-radius:8px}
 
 
-/* Native project actions disclosure: dependable tap target on iPhone and desktop. */
-.sd-project-actions{position:relative;display:block;flex:0 0 auto;z-index:71}
-.sd-project-menu{display:grid;place-items:center;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.sd-project-menu::-webkit-details-marker{display:none}
-.sd-project-actions[open] .sd-project-menu{background:#f1f5fb;color:#2540D9;border-color:#dbe4f2}
-.sd-project-actions .sd-project-dropdown{position:absolute;right:0;bottom:calc(100% + 7px);z-index:100}
 .sd-project-card{overflow:visible}
 
 
@@ -1575,22 +1551,9 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 }
 
 
-/* Fresh three-line project editor button */
-.sd-project-menu{width:34px;height:34px;min-width:34px;padding:0;border:1px solid #e5eaf1;border-radius:9px;background:#fff;color:#34445c;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;z-index:5}
-.sd-project-menu:hover,.sd-project-menu:focus-visible{background:#f1f5fb;color:#2540D9;border-color:#cdd9f4;outline:none}
 .sd-menu-lines{display:flex;width:15px;flex-direction:column;gap:3px;align-items:stretch;pointer-events:none}
 .sd-menu-lines i{display:block;width:15px;height:2px;border-radius:2px;background:currentColor}
-.sd-project-actions{display:none!important}
 /* PRIME WEBS AI — reliable project options menu */
-.sd-project-menu-wrap{position:relative;display:block;flex:0 0 auto;z-index:120}
-.sd-project-menu-wrap:has(.sd-project-dropdown){z-index:140}
-.sd-project-menu-wrap .sd-project-menu{display:grid;place-items:center;position:relative;z-index:141;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.sd-project-menu-wrap .sd-project-dropdown{position:absolute;right:0;top:auto;bottom:calc(100% + 8px);z-index:150;width:min(190px,calc(100vw - 36px));max-height:min(60vh,320px);overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#fff;border:1px solid #e3e9f2;border-radius:11px;box-shadow:0 14px 34px rgba(22,39,67,.18);display:grid;gap:2px}
-.sd-project-menu-wrap .sd-project-dropdown button{display:block;width:100%;min-height:40px;padding:10px 12px;border:0;border-radius:7px;background:transparent;color:#34445c;text-align:left;font:600 13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.sd-project-menu-wrap .sd-project-dropdown button:hover,.sd-project-menu-wrap .sd-project-dropdown button:focus-visible{background:#f1f5fb;color:#2540D9;outline:none}
-.sd-project-menu-wrap .sd-project-dropdown button.danger{color:#c43c4d}
-.sd-project-menu-wrap .sd-project-dropdown button.danger:hover{background:#fff1f2;color:#a91f32}
-.sd-project-card:has(.sd-project-menu-wrap .sd-project-dropdown){z-index:130}
 .sd-project-card-foot{overflow:visible}
 /* Project cards: one direct edit action, no overflow/menu control. */
 .sd-edit-project-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border:1px solid #347fe5;border-radius:8px;background:#347fe5;color:#fff;font:700 11px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif;white-space:nowrap;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 9px rgba(52,127,229,.16);transition:background .15s ease,transform .15s ease}
