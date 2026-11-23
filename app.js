@@ -877,6 +877,20 @@ async function send(t){
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
+// Handle the project kebab menu in the capture phase so another delegated click
+// handler cannot swallow the action before the dashboard can render the menu.
+document.addEventListener('click',e=>{
+  const trigger=e.target&&e.target.closest&&e.target.closest('button[data-act="projectMenu"]');
+  if(!trigger)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const id=String(trigger.dataset.id||'');
+  if(!id)return;
+  S.projectMenuId=S.projectMenuId===id?null:id;
+  S.del=null;
+  render();
+},true);
+
 document.addEventListener('click',e=>{
   if(S.projectMenuId&&!e.target.closest('.sd-project-actions')){S.projectMenuId=null;if(!e.target.closest('[data-act]')){render();return}}
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
