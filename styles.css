@@ -1540,3 +1540,47 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-actions[open] .sd-project-menu{background:#f1f5fb;color:#2540D9;border-color:#dbe4f2}
 .sd-project-actions .sd-project-dropdown{position:absolute;right:0;bottom:calc(100% + 7px);z-index:100}
 .sd-project-card{overflow:visible}
+
+
+/* Force every project tile to use the same compact grid sizing on mobile. */
+@media(max-width:700px){
+  .sd-dashboard .sd-project-grid,
+  .sd-project-grid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    align-items:start!important;
+    justify-items:stretch!important;
+    gap:10px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  .sd-dashboard .sd-project-grid>.sd-project-card,
+  .sd-project-grid>.sd-project-card{
+    display:block!important;
+    grid-column:auto!important;
+    grid-row:auto!important;
+    justify-self:stretch!important;
+    align-self:start!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    transform:none;
+  }
+  .sd-dashboard .sd-project-grid>.sd-project-card>.sd-project-preview,
+  .sd-project-grid>.sd-project-card>.sd-project-preview{
+    display:block!important;
+    width:100%!important;
+    height:132px!important;
+    min-height:132px!important;
+    max-height:132px!important;
+  }
+  .sd-dashboard .sd-project-grid>.sd-project-card>.sd-project-card-foot,
+  .sd-project-grid>.sd-project-card>.sd-project-card-foot{
+    width:100%!important;
+    min-width:0!important;
+    min-height:58px!important;
+    box-sizing:border-box!important;
+  }
+}
