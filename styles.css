@@ -1568,3 +1568,14 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-project-open-fallback select{min-width:190px;max-width:100%;min-height:40px;padding:8px 12px;border:1px solid #d7e0ed;border-radius:9px;background:#fff;color:#1e293b;font:600 12px system-ui,-apple-system,sans-serif;touch-action:manipulation}
 .sd-project-open-target{pointer-events:auto!important;touch-action:manipulation!important}
 @media(max-width:640px){.sd-project-open-fallback{justify-content:stretch}.sd-project-open-fallback label{width:100%;align-items:stretch;flex-direction:column;gap:6px}.sd-project-open-fallback select{width:100%;min-height:46px}}
+
+/* Compact project menu: native details keeps the toggle reliable on touch devices. */
+.dash-project-menu-row{justify-content:flex-end;position:relative}
+.dash-project-menu{position:relative;z-index:5}
+.dash-project-menu>summary{list-style:none;display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--ln);border-radius:12px;background:var(--sf);color:var(--tx);font-size:21px;font-weight:800;cursor:pointer;user-select:none}
+.dash-project-menu>summary::-webkit-details-marker{display:none}
+.dash-project-menu[open]>summary{background:var(--so);border-color:var(--ac);color:var(--ac)}
+.dash-project-menu-pop{position:absolute;right:0;top:calc(100% + 8px);display:grid;gap:4px;min-width:190px;padding:7px;border:1px solid var(--ln);border-radius:13px;background:var(--sf);box-shadow:0 12px 34px rgba(15,23,42,.16);z-index:30}
+.dash-project-menu-pop a,.dash-project-menu-pop button{display:flex;align-items:center;width:100%;min-height:42px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--tx);font:inherit;font-size:.9rem;text-align:left;text-decoration:none;cursor:pointer}
+.dash-project-menu-pop a:hover,.dash-project-menu-pop button:hover{background:var(--so)}
+.dash-project-menu-pop button{color:#c03945}
