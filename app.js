@@ -901,6 +901,18 @@ function toggleProjectActions(trigger){
   S.del=null;
   render();
 }
+// Mobile Safari can delay or retarget delegated click events after a dashboard
+// rerender. Handle physical taps on the three-dot trigger at pointerdown so
+// the menu opens on the first tap; keep click handling as a keyboard fallback.
+let projectMenuPointerHandledAt=0;
+document.addEventListener('pointerdown',e=>{
+  const trigger=e.target&&e.target.closest&&e.target.closest('button.sd-project-menu[data-act="projectMenu"]');
+  if(!trigger)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  projectMenuPointerHandledAt=Date.now();
+  toggleProjectActions(trigger);
+},true);
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.closest&&e.target.closest('[data-act]');
@@ -911,6 +923,9 @@ document.addEventListener('click',e=>{
   // prevents later delegated handlers from closing the menu or swallowing taps.
   if(action==='projectMenu'){
     e.preventDefault();e.stopImmediatePropagation();
+    // A pointer tap was already handled above. Suppress any compatibility
+    // click some browsers may still dispatch after pointerdown was cancelled.
+    if(e.detail>0&&Date.now()-projectMenuPointerHandledAt<1000)return;
     toggleProjectActions(target);
     return;
   }
