@@ -421,7 +421,7 @@ function vList(){const l=Projects.all();
 function vEdit(){const p=getP();if(!p)return `<section class="card" style="max-width:760px"><h1>Hjemmesiden kunne ikke indlæses</h1><p>Editoren er blevet på denne side. Dine gemte projekter er ikke slettet. Gå til Dashboard og vælg projektet igen, eller prøv at genindlæse.</p><button class="btn" data-act="go" data-v="dash">Til Dashboard</button></section>`;
   setTimeout(()=>{const box=document.querySelector('[data-chat-messages]');if(box)box.scrollTop=box.scrollHeight},0);
   return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">AI WEBSITE EDITOR</span><h1>${esc(p.name)}</h1><p class="mu">Beskriv dine ønsker i chatten. Gemini arbejder på hjemmesiden, mens Claude hjælper med at formulere et naturligt svar.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="builder">Visuel editor</button><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="media">Billeder</button><button class="btn ghost" data-act="go" data-v="preview">Forhåndsvisning</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button></div></div>
-<div class="ed"><section class="chat"><div class="editor-section"><span class="badge">PRIME WEBS AI · ASSISTENT</span><p class="mu">Skriv helt almindeligt, som du ville gøre i ChatGPT. Du kan stille spørgsmål eller bede AI'en om at bygge og ændre hjemmesiden. Samtalen gemmes sammen med projektet.</p></div><div class="msgs" data-chat-messages aria-live="polite">${p.chat.map(m=>`<article class="m ${m.r==='u'?'u':'ai'}"><span class="m-label">${m.r==='u'?'Dig':'PRIME WEBS AI'}</span><div class="m-body">${esc(m.t)}</div></article>`).join('')}${S.busy?'<article class="m ai typing" role="status"><span class="m-label">PRIME WEBS AI</span><div class="m-body">Gemini arbejder med hjemmesiden, og Claude hjælper med dit svar <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span></div></article>':''}</div><form class="prompt-box" id="chat-form"><textarea id="chatin" rows="3" aria-label="Skriv en besked til PRIME WEBS AI" placeholder="Skriv en besked eller beskriv, hvad du vil ændre…" ${S.busy?'disabled':''}></textarea><button class="btn" type="submit" ${S.busy?'disabled':''}>${S.busy?'Arbejder…':'Send besked'}</button></form></section><section class="pv"><iframe title="Live preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></section></div>`;
+<div class="ed"><section class="chat"><div class="editor-section"><span class="badge">PRIME WEBS AI · ASSISTENT</span><p class="mu">Skriv helt almindeligt, som du ville gøre i ChatGPT. Du kan stille spørgsmål eller bede AI'en om at bygge og ændre hjemmesiden. Samtalen gemmes sammen med projektet.</p></div><div class="msgs" data-chat-messages aria-live="polite">${p.chat.map(m=>`<article class="m ${m.r==='u'?'u':'ai'}"><span class="m-label">${m.r==='u'?'Dig':'PRIME WEBS AI'}</span><div class="m-body">${esc(m.t)}</div></article>`).join('')}${S.busy?'<article class="m ai typing" role="status"><span class="m-label">PRIME WEBS AI · ARBEJDER</span><div class="m-body">'+esc(S.chatStatus||'Jeg arbejder på din hjemmeside…')+' <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span></div></article>':''}</div><form class="prompt-box" id="chat-form"><textarea id="chatin" rows="3" aria-label="Skriv en besked til PRIME WEBS AI" placeholder="Skriv en besked eller beskriv, hvad du vil ændre…" ${S.busy?'disabled':''}></textarea><button class="btn" type="submit" ${S.busy?'disabled':''}>${S.busy?'Arbejder…':'Send besked'}</button></form></section><section class="pv"><iframe title="Live preview" sandbox="allow-scripts" srcdoc="${esc(previewDoc(p))}"></iframe></section></div>`;
 }
 
 /* ===== Nye sider ===== */
@@ -983,19 +983,27 @@ async function generate(){
   S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='builder';S.miniTab='edit';S.id=p.id;render();
 }
 async function send(t){
-  t=(t||'').trim();if(!t||S.busy)return;const p=getP();
-  if(!p||!p.id){S.busy=false;S.err='Den valgte hjemmeside kunne ikke genfindes. Dine ændringer er ikke sendt. Bliv i editoren, og genvælg projektet fra Dashboard.';banner(S.err);render();return}
+  t=String(t||'').trim();if(!t||S.busy)return;
+  const p=getP();
+  if(!p||!p.id){S.busy=false;S.err='Den valgte hjemmeside kunne ikke genfindes. Din besked er ikke sendt. Gå til Dashboard, og åbn projektet igen.';banner(S.err);render();return}
+  if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t},{r:'ai',t:'Du har ikke flere credits til at udføre ændringen. Din besked er gemt.'})});return render()}
+  const conversation=[...(p.chat||[]).slice(-9),{r:'u',t}];
   upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t})});
-  if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>q.chat.push({r:'ai',t:'Du har ikke flere credits.'}));return render()}
-  S.busy=true;render();
+  S.busy=true;S.chatStatus='Jeg har modtaget din besked. Jeg arbejder på hjemmesiden nu…';render();
   try {
-    const r=await AI.edit(p.site,t,(p.chat||[]).slice(-10));
-    if(r&&r.site){r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=ensureIndustryImages(r.site,[p.name,t].join(' '))}
-    upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];if(r&&r.site){q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;Credits.spend('edit')}q.chat.push({r:'ai',t:(r&&r.reply)||'Ændringerne er udført.'})});
+    const r=await AI.edit(p.site,t,conversation);
+    if(!r||!r.site||!Array.isArray(r.site.blocks)){
+      const reply=String(r&&r.reply||'Jeg kunne ikke bekræfte, at ændringen blev gennemført. Prøv at formulere ønsket lidt anderledes.');
+      upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:reply})});
+    } else {
+      r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=ensureIndustryImages(r.site,[p.name,t].join(' '));
+      const reply=String(r.reply||'Færdigt — jeg har opdateret hjemmesiden efter din besked. Kig i previewet, og fortæl mig, hvis du vil have flere ændringer.');
+      upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;q.chat.push({r:'ai',t:reply});Credits.spend('edit')});
+    }
   } catch(error) {
-    upd(p.id,q=>q.chat.push({r:'ai',t:'AI-fejl: '+(error.message||'Kunne ikke kontakte AI-generatoren.')}));
+    upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:'Jeg kunne ikke gennemføre ændringen: '+(error.message||'AI-forbindelsen svarede ikke. Din hjemmeside er ikke ændret.')})});
   }
-  S.busy=false;render();
+  S.busy=false;S.chatStatus='';render();
 }
 function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
 
@@ -1199,7 +1207,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x="retry"]
   else if(x==='mail'){const n=($('#kn')||{}).value||'',m=($('#kb')||{}).value||'',a=document.createElement('a');a.href='mailto:'+Settings.get().email+'?subject='+encodeURIComponent('Henvendelse'+(n?' fra '+n:''))+'&body='+encodeURIComponent(m+(n?'\n\nMvh. '+n:''));a.click()}
   else{if(x==='home'){S.view='dash';S.err=''}render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='chatin'){e.preventDefault();const form=document.getElementById('chat-form');if(form&&form.requestSubmit)form.requestSubmit()}});
-document.addEventListener('submit',e=>{if(e.target&&e.target.id==='chat-form'){e.preventDefault();const input=e.target.querySelector('#chatin'),value=input&&input.value||'';if(!value.trim())return;send(value);input.value=''}});
+document.addEventListener('submit',e=>{if(e.target&&e.target.id==='chat-form'){e.preventDefault();const input=e.target.querySelector('#chatin'),value=String(input&&input.value||'').trim();if(!value||S.busy)return;if(input)input.value='';send(value);}});
 async function boot(){
   try{
     await window.PWDB.ready;
