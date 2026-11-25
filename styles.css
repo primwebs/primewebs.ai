@@ -1642,15 +1642,11 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .ed .prompt-box .btn:disabled{opacity:.55;cursor:wait}
 @media(max-width:850px){.ed>.chat{min-height:560px}.ed .msgs{min-height:250px}.ed .prompt-box .btn{min-width:82px}}
 
-/* Dashboard project cards: keep long project text and actions inside the card */
-.dash-project-card{box-sizing:border-box;min-width:0;max-width:100%;flex-wrap:wrap}
-.dash-project-card>*{min-width:0;max-width:100%}
-.dash-project-info{flex:1 1 0;min-width:0;overflow-wrap:anywhere}
-.dash-project-info .mu{max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
-.dash-project-card>.row{box-sizing:border-box;flex:0 1 auto;min-width:0;max-width:100%}
-.dash-project-card>.row .btn,.dash-project-card>.btn{box-sizing:border-box;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
-@media(max-width:650px){
- .dash-project-card{align-items:flex-start}
- .dash-project-card>.row{width:calc(100% - 3.2rem);margin-left:3.2rem}
- .dash-project-card>.row .btn{width:100%;flex:1 1 100%;justify-content:center}
-}
+/* Keep project names contained; keep both action buttons the same compact size */
+.sd-dashboard .sd-project-card-foot{min-width:0}
+.sd-dashboard .sd-project-card-foot>div:first-child{flex:1 1 auto;min-width:0;max-width:100%}
+.sd-dashboard .sd-project-card-foot strong,
+.sd-dashboard .sd-project-card-foot small{white-space:normal;overflow-wrap:anywhere;word-break:break-word;min-width:0}
+.sd-dashboard .sd-project-actions{flex:0 0 auto;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:8px;min-width:0}
+.sd-dashboard .sd-edit-project-btn{flex:0 0 auto;min-height:38px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
+.sd-dashboard .sd-delete-project{flex:0 0 auto;min-height:38px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
