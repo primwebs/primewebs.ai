@@ -1642,17 +1642,15 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .ed .prompt-box .btn:disabled{opacity:.55;cursor:wait}
 @media(max-width:850px){.ed>.chat{min-height:560px}.ed .msgs{min-height:250px}.ed .prompt-box .btn{min-width:82px}}
 
-/* Keep long project names/details and action buttons inside the real SD dashboard cards */
-.sd-dashboard .sd-project-card{min-width:0;max-width:100%;box-sizing:border-box}
-.sd-dashboard .sd-project-card-foot{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px;min-width:0;box-sizing:border-box}
-.sd-dashboard .sd-project-card-foot>div:first-child{display:flex;flex-direction:column;width:100%;min-width:0;max-width:100%}
-.sd-dashboard .sd-project-card-foot strong,.sd-dashboard .sd-project-card-foot small{display:block;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;overflow:visible;text-overflow:clip}
-.sd-dashboard .sd-project-actions{display:flex;align-items:stretch;justify-content:flex-start;flex-wrap:wrap;gap:8px;width:100%;min-width:0;max-width:100%}
-.sd-dashboard .sd-project-actions .sd-edit-project-btn{flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;text-align:center}
-.sd-dashboard .sd-project-actions .sd-delete-project{flex:0 1 auto;min-width:0;max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere}
-@media(min-width:641px){
- .sd-dashboard .sd-project-card-foot{padding:14px 15px}
+/* Dashboard project cards: keep long project text and actions inside the card */
+.dash-project-card{box-sizing:border-box;min-width:0;max-width:100%;flex-wrap:wrap}
+.dash-project-card>*{min-width:0;max-width:100%}
+.dash-project-info{flex:1 1 0;min-width:0;overflow-wrap:anywhere}
+.dash-project-info .mu{max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.dash-project-card>.row{box-sizing:border-box;flex:0 1 auto;min-width:0;max-width:100%}
+.dash-project-card>.row .btn,.dash-project-card>.btn{box-sizing:border-box;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:650px){
+ .dash-project-card{align-items:flex-start}
+ .dash-project-card>.row{width:calc(100% - 3.2rem);margin-left:3.2rem}
+ .dash-project-card>.row .btn{width:100%;flex:1 1 100%;justify-content:center}
 }
-
-
-
