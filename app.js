@@ -1209,8 +1209,8 @@ async function enrichIndustryModels(site,prompt){
  const p=String(prompt||'').toLowerCase();
  const barber=/barber|barbershop|barber shop/.test(p);
  const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
- const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p);
- const tire=/dæk|bildæk|tire|tyre|fælg|alloy wheel/.test(p);
+ const tire=/dæk|bildæk|dækcenter|tire|tyre|fælg|alloy wheel/.test(p);
+ const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p)||tire;
  let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel']:['car','v8-engine']):[];
  if(!assets.length)return site;
  const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
@@ -1259,7 +1259,7 @@ async function enrichIndustryImages(site,prompt) {
   if(!needsHero&&!needsGallery)return site;
   try{
     const terms=imageSearchTerms(prompt);
-    const responses=await Promise.all(terms.slice(0,2).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:6})}).then(r=>r.ok?r.json():null).catch(()=>null)));
+    const responses=await Promise.all(terms.slice(0,3).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:8})}).then(r=>r.ok?r.json():null).catch(()=>null)));
     const media=responses.flatMap(r=>r&&Array.isArray(r.images)?r.images:[]);
     const unique=Array.from(new Map(media.filter(x=>x&&x.url).map(x=>[x.url,x])).values());
     if(!unique.length)return site;
@@ -1271,6 +1271,15 @@ async function enrichIndustryImages(site,prompt) {
     for(const section of site.blocks.filter(b=>b&&['services','features'].includes(b.type))){
       for(const item of (Array.isArray(section.items)?section.items:[])){
         if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
+      }
+    }
+    // Apply the same industry imagery to generated sub-pages, not only the homepage.
+    for(const page of (Array.isArray(site.pages)?site.pages:[])){
+      if(!page||!Array.isArray(page.blocks))continue;
+      const pageHero=page.blocks.find(b=>b&&b.type==='hero');
+      if(pageHero&&!pageHero.image&&unique.length){const x=unique.shift();pageHero.image=x.url;pageHero.imageAttribution=x.attribution;pageHero.imageCreditUrl=x.creditUrl;}
+      for(const section of page.blocks.filter(b=>b&&['services','features'].includes(b.type))){
+        for(const item of (Array.isArray(section.items)?section.items:[]))if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||page.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
       }
     }
     if(needsGallery){
