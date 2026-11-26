@@ -1166,6 +1166,8 @@ function ensureIndustryImages(site, prompt) {
 function imageSearchTerms(prompt) {
   const p=String(prompt||'').toLowerCase();
   const groups=[
+    [/massør|massoer|massage|massage therapist|masseur|masseuse|massageklinik|sportsmassage|wellness massage/,'authentic real photograph of a professional massage therapist giving a back massage in a calm premium treatment room, natural light, real human therapist and client'],
+    [/fysioterapeut|physiotherapist|physiotherapy|fysioterapi|physical therapy/,'real photograph of a physiotherapist working with a patient in a modern rehabilitation clinic, authentic professional treatment'],
     [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'real editorial photograph of professional barber cutting a clients hair, premium modern barbershop interior'],
     [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'real photograph of professional mechanic repairing a modern car inside a clean automotive garage'],
     [/dæk|bildæk|tire|tyre/,'real close-up photograph of premium car tyre and alloy wheel'],
