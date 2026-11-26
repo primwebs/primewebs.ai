@@ -19,6 +19,13 @@ module.exports=async(req,res)=>{
  const asset=String((req.query&&req.query.asset)||(req.body&&req.body.asset)||"").toLowerCase();
  const item=CATALOG[asset];
  if(!item)return res.status(400).json({error:"Unknown curated model."});
+ // Lightweight source check used during model-catalog validation.
+ if(req.method==="GET"&&String(req.query&&req.query.check||"")==="1"){
+  try{
+   const upstream=await fetch(BASE+item.path,{method:"HEAD",signal:AbortSignal.timeout(12000)});
+   return res.status(200).json({asset,name:item.name,ok:upstream.ok,status:upstream.status,contentType:upstream.headers.get("content-type"),contentLength:upstream.headers.get("content-length"),credit:item.credit,license:item.license});
+  }catch(error){return res.status(502).json({asset,name:item.name,ok:false,error:String(error.message||"").slice(0,160)})}
+ }
  // Stream the GLB through PrimeWebs. The upstream host only allows its own
  // origin via CORS, so browsers cannot load its model URLs directly.
  if(req.method==="GET"&&String(req.query&&req.query.download||"")==="1"){
