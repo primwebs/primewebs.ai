@@ -87,3 +87,13 @@ The connected project was inspected without changing schema or data.
 - Supabase security advisor also reports leaked-password protection disabled. This is an Auth dashboard setting, not a schema migration; enable after confirming the desired login policy.
 - Performance advisor reports 9 RLS policies that re-evaluate `auth.uid()` per row and 4 currently unused indexes. These are optimization candidates only; do not rewrite policies or drop indexes without testing query plans and access behavior.
 - Current table row counts show the workspace is lightly populated. Do not treat unused indexes as proof they are unnecessary; low traffic can explain this.
+
+
+## Additional confirmed source-level findings
+- The editor advertises **Design**, **Billeder**, **Forhåndsvisning** and **Versionshistorik** navigation. The click handler sets `S.miniTab` for these targets, but the current `vBuilder()` does not read `S.miniTab`, and the main view registry does not define separate `customize`, `media`, `preview` or `history` views. These controls therefore do not currently switch to the distinct tools their labels promise; they return to the same builder screen. This is a confirmed navigation/unfinished-view issue and should be fixed by completing the intended views, not by adding duplicate modules.
+- The visual editor already supports reordering/removing/adding blocks and editing their fields. It also has a GLB/GLTF file input for a single uploaded 3D model, capped at 2 MB; GLTF external textures/files are not supported. This is not a 3D asset library.
+- The current 3D built-in barber chair is assembled from `BoxGeometry` and `CylinderGeometry` primitives. That explains why it can look blocky even though a Three.js scene and rotation controls exist. A realistic barber chair requires a proper model asset, not another primitive shape.
+- The editor's "Billeder" navigation is not evidence of an operational image manager. No registered media view or confirmed stock-photo search/upload manager was found in the inspected main-branch view registry.
+- The generated contact form currently prepares a `mailto:` message and asks the visitor to press Send in their email app. It is not a server-delivered contact form. Booking requests, by contrast, have a Supabase RPC and a booking-request table.
+- Statistics currently describe local workspace/project counts and AI edit activity; they are not real visitor analytics from Google Analytics or another traffic provider.
+- The Domains UI explicitly says its search service is not active; displayed example TLD prices are static UI content and must not be treated as live quotes.
