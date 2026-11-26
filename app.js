@@ -247,16 +247,16 @@ const AI={mode:'api',
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
-  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
+  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
   features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
-  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
+  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
   services:b=>B.features(b),
   pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   team:b=>`<section class="team-section"><h2>${esc(b.title||'Mød teamet')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c team-card"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
-  gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
+  gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((entry,n)=>{const u=typeof entry==='string'?entry:entry.url;return `<figure><img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy"><figcaption>${entry&&entry.attribution?`<a href="${esc(entry.creditUrl||'#')}" target="_blank" rel="noopener">${esc(entry.attribution)}</a>`:''}</figcaption></figure>`}).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
   threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:'',format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
   contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.whatsapp&&b.phone?`<a class="btn whatsapp" href="https://wa.me/${esc(String(b.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">Skriv på WhatsApp</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}${b.address?`<a class="btn secondary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Find os på Google Maps</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div><form id="pw-contact-form" class="contact-form"><h3>Send os en besked</h3><label>Dit navn<input name="name" autocomplete="name" required></label><label>Din e-mail<input name="email" type="email" autocomplete="email" required></label><label>Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel"></label><label>Hvad kan vi hjælpe med?<textarea name="message" rows="4" required></textarea></label><button class="btn" type="submit">Klargør besked</button><p id="pw-contact-note" class="form-note">Din e-mailapp åbnes med beskeden. Du skal selv trykke Send.</p></form></section>` ,
@@ -1132,19 +1132,64 @@ function ensureIndustry3D(site,prompt,previousSite){
   }
   return site;
 }
-// Image helpers: keep generation independent of optional image-enrichment logic.
+// Industry-aware, openly licensed image enrichment. Images are searched on the server;
+// only commercial-use licenses are requested and each image keeps visible attribution.
 function ensureIndustryImages(site, prompt) {
   if (!site || !Array.isArray(site.blocks)) return site;
-  // Only retain explicitly supplied, usable image sources; never invent URLs.
   const validImage = value => typeof value === 'string' &&
     (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(value.trim()) || value.trim().startsWith('/'));
   site.blocks = site.blocks.map(block => {
     if (!block || typeof block !== 'object') return block;
     const copy = { ...block };
     if (typeof copy.image === 'string' && !validImage(copy.image)) delete copy.image;
-    if (Array.isArray(copy.images)) copy.images = copy.images.filter(validImage);
+    if (Array.isArray(copy.images)) copy.images = copy.images.filter(x => validImage(typeof x === 'string' ? x : x && x.url));
     return copy;
   });
+  return site;
+}
+function imageSearchTerms(prompt) {
+  const p=String(prompt||'').toLowerCase();
+  const groups=[
+    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'modern barber shop interior barber cutting hair'],
+    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'professional auto mechanic workshop car repair'],
+    [/dæk|bildæk|tire|tyre/,'car tire wheel close up automotive'],
+    [/maler|painting|painter/,'professional house painter painting interior'],
+    [/tømrer|carpenter|snedker/,'professional carpenter woodworking workshop'],
+    [/restaurant|café|cafe|bistro|pizza|sushi/,'restaurant interior chef food'],
+    [/frisør|salon|skønhed|beauty|spa|nail/,'beauty salon professional hair styling'],
+    [/fitness|gym|træning|yoga|pilates/,'modern gym fitness training'],
+    [/tandlæge|klinik|fysioterapi|clinic/,'modern healthcare clinic interior'],
+    [/webshop|butik|shop|fashion|tøj/,'modern retail boutique product display']
+  ];
+  const match=groups.find(([re])=>re.test(p));
+  const brand=String(prompt||'').slice(0,120);
+  return match?[match[1],brand+' business professional workspace']:['professional small business team workplace',brand+' business services'];
+}
+async function enrichIndustryImages(site,prompt) {
+  ensureIndustryImages(site,prompt);
+  if(!site||!Array.isArray(site.blocks))return site;
+  const needsHero=site.blocks.some(b=>b&&b.type==='hero'&&!b.image);
+  const gallery=site.blocks.find(b=>b&&b.type==='gallery');
+  const needsGallery=!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
+  if(!needsHero&&!needsGallery)return site;
+  try{
+    const terms=imageSearchTerms(prompt);
+    const responses=await Promise.all(terms.slice(0,2).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:6})}).then(r=>r.ok?r.json():null).catch(()=>null)));
+    const media=responses.flatMap(r=>r&&Array.isArray(r.images)?r.images:[]);
+    const unique=Array.from(new Map(media.filter(x=>x&&x.url).map(x=>[x.url,x])).values());
+    if(!unique.length)return site;
+    const hero=site.blocks.find(b=>b&&b.type==='hero');
+    if(hero&&!hero.image){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
+    const about=site.blocks.find(b=>b&&b.type==='about');
+    if(about&&!about.image&&unique.length){const x=unique.shift();about.image=x.url;about.imageAttribution=x.attribution;about.imageCreditUrl=x.creditUrl;}
+    if(needsGallery){
+      const images=unique.slice(0,6).map(x=>({url:x.url,attribution:x.attribution,creditUrl:x.creditUrl}));
+      if(images.length){
+        if(!gallery)site.blocks.push({id:'gallery-'+Math.random().toString(36).slice(2,9),type:'gallery',title:'Galleri',images});
+        else gallery.images=images;
+      }
+    }
+  }catch(error){console.warn('Industry image search unavailable:',error&&error.message||error)}
   return site;
 }
 function keepImages(previousSite, nextSite) {
@@ -1179,7 +1224,7 @@ async function generate(){
   site.meta.language=({Dansk:'da',English:'en',Español:'es',Deutsch:'de',Français:'fr'})[f.lang||'Dansk']||'da';
   const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
   ensureIndustry3D(site,promptText);
-  ensureIndustryImages(site,promptText);
+  await enrichIndustryImages(site,promptText);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
@@ -1201,7 +1246,7 @@ async function send(t){
       const reply=String(r&&r.reply||'Jeg kunne ikke bekræfte, at ændringen blev gennemført. Prøv at formulere ønsket lidt anderledes.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:reply})});
     } else {
-      r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=ensureIndustryImages(r.site,[p.name,t].join(' '));
+      r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=await enrichIndustryImages(r.site,[p.name,t].join(' '));
       const reply=String(r.reply||'Færdigt — jeg har opdateret hjemmesiden efter din besked. Kig i previewet, og fortæl mig, hvis du vil have flere ændringer.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;q.chat.push({r:'ai',t:reply});Credits.spend('edit')});
     }
