@@ -453,7 +453,7 @@ hosts.forEach(host=>{
   else if(shape==='shampoo-bottle')makeBottle();
   else if(shape==='scissors')makeScissors();
   else if(shape==='torus'){torus(1,.3,mats.paint);torus(.56,.06,mats.chrome,0,0,.12)}
-  else if(shape==='box'){box(1.55,1.55,1.55,mats.paint);box(1.68,1.68,1.68,mats.chrome,0,0,0).material.wireframe=true}
+  else if(shape==='box'){box(1.55,1.55,1.55,mats.paint);const cage=box(1.68,1.68,1.68,mats.chrome,0,0,0);cage.material=new MeshStandardMaterial({color:'#FFFFFF',wireframe:true,transparent:true,opacity:.2})}
   else if(shape==='knot')add(new T.TorusKnotGeometry(.85,.25,180,24),mats.paint);
   else add(new SphereGeometry(1.12,64,48),mats.paint);
   scene.add(new HemisphereLight(0xeaf2ff,0x31394a,1.25));
@@ -474,7 +474,7 @@ hosts.forEach(host=>{
   host.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(pinch)camera.position.z=MathUtils.clamp(camera.position.z+(pinch-d)*.016,3.2,9);pinch=d;return}if(dragging){root.rotation.y+=(e.clientX-lastX)*.008;root.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY}});
   host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=MathUtils.clamp(camera.position.z+e.deltaY*.006,3.2,9)},{passive:false});
   host.addEventListener('dblclick',reset);
-  host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();camera.position.z=MathUtils.clamp(camera.position.z+(Number(btn.dataset['3dZoom'])<0?.65:-.65),3.2,9)}));
+  host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();camera.position.z=MathUtils.clamp(camera.position.z+(Number(btn.dataset['3dZoom'])<0 ? 0.65 : -0.65),3.2,9)}));
   const rb=host.querySelector('[data-3d-reset]');if(rb)rb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();reset()});
   const ab=host.querySelector('[data-3d-auto]');if(ab)ab.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();auto=!auto;ab.setAttribute('aria-pressed',String(auto));ab.textContent=auto?'Auto rotation':'Rotation paused'});
   resize();draw();host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='rendered';
