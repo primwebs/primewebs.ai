@@ -1211,7 +1211,30 @@ async function enrichIndustryModels(site,prompt){
  const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
  const tire=/dæk|bildæk|dækcenter|tire|tyre|fælg|alloy wheel/.test(p);
  const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p)||tire;
- let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel']:['car','v8-engine']):[];
+ let assets=[];
+ const painting=/maler|malerfirma|painting|painter|decorator|renovation|renovering/.test(p);
+ const electrician=/elektriker|electrician|electrical|el-installat|belysning|lighting/.test(p);
+ const construction=/bygge|byggeri|entreprenør|construction|contractor|excavator|earthmoving/.test(p);
+ const restaurant=/restaurant|cafe|café|pizzeria|bistro|takeaway|spisested/.test(p);
+ const florist=/blomster|florist|flower shop|florist shop/.test(p);
+ const medical=/læge|klinik|clinic|doctor|medical|hospital|tandlæge|dentist|physio|fysioterapi/.test(p);
+ const landscaping=/gartner|landskab|landscap|garden|havearbejde|plant nursery/.test(p);
+ const carDealer=/bilforhandler|car dealer|dealership|luxury car|sports car|supercar/.test(p);
+ if(barber)assets=['barber-chair','barber-pole'];
+ else if(salon)assets=['salon-styling-chair','shampoo-backwash-unit'];
+ else if(mechanic)assets=tire?['car','alloy-wheel']:['car','v8-engine'];
+ else if(carDealer)assets=['executive-sedan','luxury-suv','supercar'];
+ else if(painting)assets=['cordless-drill','angle-grinder'];
+ else if(electrician)assets=['table-lamp','spring-arm-desk-lamp'];
+ else if(construction)assets=['excavator','bulldozer'];
+ else if(restaurant)assets=['pizzeria','table-lamp'];
+ else if(florist)assets=['rose-bouquet','rose'];
+ else if(medical)assets=['mri-scanner'];
+ else if(landscaping)assets=['fiddle-leaf-fig','rose'];
+ else if(/truck|diesel|lastbil/.test(p))assets=['turbo-diesel-engine'];
+ else if(/motor|engine|motorcykel|motorcycle/.test(p))assets=['inline-four-engine','turbo-diesel-engine'];
+ else if(/værktøj|tool|workshop|værksted/.test(p))assets=['cordless-drill','hammer'];
+ else if(/interiør|interior|lamp|lampe|lighting|belysning/.test(p))assets=['table-lamp','crystal-chandelier'];
  if(!assets.length)return site;
  const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
  const titles={
@@ -1221,7 +1244,28 @@ async function enrichIndustryModels(site,prompt){
   'shampoo-backwash-unit':english?'Shampoo wash station':'Vaske- og shampoo-station',
   car:english?'Explore the grey sport sedan in 3D':'Udforsk den grå sports-sedan i 3D',
   'v8-engine':english?'Detailed V8 engine':'Detaljeret V8-motor',
-  'alloy-wheel':english?'Real tyre and alloy wheel':'Rigtigt bildæk med alufælg'
+  'alloy-wheel':english?'Real tyre and alloy wheel':'Rigtigt bildæk med alufælg',
+  'executive-sedan':english?'Luxury executive sedan':'Eksklusiv direktions-sedan',
+  'luxury-suv':english?'Luxury SUV':'Eksklusiv SUV',
+  supercar:english?'Mid-engine supercar':'Superbil med centermotor',
+  'inline-four-engine':english?'Detailed inline-four engine':'Detaljeret rækkefirer-motor',
+  'turbo-diesel-engine':english?'Turbo diesel engine':'Turboladet dieselmotor',
+  'cordless-drill':english?'Professional cordless drill':'Professionel batteriboremaskine',
+  'angle-grinder':english?'Angle grinder':'Vinkelsliber',
+  'circular-saw':english?'Circular saw':'Rundsav',
+  'table-lamp':english?'Designer table lamp':'Designerbordlampe',
+  'spring-arm-desk-lamp':english?'Adjustable designer desk lamp':'Justerbar designer skrivebordslampe',
+  'crystal-chandelier':english?'Crystal chandelier':'Krystallysekrone',
+  'street-lamp':english?'Modern street lighting':'Moderne gadebelysning',
+  rose:english?'Realistic red rose':'Realistisk rød rose',
+  'rose-bouquet':english?'Premium rose bouquet':'Eksklusiv rosenbuket',
+  'fiddle-leaf-fig':english?'Indoor fiddle-leaf fig':'Stueplante – violinfigen',
+  excavator:english?'Tracked construction excavator':'Bæltegravemaskine',
+  bulldozer:english?'Heavy construction bulldozer':'Kraftig bulldozer',
+  pizzeria:english?'3D pizzeria building':'3D-pizzeria',
+  'mri-scanner':english?'Medical MRI scanner':'Medicinsk MR-scanner',
+  hammer:english?'Professional hammer':'Professionel hammer',
+  'wrench-set':english?'Mechanic wrench set':'Mekanikersæt med nøgler'
  };
  const descriptions={
   'barber-chair':'Hydraulic Barber Chair by vinish.dev, CC BY 4.0.',
@@ -1230,10 +1274,31 @@ async function enrichIndustryModels(site,prompt){
   'shampoo-backwash-unit':'Shampoo Backwash Unit by vinish.dev, CC BY 4.0.',
   car:'Sport Sedan by vinish.dev, CC BY 4.0.',
   'v8-engine':'V8 Engine by vinish.dev, CC BY 4.0.',
-  'alloy-wheel':'Alloy Wheel by vinish.dev, CC BY 4.0.'
+  'alloy-wheel':'Alloy Wheel by vinish.dev, CC BY 4.0.',
+  'executive-sedan':'Executive Sedan by vinish.dev, CC BY 4.0.',
+  'luxury-suv':'Luxury SUV by vinish.dev, CC BY 4.0.',
+  supercar:'Mid-Engine Supercar by vinish.dev, CC BY 4.0.',
+  'inline-four-engine':'Inline-Four Engine by vinish.dev, CC BY 4.0.',
+  'turbo-diesel-engine':'Turbo Diesel Engine by vinish.dev, CC BY 4.0.',
+  'cordless-drill':'Cordless Drill by vinish.dev, CC BY 4.0.',
+  'angle-grinder':'Angle Grinder by vinish.dev, CC BY 4.0.',
+  'circular-saw':'Circular Saw by vinish.dev, CC BY 4.0.',
+  'table-lamp':'Table Lamp by vinish.dev, CC BY 4.0.',
+  'spring-arm-desk-lamp':'Spring Arm Desk Lamp by vinish.dev, CC BY 4.0.',
+  'crystal-chandelier':'Crystal Chandelier by vinish.dev, CC BY 4.0.',
+  'street-lamp':'Modern LED Street Light by vinish.dev, CC BY 4.0.',
+  rose:'Rose by vinish.dev, CC BY 4.0.',
+  'rose-bouquet':'Bouquet of Twelve Roses by vinish.dev, CC BY 4.0.',
+  'fiddle-leaf-fig':'Fiddle Leaf Fig by vinish.dev, CC BY 4.0.',
+  excavator:'Tracked Excavator by vinish.dev, CC BY 4.0.',
+  bulldozer:'Bulldozer by vinish.dev, CC BY 4.0.',
+  pizzeria:'Pizzeria by vinish.dev, CC BY 4.0.',
+  'mri-scanner':'MRI Scanner by vinish.dev, CC BY 4.0.',
+  hammer:'Hammer by vinish.dev, CC BY 4.0.',
+  'wrench-set':'Wrench Set by vinish.dev, CC BY 4.0.'
  };
  for(const asset of assets){
-  const shape=asset==='barber-chair'?'barber-chair':asset==='barber-pole'?'barber-pole':asset==='salon-styling-chair'?'barber-chair':asset==='shampoo-backwash-unit'?'shampoo-bottle':asset==='car'?'car':asset==='v8-engine'?'engine':'wheel';
+  const shape=asset==='barber-chair'?'barber-chair':asset==='barber-pole'?'barber-pole':asset==='salon-styling-chair'?'barber-chair':asset==='shampoo-backwash-unit'?'shampoo-bottle':asset==='car'||asset==='executive-sedan'||asset==='luxury-suv'||asset==='supercar'?'car':asset.includes('engine')?'engine':asset==='alloy-wheel'?'wheel':'orb';
   let block=site.blocks.find(x=>x&&x.type==='threeD'&&(x.modelAsset===asset||x.shape===shape));
   if(!block){block={id:uid(),type:'threeD',shape};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,block)}
   block.shape=shape;block.modelData='';block.modelUrl='';block.modelFormat='glb';block.modelAsset=asset;
