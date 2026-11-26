@@ -1650,3 +1650,11 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 .sd-dashboard .sd-project-actions{flex:0 0 auto;align-items:center;justify-content:flex-end;flex-wrap:nowrap;gap:8px;min-width:0}
 .sd-dashboard .sd-edit-project-btn{flex:0 0 auto;min-height:38px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
 .sd-dashboard .sd-delete-project{flex:0 0 auto;min-height:38px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
+
+
+/* Keep project-card footer actions above any preview/card click overlays.
+   This changes click stacking only; it does not alter button dimensions or layout. */
+.sd-project-card-foot{position:relative;z-index:5;isolation:isolate}
+.sd-project-card-foot .sd-project-actions{position:relative;z-index:6;pointer-events:auto}
+.sd-project-card-foot .sd-project-actions>*{position:relative;z-index:7;pointer-events:auto}
+.sd-project-card-foot .sd-project-actions .sd-delete-project{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
