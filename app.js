@@ -248,7 +248,7 @@ const AI={mode:'api',
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
   hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
-  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<article class="c">${i.image?`<img class="pw-card-image" src="${esc(imgSrc(i.image))}" alt="${esc(i.imageAlt||i.t||b.title)}" loading="lazy">`:''}<h3>${esc(i.t)}</h3><p>${esc(i.d)}</p>${i.imageAttribution?`<small class="pw-image-credit"><a href="${esc(i.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(i.imageAttribution)}</a></small>`:''}<a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></article>`).join('')}</div></section>`,
+  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<article class="c">${i.image?`<img class="pw-card-image" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin-bottom:1rem" src="${esc(imgSrc(i.image))}" alt="${esc(i.imageAlt||i.t||b.title)}" loading="lazy">`:''}<h3>${esc(i.t)}</h3><p>${esc(i.d)}</p>${i.imageAttribution?`<small class="pw-image-credit"><a href="${esc(i.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(i.imageAttribution)}</a></small>`:''}<a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></article>`).join('')}</div></section>`,
   about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
   services:b=>B.features(b),
   pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
@@ -1207,21 +1207,42 @@ function imageSearchTerms(prompt) {
 async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
  const p=String(prompt||'').toLowerCase();
- const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
+ const barber=/barber|barbershop|barber shop/.test(p);
+ const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
  const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p);
- if(!barber&&!mechanic)return site;
- const wanted=barber?['barber-chair','barber-pole']:['car','engine'];
+ const tire=/dæk|bildæk|tire|tyre|fælg|alloy wheel/.test(p);
+ let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel']:['car','v8-engine']):[];
+ if(!assets.length)return site;
  const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
- wanted.forEach((shape,index)=>{
-  let block=site.blocks.find(x=>x&&x.type==='threeD'&&x.shape===shape);
+ const titles={
+  'barber-chair':english?'Real 3D barber chair':'Ægte 3D-barberstol',
+  'barber-pole':english?'Classic barber pole':'Klassisk barberstang',
+  'salon-styling-chair':english?'Real salon styling chair':'Ægte frisørstol',
+  'shampoo-backwash-unit':english?'Shampoo wash station':'Vaske- og shampoo-station',
+  car:english?'Explore the grey sport sedan in 3D':'Udforsk den grå sports-sedan i 3D',
+  'v8-engine':english?'Detailed V8 engine':'Detaljeret V8-motor',
+  'alloy-wheel':english?'Real tyre and alloy wheel':'Rigtigt bildæk med alufælg'
+ };
+ const descriptions={
+  'barber-chair':'Hydraulic Barber Chair by vinish.dev, CC BY 4.0.',
+  'barber-pole':'Barber Pole by vinish.dev, CC BY 4.0.',
+  'salon-styling-chair':'Salon Styling Chair by vinish.dev, CC BY 4.0.',
+  'shampoo-backwash-unit':'Shampoo Backwash Unit by vinish.dev, CC BY 4.0.',
+  car:'Sport Sedan by vinish.dev, CC BY 4.0.',
+  'v8-engine':'V8 Engine by vinish.dev, CC BY 4.0.',
+  'alloy-wheel':'Alloy Wheel by vinish.dev, CC BY 4.0.'
+ };
+ for(const asset of assets){
+  const shape=asset==='barber-chair'?'barber-chair':asset==='barber-pole'?'barber-pole':asset==='salon-styling-chair'?'barber-chair':asset==='shampoo-backwash-unit'?'shampoo-bottle':asset==='car'?'car':asset==='v8-engine'?'engine':'wheel';
+  let block=site.blocks.find(x=>x&&x.type==='threeD'&&(x.modelAsset===asset||x.shape===shape));
   if(!block){block={id:uid(),type:'threeD',shape};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,block)}
-  block.modelData='';block.modelUrl='';block.modelFormat='glb';block.modelAsset=shape;
+  block.shape=shape;block.modelData='';block.modelUrl='';block.modelFormat='glb';block.modelAsset=asset;
   block.modelProvider='vinish.dev';block.modelLicense='CC BY 4.0';
-  block.title=barber?(index===0?(english?'Real 3D barber chair':'Ægte 3D-barberstol'):(english?'Classic barber pole':'Klassisk barberstang')):(shape==='car'?(english?'Explore the grey sedan in 3D':'Se den grå sedan i 3D'):(english?'Detailed V8 engine':'Detaljeret V8-motor'));
-  block.text=barber?(english?'A real textured 3D model. Drag to rotate and scroll to see it move.':'En rigtig 3D-model med teksturer. Træk for at dreje, og scroll for at se den bevæge sig. 3D-model: Hydraulic Barber Chair by 3DAssets.dev, CC0 1.0.'):(shape==='car'?(english?'Explore this detailed grey sport sedan from every angle.':'Udforsk denne detaljerede grå sedan fra alle vinkler. 3D-model: Sport Sedan by vinish.dev, CC BY 4.0.'):(english?'Explore a detailed V8 engine from every angle.':'Udforsk en detaljeret V8-motor fra alle vinkler. 3D-model: V8 Engine by vinish.dev, CC BY 4.0.'));
- });
- await Promise.all(site.blocks.filter(x=>x&&x.type==='threeD'&&wanted.includes(x.shape)).map(async block=>{
-  try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:block.modelAsset})});if(!r.ok)return;const m=await r.json();if(m&&m.url){block.modelUrl=m.url;block.modelFormat='glb';block.modelProvider=m.provider;block.modelLicense=m.license;block.modelCredit=m.credit;block.modelCreditUrl=m.creditUrl;block.modelName=m.name}}
+  block.title=titles[asset];
+  block.text=(english?'Drag to rotate the real 3D model, or scroll to explore it. ':'Træk for at dreje den rigtige 3D-model, eller scroll for at udforske den. ')+descriptions[asset];
+ }
+ await Promise.all(site.blocks.filter(x=>x&&x.type==='threeD'&&assets.includes(x.modelAsset)).map(async block=>{
+  try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:block.modelAsset})});if(!r.ok)throw new Error('Model API returned '+r.status);const m=await r.json();if(m&&m.url){block.modelUrl=m.url;block.modelFormat='glb';block.modelProvider=m.provider;block.modelLicense=m.license;block.modelCredit=m.credit;block.modelCreditUrl=m.creditUrl;block.modelName=m.name}}
   catch(e){console.warn('Curated 3D model unavailable:',e&&e.message||e)}
  }));
  return site;
