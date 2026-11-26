@@ -17,6 +17,6 @@ module.exports=async(req,res)=>{
   walk(tree);
   const chosen=candidates.filter(x=>/\.gltf(?:\?|$)/i.test(x.url)||/gltf/i.test(x.path)).sort((x,y)=>x.size-y.size)[0];
   if(!chosen)throw new Error("No direct GLTF file was listed for this asset.");
-  return res.status(200).json({name:catalog[asset].name,url:chosen.url,format:"gltf",provider:"Poly Haven",license:"CC0",credit:"Powered by Poly Haven"});
+  return res.status(200).json({name:catalog[asset].name,url:chosen.url,format:/\\.glb(?:\\?|$)/i.test(chosen.url)?"glb":"gltf",provider:"Poly Haven",license:"CC0",credit:"Powered by Poly Haven"});
  }catch(error){return res.status(503).json({error:"The 3D model is temporarily unavailable.",detail:String(error.message||"").slice(0,180)});}
 };
