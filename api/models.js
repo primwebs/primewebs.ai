@@ -8,6 +8,9 @@ const CATALOG={
  "salon-styling-chair":{name:"Salon Styling Chair",path:"barber-and-beauty-salon/salon-styling-chair.glb",credit:'"Salon Styling Chair" by vinish.dev',creditUrl:CREDIT+"barber-and-beauty-salon",license:"CC BY 4.0"},
  "shampoo-backwash-unit":{name:"Shampoo Backwash Unit",path:"barber-and-beauty-salon/shampoo-backwash-unit.glb",credit:'"Shampoo Backwash Unit" by vinish.dev',creditUrl:CREDIT+"barber-and-beauty-salon",license:"CC BY 4.0"},
  "car":{name:"Sport Sedan (grey)",path:"realistic-cars/sport-sedan.glb",credit:'"Sport Sedan" by vinish.dev',creditUrl:CREDIT+"realistic-cars",license:"CC BY 4.0"},
+ "muscle-coupe":{name:"Shaker Hood Coupe",path:"muscle-cars/shaker-hood-coupe.glb",credit:'"Shaker Hood Coupe" by vinish.dev',creditUrl:CREDIT+"muscle-cars",license:"CC BY 4.0"},
+ "car-lift":{name:"Two Post Car Lift",path:"garage-and-workshop/two-post-car-lift.glb",credit:'"Two Post Car Lift" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "tire-changer":{name:"Tire Changer",path:"garage-and-workshop/tire-changer.glb",credit:'"Tire Changer" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
  "v8-engine":{name:"V8 Engine",path:"engines-and-motors/v8-engine.glb",credit:'"V8 Engine" by vinish.dev',creditUrl:CREDIT+"engines-and-motors",license:"CC BY 4.0"},
  "alloy-wheel":{name:"Alloy Wheel and Tyre",path:"car-parts/alloy-wheel.glb",credit:'"Alloy Wheel" by vinish.dev',creditUrl:CREDIT+"car-parts",license:"CC BY 4.0"}
 };
