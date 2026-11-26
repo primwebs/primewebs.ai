@@ -90,10 +90,34 @@ The connected project was inspected without changing schema or data.
 
 
 ## Additional confirmed source-level findings
-- The editor advertises **Design**, **Billeder**, **Forhåndsvisning** and **Versionshistorik** navigation. The click handler sets `S.miniTab` for these targets, but the current `vBuilder()` does not read `S.miniTab`, and the main view registry does not define separate `customize`, `media`, `preview` or `history` views. These controls therefore do not currently switch to the distinct tools their labels promise; they return to the same builder screen. This is a confirmed navigation/unfinished-view issue and should be fixed by completing the intended views, not by adding duplicate modules.
-- The visual editor already supports reordering/removing/adding blocks and editing their fields. It also has a GLB/GLTF file input for a single uploaded 3D model, capped at 2 MB; GLTF external textures/files are not supported. This is not a 3D asset library.
+- **Resolved on main (2026-11-26):** the Website Studio now reads `S.miniTab` and provides working Design, Billeder, Preview and Versioner panels. Design controls update the site theme and animation settings; Billeder lists hero/about/gallery image references and lets the user replace URLs; Preview supports desktop/mobile; Versioner can restore a snapshot. The media panel is not a stock-photo search or upload provider.
+- **Resolved/expanded on main (2026-11-26):** the existing visual section editor is now visible below the AI chat and live preview, with add/reorder/remove controls and editable fields. The GLB/GLTF upload input is now wired to FileReader and saves an embedded model up to 2 MB; external GLTF textures/files remain unsupported. This is still not a curated 3D asset library.
 - The current 3D built-in barber chair is assembled from `BoxGeometry` and `CylinderGeometry` primitives. That explains why it can look blocky even though a Three.js scene and rotation controls exist. A realistic barber chair requires a proper model asset, not another primitive shape.
-- The editor's "Billeder" navigation is not evidence of an operational image manager. No registered media view or confirmed stock-photo search/upload manager was found in the inspected main-branch view registry.
+- **Partially resolved on main (2026-11-26):** the Billeder panel is now a working manager for existing image URLs across the homepage and subpages. Automatic stock-photo retrieval, licensing metadata, image upload/storage optimization and image search are still not connected.
 - The generated contact form currently prepares a `mailto:` message and asks the visitor to press Send in their email app. It is not a server-delivered contact form. Booking requests, by contrast, have a Supabase RPC and a booking-request table.
 - Statistics currently describe local workspace/project counts and AI edit activity; they are not real visitor analytics from Google Analytics or another traffic provider.
 - The Domains UI explicitly says its search service is not active; displayed example TLD prices are static UI content and must not be treated as live quotes.
+
+
+## Follow-up changes applied to production main (2026-11-26)
+
+- **Project identity:** corrected the Supabase adapter UUID validator. The previous pattern omitted a UUID separator/segment length, so valid IDs could be regenerated during cloud reconciliation. A mock Supabase integration test now confirms valid IDs remain stable, an offline local project is merged into a non-empty cloud project list, and a newly generated project is upserted with the correct owner ID.
+- **Project persistence:** local/cloud reconciliation now runs for each login and merges by stable project ID and updated timestamp rather than importing only when the cloud table is empty. Project/customer sync no longer deletes remote rows merely because a stale browser cache omitted them; explicit delete actions issue targeted database deletes. New project creation and AI edits wait for the write queue and surface a cloud-sync warning if the write fails.
+- **Workspace data:** finance records, leads, image references, saved invoices, invoice draft, invoice lines, finance profile, billing-period preference and work-mode preference are included in the existing owner user_settings JSON payload. Invoice draft writes occur on change/blur rather than on every keystroke.
+- **RLS performance:** applied migration 20261126225829_optimize_rls_auth_calls, wrapping stable auth helper calls in scalar SELECT expressions for nine policies. The performance advisor no longer reports the nine per-row auth re-evaluation warnings. Four unused indexes remain intentionally untouched because the workspace has low row counts and two indexes support admin rate-limit tables.
+- **Website Studio:** exposed the pre-existing visual section editor, added working Design/Billeder/Preview/Versioner tabs, made the 3D upload input functional, added multiline text editing and retained the existing chat/preview layout. Dashboard card typography and spacing received a restrained polish; the existing overall visual direction was preserved.
+- **Automated checks:** added npm test source validation and a GitHub Actions workflow on pushes and pull requests. This is syntax and source-contract validation, not a substitute for browser-level end-to-end testing.
+
+## Updated SiteDrop parity gaps
+
+Based on SiteDrop's public November 2026 product notes, the largest remaining gaps are:
+1. A real stock-photo search/provider and a managed media pipeline.
+2. Full publication/hosting with isolated site URLs, custom-domain purchase/connection, DNS, SSL and rollback.
+3. A provider-backed Lead Finder with real business results, website-presence filtering, deduplication and export.
+4. A real contact-form inbox/server delivery and visitor analytics.
+5. Integrated payments, recurring subscriptions and invoice/payment tracking.
+6. A post scheduler for Instagram/TikTok/Facebook/YouTube.
+7. Project-level connectors (SiteDrop lists 18 integrations) and a secure connector credential model.
+8. Photo-to-walkthrough video generation.
+
+Do not count these as implemented until the provider/backend action is connected and tested. Preserve the existing PrimeWebs architecture and Supabase project; do not add mock controls that imply an integration exists.
