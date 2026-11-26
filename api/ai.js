@@ -151,8 +151,8 @@ function sanitizeSite(site, fallbackLanguage) {
     } else if (b.type === "threeD") {
       const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine"].includes(b.shape) ? b.shape : "orb";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
-      const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : "";
-      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
+      const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : ""; const modelUrl = typeof b.modelUrl === "string" && /^https:\/\/dl\.polyhaven\.org\//i.test(b.modelUrl) ? str(b.modelUrl, 1000) : "";
+      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
     } else if (b.type === "booking") {
       out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
