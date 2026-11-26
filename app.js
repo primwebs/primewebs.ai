@@ -577,9 +577,9 @@ for(const host of hosts){let renderer,raf=0,ro,visible=true;try{
  const loadAsset=async asset=>{if(loaded[asset])return loaded[asset];const spec=models.find(m=>m.asset===asset);if(!spec)return null;const gltf=await loader.loadAsync(spec.url);loaded[asset]=gltf.scene;return loaded[asset]};
  const cars=[];
  for(const spec of carSpecs){try{const original=await loadAsset(spec.asset);if(!original)continue;const model=original.clone(true);model.position.set(spec.x,0,spec.z);model.rotation.y=spec.yaw;scene.add(model);model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m.map)m.map.colorSpace=THREE.SRGBColorSpace})}});cars.push(model)}catch(e){console.warn('Car model failed:',spec.asset,e)}}
+ let liftParts=[],liftHomes=[],liftTarget=0,liftNow=0,turntable=null,wheelTarget=0,wheelNow=0,detached=null,detachedHome=null;
  const equipment=[{asset:'car-lift',x:0,z:-5.3,scale:1},{asset:'tire-changer',x:7.4,z:-7.8,scale:1},{asset:'rolling-tool-chest',x:-7.4,z:-8,scale:1},{asset:'garage-workbench',x:-7.3,z:-14,scale:1},{asset:'engine-hoist',x:7.2,z:-14,scale:1}];
  for(const spec of equipment){try{const original=await loadAsset(spec.asset);if(!original)continue;const model=original.clone(true);model.position.set(spec.x,0,spec.z);model.scale.setScalar(spec.scale);scene.add(model);if(spec.asset==='car-lift'){['Lift_Carriage_Left','Lift_Carriage_Right'].forEach(n=>{const p=model.getObjectByName(n);if(p)liftParts.push(p)})}if(spec.asset==='tire-changer')turntable=model.getObjectByName('tire-changer_turntable')||model.getObjectByName('Turntable')||null}catch(e){console.warn('Workshop equipment failed:',spec.asset,e)}}
- let liftParts=[],liftHomes=[],liftTarget=0,liftNow=0,turntable=null,wheelTarget=0,wheelNow=0,detached=null,detachedHome=null;
  // Attach a visible standalone V8 display near the tool area.
  try{const original=await loadAsset('v8-engine');if(original){const engine=original.clone(true);engine.position.set(-7.1,0,-3.5);engine.scale.setScalar(.82);scene.add(engine)}}catch(e){}
  liftHomes=liftParts.map(p=>p.position.clone());
