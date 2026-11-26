@@ -1107,6 +1107,19 @@ function ensureIndustry3D(site,prompt,previousSite){
   else if(technology)wanted=['torus','knot'];
   else if(fitness)wanted=['orb','torus'];
   else if(explicit)wanted=['orb'];
+  // Enforce industry-to-object matching: an auto/engine object must never appear on a barber site.
+  if(barber){
+    const scenes=site.blocks.filter(b=>b&&b.type==='threeD');
+    if(scenes.length){
+      scenes[0].shape='barber-chair';
+      scenes[0].modelData='';
+      scenes[0].modelUrl='';
+      scenes[0].modelName='Barber Shop Chair 01';
+      scenes[0].title=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Real 3D barber chair':'Ægte 3D-barberstol';
+      scenes[0].text=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Explore a detailed, real-world barber chair in 3D. Scroll to see it rotate.':'Oplev en detaljeret barberstol i 3D. Scroll ned, og se den dreje rundt.';
+      scenes.slice(1).forEach(b=>{if(['car','wheel','engine'].includes(b.shape))b.shape='barber-pole'});
+    }
+  }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
   const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
   const names=english?{
@@ -1168,14 +1181,21 @@ function imageSearchTerms(prompt) {
 async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
  const p=String(prompt||'').toLowerCase();
- const chairWanted=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
- const block=site.blocks.find(b=>b&&b.type==='threeD'&&b.shape==='barber-chair');
- if(!chairWanted||!block||block.modelData||block.modelUrl)return site;
+ const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
+ const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p);
+ if(!barber&&!mechanic)return site;
+ let block=site.blocks.find(b=>b&&b.type==='threeD'&&b.shape===(barber?'barber-chair':'car'));
+ if(!block){
+   block={id:uid(),type:'threeD',shape:barber?'barber-chair':'car',title:barber?'Ægte 3D-barberstol':'Realistisk 3D-bil',text:'Drej og udforsk den rigtige 3D-model.',color:barber?'#C9A24B':'#3B82F6',modelData:'',modelFormat:'glb'};
+   const ci=site.blocks.findIndex(b=>b&&b.type==='contact');
+   site.blocks.splice(ci<0?site.blocks.length:ci,0,block);
+ }
+ if(block.modelData||block.modelUrl)return site;
  try{
-  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:'BarberShopChair_01'})});
+  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:barber?'BarberShopChair_01':'car_01'})});
   if(!response.ok)return site;
   const model=await response.json();
-  if(model&&model.url){block.modelUrl=model.url;block.modelFormat=model.format||'gltf';block.modelProvider='Poly Haven';block.modelLicense='CC0';}
+  if(model&&model.url){block.modelUrl=model.url;block.modelFormat=model.format||'glb';block.modelProvider='Poly Haven';block.modelLicense='CC0';block.modelName=model.name||'';}
  }catch(error){console.warn('3D asset lookup unavailable:',error&&error.message||error)}
  return site;
 }
