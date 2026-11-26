@@ -140,7 +140,7 @@
       state.settingsData={};
       put('pw.settings',settings.data&&settings.data.settings||{});
       state.workspaceData={finance:[],leads:[],images:{},invoices:[],invoiceDraft:{},invoiceDraftLines:[],financeProfile:{},creditBilling:'monthly',workMode:'clients'};
-      put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});put('pw.invoices',[]);put('pw.invoiceDraft',{});put('pw.invoiceDraftLines',[]);put('pw.financeProfile',{});put('pw.creditBilling','monthly');put('pw.workMode','clients');
+      put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});put('pw.invoices',[]);put('pw.invoiceDraft',{});put('pw.invoiceDraftLines',[]);put('pw.financeProfile',{});put('pw.creditBilling','monthly');put('pw.workMode','clients');put('pw.invoiceDraftLinesUpdatedAt',0);put('pw.financeProfileUpdatedAt',0);
     }
     })();
     try { return await state.loadPromise; }
