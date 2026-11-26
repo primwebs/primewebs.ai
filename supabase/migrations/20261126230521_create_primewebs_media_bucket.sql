@@ -5,7 +5,7 @@ values (
   'primewebs-media',
   true,
   20971520,
-  array['image/jpeg','image/png','image/webp','image/gif',''model/gltf-binary','model/gltf+json','application/octet-stream']
+  array['image/jpeg','image/png','image/webp','image/gif',''model/gltf-binary','model/gltf+json','application/json','application/octet-stream']
 )
 on conflict (id) do update set
   public = excluded.public,
