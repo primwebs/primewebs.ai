@@ -258,7 +258,7 @@ const B={
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
   gallery:b=>{const im=(b.images||[]).filter(entry=>typeof entry==='string'?!!imgSrc(entry):!!(entry&&imgSrc(entry.url)));return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((entry,n)=>{const u=typeof entry==='string'?entry:entry.url;return `<figure><img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy"><figcaption>${entry&&entry.attribution?`<a href="${esc(entry.creditUrl||'#')}" target="_blank" rel="noopener">${esc(entry.attribution)}</a>`:''}</figcaption></figure>`}).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
-  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/(?:models\.vinish\.dev|cdn\.3dassets\.dev)\//i.test(b.modelUrl)?b.modelUrl:''),format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
+  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine','paint-roller','paint-bucket','work-lamp','ceiling-lamp'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/(?:models\.vinish\.dev|cdn\.3dassets\.dev)\//i.test(b.modelUrl)?b.modelUrl:''),format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
   contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.whatsapp&&b.phone?`<a class="btn whatsapp" href="https://wa.me/${esc(String(b.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">Skriv på WhatsApp</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}${b.address?`<a class="btn secondary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Find os på Google Maps</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div><form id="pw-contact-form" class="contact-form"><h3>Send os en besked</h3><label>Dit navn<input name="name" autocomplete="name" required></label><label>Din e-mail<input name="email" type="email" autocomplete="email" required></label><label>Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel"></label><label>Hvad kan vi hjælpe med?<textarea name="message" rows="4" required></textarea></label><button class="btn" type="submit">Klargør besked</button><p id="pw-contact-note" class="form-note">Din e-mailapp åbnes med beskeden. Du skal selv trykke Send.</p></form></section>` ,
   reviews:b=>Array.isArray(b.items)&&b.items.length?`<section class="reviews-section"><h2>${esc(b.title||'Det siger vores kunder')}</h2><div class="g">${b.items.slice(0,8).map(x=>`<article class="c review">${Number(x.rating)>=1&&Number(x.rating)<=5?`<div aria-label="${Math.round(Number(x.rating))} ud af 5 stjerner" class="stars">${'★'.repeat(Math.round(Number(x.rating)))}</div>`:''}<p>“${esc(x.text)}”</p><strong>${esc(x.name)}</strong></article>`).join('')}</div></section>`:'' ,
   map:b=>b.address?`<section class="map-section"><h2>${esc(b.title||'Find os')}</h2><p>${esc(b.address)}</p><a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Åbn rutevejledning i Google Maps ↗</a></section>`:''};
@@ -444,7 +444,11 @@ hosts.forEach(host=>{
   };
   const makePole=()=>{cyl(.3,.3,2.15,mats.white);for(let i=0;i<9;i++){const y=-.88+i*.22;torus(.305,.055,i%2?mats.red:new MeshStandardMaterial({color:'#3268D8',metalness:.25,roughness:.35}),0,y,0,Math.PI/2)}cyl(.36,.36,.14,mats.chrome,0,1.14,0);cyl(.36,.36,.14,mats.chrome,0,-1.14,0)}
   const makeBottle=()=>{const pts=[new Vector2(0,-.95),new Vector2(.32,-.95),new Vector2(.48,-.82),new Vector2(.49,.55),new Vector2(.42,.72),new Vector2(.2,.78),new Vector2(.18,1.04),new Vector2(.25,1.08),new Vector2(.25,1.2),new Vector2(.0,1.2)];add(new LatheGeometry(pts,64),mats.paint);cyl(.23,.23,.12,mats.chrome,0,1.19,0,40);box(.48,.42,.025,mats.white,0,-.08,.465);box(.22,.08,.035,mats.accent,0,.02,.49)}
-  const makeScissors=()=>{for(const x of [-.26,.26]){torus(.22,.065,mats.chrome,x,-.73,.04);torus(.14,.018,mats.dark,x,-.73,.1)}const blade=(x,rz)=>{const sh=new Shape();sh.moveTo(-.07,-.38);sh.lineTo(.07,-.38);sh.quadraticCurveTo(.12,.38,0,1.02);sh.quadraticCurveTo(-.1,.35,-.07,-.38);sh.closePath();add(new ExtrudeGeometry(sh,{depth:.035,bevelEnabled:true,bevelSegments:2,bevelSize:.018,bevelThickness:.018}),mats.chrome,x,0,.02,0,0,rz)};blade(-.12,-.13);blade(.12,.13);cyl(.09,.09,.12,mats.red,0,-.5,.09,32,Math.PI/2)}
+  const makeScissors=()=>{for(const x of [-.26,.26]){torus(.22,.065,mats.chrome,x,-.73,.04);torus(.14,.018,mats.dark,x,-.73,.1)}const blade=(x,rz)=>{const sh=new Shape();sh.moveTo(-.07,-.38);sh.lineTo(.07,-.38);sh.quadraticCurveTo(.12,.38,0,1.02);sh.quadraticCurveTo(-.1,.35,-.07,-.38);sh.closePath();add(new ExtrudeGeometry(sh,{depth:.035,bevelEnabled:true,bevelSegments:2,bevelSize:.018,bevelThickness:.018}),mats.chrome,x,0,.02,0,0,rz)};blade(-.12,-.13);blade(.12,.13);cyl(.09,.09,.12,mats.red,0,-.5,.09,32,Math.PI/2)};
+  const makePaintRoller=()=>{cyl(.045,.045,1.22,mats.chrome,-.12,-.18,0,24,0,0,-.12);cyl(.065,.065,.28,mats.dark,-.2,-.79,0,24);cyl(.18,.18,.62,mats.white,.38,.52,0,48,0,0,Math.PI/2);torus(.18,.025,mats.seam,.38,.52,-.31,Math.PI/2);torus(.18,.025,mats.seam,.38,.52,.31,Math.PI/2);cyl(.035,.035,.58,mats.chrome,.38,.52,0,20,Math.PI/2);box(.12,.12,.14,mats.dark,.02,-.72,0)};
+  const makePaintBucket=()=>{cyl(.62,.48,1.05,mats.red,0,-.38,0,48);cyl(.63,.63,.09,mats.chrome,0,.17,0,48);cyl(.51,.51,.05,mats.white,0,.2,0,48);torus(.62,.035,mats.chrome,0,.16,0);for(const x of [-.52,.52])cyl(.035,.035,.54,mats.chrome,x,.48,0,16,0,0,Math.PI/2)};
+  const makeWorkLamp=()=>{cyl(.48,.48,.13,mats.dark,0,-1.02,0,40);cyl(.12,.12,.72,mats.chrome,0,-.58,0,24);cyl(.075,.075,.62,mats.chrome,0,-.14,0,24,0,0,.3);cyl(.28,.28,.28,mats.dark,.18,.22,0,32,0,0,Math.PI/2);const shade=new ConeGeometry(.42,.58,48,1,true);add(shade,mats.chrome,.18,.52,0,0,0,Math.PI);cyl(.24,.24,.035,mats.white,.18,.24,.01,40,Math.PI/2);};
+  const makeCeilingLamp=()=>{cyl(.28,.28,.12,mats.chrome,0,.9,0,40);cyl(.045,.045,.75,mats.chrome,0,.48,0,24);const shade=new ConeGeometry(.82,.52,56,1,true);add(shade,mats.dark,0,.05,0,0,0,Math.PI);cyl(.48,.48,.04,mats.white,0,-.18,0,48)}
   if(shape==='barber-chair')makeChair();
   else if(shape==='car')makeCar();
   else if(shape==='wheel')makeWheel();
@@ -452,6 +456,10 @@ hosts.forEach(host=>{
   else if(shape==='barber-pole')makePole();
   else if(shape==='shampoo-bottle')makeBottle();
   else if(shape==='scissors')makeScissors();
+  else if(shape==='paint-roller')makePaintRoller();
+  else if(shape==='paint-bucket')makePaintBucket();
+  else if(shape==='work-lamp')makeWorkLamp();
+  else if(shape==='ceiling-lamp')makeCeilingLamp();
   else if(shape==='torus'){torus(1,.3,mats.paint);torus(.56,.06,mats.chrome,0,0,.12)}
   else if(shape==='box'){box(1.55,1.55,1.55,mats.paint);const cage=box(1.68,1.68,1.68,mats.chrome,0,0,0);cage.material=new MeshStandardMaterial({color:'#FFFFFF',wireframe:true,transparent:true,opacity:.2})}
   else if(shape==='knot')add(new T.TorusKnotGeometry(.85,.25,180,24),mats.paint);
@@ -1086,6 +1094,8 @@ function ensureIndustry3D(site,prompt,previousSite){
   const ecommerce=/webshop|e-commerce|ecommerce|online store|produktbrand|product brand|product design|møbler|furniture|smykker|jewelry|ure|watches/.test(text);
   const technology=/teknologi|technology|software|saas|app development|it company|tech company|gaming|spiludvikling|game studio/.test(text);
   const fitness=/fitness|fitnesscenter|gym|personlig træner|personal trainer|yoga|pilates|sportsklub|sports club/.test(text);
+  const painter=/maler|malerfirma|malerarbejde|maling|paint(er|ing)?|decorator/.test(text);
+  const lighting=/lampe|lamper|belysning|lighting|light fixtures|lamp shop/.test(text);
   const explicit=/\\b3d\\b|three.?d|interaktiv.{0,12}(model|figur|objekt)|drej.{0,12}(model|objekt)/.test(text);
   const old=previousSite&&Array.isArray(previousSite.blocks)?previousSite.blocks.filter(b=>b&&b.type==='threeD'): [];
   if(!removing&&old.length){
@@ -1109,6 +1119,8 @@ function ensureIndustry3D(site,prompt,previousSite){
   else if(ecommerce)wanted=['box','orb'];
   else if(technology)wanted=['torus','knot'];
   else if(fitness)wanted=['orb','torus'];
+  else if(painter)wanted=['paint-roller','paint-bucket'];
+  else if(lighting)wanted=['work-lamp','ceiling-lamp'];
   else if(explicit)wanted=['orb'];
   // Enforce industry-to-object matching: an auto/engine object must never appear on a barber site.
   if(barber){
@@ -1150,6 +1162,13 @@ function ensureIndustry3D(site,prompt,previousSite){
     });
     const keep=new Set(scenes);
     site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
+  }
+  if(painter||lighting){
+    const shapes=painter?['paint-roller','paint-bucket']:['work-lamp','ceiling-lamp'];
+    const scenes=site.blocks.filter(b=>b&&b.type==='threeD');
+    while(scenes.length<2){const b={id:uid(),type:'threeD',shape:shapes[scenes.length],color:painter?'#D58A35':'#D6B45A',modelData:'',modelUrl:''};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,b);scenes.push(b)}
+    scenes.slice(0,2).forEach((b,i)=>{b.shape=shapes[i];b.modelData='';b.modelUrl='';b.modelAsset='';b.modelFormat='glb';b.title=painter?(english?'Interactive paint roller':'Interaktiv malerrulle'): (english?'Interactive work lamp':'Interaktiv arbejdslampe');b.text=painter?(english?'Explore painting tools in interactive 3D.':'Udforsk professionelt malerværktøj i interaktiv 3D.'): (english?'Explore professional lighting in interactive 3D.':'Udforsk professionel belysning i interaktiv 3D.');b.color=painter?'#D58A35':'#D6B45A'});
+    const keep=new Set(scenes.slice(0,2));site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
   }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
   const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
