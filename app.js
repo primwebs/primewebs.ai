@@ -1202,7 +1202,7 @@ function imageSearchTerms(prompt) {
   ];
   const match=groups.find(([re])=>re.test(p));
   const brand=String(prompt||'').slice(0,120);
-  return match?[match[1],brand+' business professional workspace']:['professional small business team workplace',brand+' business services'];
+  return match?[match[1],brand+' business professional workspace',match[1]+' real commercial photography']:['professional small business team workplace',brand+' business services','real professional photography for '+brand];
 }
 async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
