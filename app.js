@@ -1194,17 +1194,18 @@ async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
  const p=String(prompt||'').toLowerCase();
  const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
- const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p);
- if(!barber&&!mechanic)return site;
- let block=site.blocks.find(b=>b&&b.type==='threeD'&&b.shape===(barber?'barber-chair':'car'));
+ const tire=/dæk|bildæk|tire|tyre/.test(p);
+ if(!barber&&!tire)return site;
+ const shape=barber?'barber-chair':'wheel',asset=barber?'BarberShopChair_01':'old_tyre';
+ let block=site.blocks.find(b=>b&&b.type==='threeD'&&b.shape===shape);
  if(!block){
-   block={id:uid(),type:'threeD',shape:barber?'barber-chair':'car',title:barber?'Ægte 3D-barberstol':'Realistisk 3D-bil',text:'Drej og udforsk den rigtige 3D-model.',color:barber?'#C9A24B':'#3B82F6',modelData:'',modelFormat:'glb'};
+   block={id:uid(),type:'threeD',shape,title:barber?'Ægte 3D-barberstol':'Rigtigt 3D-dæk',text:'Drej og udforsk den rigtige 3D-model.',color:barber?'#C9A24B':'#3B82F6',modelData:'',modelFormat:'glb'};
    const ci=site.blocks.findIndex(b=>b&&b.type==='contact');
    site.blocks.splice(ci<0?site.blocks.length:ci,0,block);
  }
  if(block.modelData||block.modelUrl)return site;
  try{
-  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:barber?'BarberShopChair_01':'covered_car'})});
+  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset})});
   if(!response.ok)return site;
   const model=await response.json();
   if(model&&model.url){block.modelUrl=model.url;block.modelFormat=model.format||'glb';block.modelProvider='Poly Haven';block.modelLicense='CC0';block.modelName=model.name||'';}
