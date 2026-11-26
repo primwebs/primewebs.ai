@@ -243,7 +243,7 @@ module.exports = async (req, res) => {
       "\nDescription: " + String(body.description || "").slice(0, 5000) +
       "\nStyle preference: " + String(body.style || "Moderne").slice(0, 40) + extra(body)
     : "Edit this existing website according to the user's request. Return the complete updated site JSON.\nCurrent site: " +
-      JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-10).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1200) })) : []).slice(0, 10000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
+      JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-14).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1600) })) : []).slice(0, 16000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
 
   try {
     let text = "";
