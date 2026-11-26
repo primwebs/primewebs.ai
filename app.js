@@ -495,7 +495,7 @@ const hosts=[...document.querySelectorAll('[data-pw-three][data-model-src]')].fi
 if(!hosts.length)return;
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let THREE,GLTFLoader;
-try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');({GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){hosts.forEach(h=>{h.classList.add('pw-three-fallback-only');h.dataset.pwThreeStatus='model-library-load-failed'});return}
+try{THREE=await import('https://esm.sh/three@0.170.0');({GLTFLoader}=await import('https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){hosts.forEach(h=>{h.classList.add('pw-three-ready');h.dataset.pwThreeStatus='procedural-fallback'});return}
 hosts.forEach(host=>{
  let renderer,ro,io,raf=0;
  try{
