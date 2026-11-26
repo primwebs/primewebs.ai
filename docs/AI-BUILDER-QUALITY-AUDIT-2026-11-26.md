@@ -106,12 +106,13 @@ The connected project was inspected without changing schema or data.
 - **Workspace data:** finance records, leads, image references, saved invoices, invoice draft, invoice lines, finance profile, billing-period preference and work-mode preference are included in the existing owner user_settings JSON payload. Invoice draft writes occur on change/blur rather than on every keystroke.
 - **RLS performance:** applied migration 20261126225829_optimize_rls_auth_calls, wrapping stable auth helper calls in scalar SELECT expressions for nine policies. The performance advisor no longer reports the nine per-row auth re-evaluation warnings. Four unused indexes remain intentionally untouched because the workspace has low row counts and two indexes support admin rate-limit tables.
 - **Website Studio:** exposed the pre-existing visual section editor, added working Design/Billeder/Preview/Versioner tabs, made the 3D upload input functional, added multiline text editing and retained the existing chat/preview layout. Dashboard card typography and spacing received a restrained polish; the existing overall visual direction was preserved.
+- **Supabase media storage:** created the public-read `primewebs-media` bucket (20 MB file limit) with authenticated user-folder write/update/delete policies and owner access. The Billeder panel can upload JPG/PNG/WebP/GIF assets, and the 3D editor can upload GLB/GLTF files; project JSON stores public asset URLs rather than large image/model data URIs. Stock-photo search, automatic optimization and attribution management remain open.
 - **Automated checks:** added npm test source validation and a GitHub Actions workflow on pushes and pull requests. This is syntax and source-contract validation, not a substitute for browser-level end-to-end testing.
 
 ## Updated SiteDrop parity gaps
 
 Based on SiteDrop's public November 2026 product notes, the largest remaining gaps are:
-1. A real stock-photo search/provider and a managed media pipeline.
+1. Stock-photo search/provider, licensing/attribution management and automatic image optimization; direct user uploads now use Supabase Storage.
 2. Full publication/hosting with isolated site URLs, custom-domain purchase/connection, DNS, SSL and rollback.
 3. A provider-backed Lead Finder with real business results, website-presence filtering, deduplication and export.
 4. A real contact-form inbox/server delivery and visitor analytics.
