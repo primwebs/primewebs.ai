@@ -987,7 +987,7 @@ async function send(t){
   const p=getP();
   if(!p||!p.id){S.busy=false;S.err='Den valgte hjemmeside kunne ikke genfindes. Din besked er ikke sendt. Gå til Dashboard, og åbn projektet igen.';banner(S.err);render();return}
   if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t},{r:'ai',t:'Du har ikke flere credits til at udføre ændringen. Din besked er gemt.'})});return render()}
-  const conversation=[...(p.chat||[]).slice(-9),{r:'u',t}];
+  const conversation=[...(p.chat||[]).slice(-13),{r:'u',t}];
   upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t})});
   S.busy=true;S.chatStatus='Jeg har modtaget din besked. Jeg arbejder på hjemmesiden nu…';render();
   try {
