@@ -33,6 +33,7 @@ const contracts = [
   ['visible visual section editor', app.includes('pw-section-editor')],
   ['working 3D model upload handler', app.includes('uploadAsset(file,S.id)') && app.includes('data-three-model')],
   ['Studio design/media/history panels', ['themePanel','mediaPanel','historyPanel'].every(x => app.includes(x))],
+  ['service-card media management', app.includes("key:'itemImage'") && app.includes("d.mediaKey==='itemImage'")],
   ['Supabase Storage uploads', adapter.includes("storage.from('primewebs-media').upload") && app.includes('data-media-upload')],
   ['Storage migration tracked', fs.existsSync(path.join(root, 'supabase/migrations/20261126230521_create_primewebs_media_bucket.sql'))],
   ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
