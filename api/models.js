@@ -3,7 +3,7 @@ module.exports=async(req,res)=>{
  res.setHeader("Cache-Control","public, max-age=3600, stale-while-revalidate=86400");
  if(req.method!=="POST")return res.status(405).json({error:"Use POST."});
  const asset=String(req.body&&req.body.asset||"");
- const catalog={"BarberShopChair_01":{name:"Barber Shop Chair 01",type:"barber-chair"}};
+ const catalog={"BarberShopChair_01":{name:"Barber Shop Chair 01",type:"barber-chair"},"covered_car":{name:"Covered Car",type:"car"},"old_tyre":{name:"Old Tyre",type:"wheel"}};
  if(!catalog[asset])return res.status(400).json({error:"Unknown model asset."});
  try{
   const response=await fetch("https://api.polyhaven.com/files/"+encodeURIComponent(asset),{headers:{"User-Agent":"PRIME-WEBS-AI/1.0 (+https://primewebs.site)","Accept":"application/json"},signal:AbortSignal.timeout(18000)});
@@ -17,6 +17,6 @@ module.exports=async(req,res)=>{
   walk(tree);
   const chosen=candidates.filter(x=>/\.(?:gltf|glb)(?:\?|$)/i.test(x.url)).sort((x,y)=>x.size-y.size)[0];
   if(!chosen)throw new Error("No direct GLTF file was listed for this asset.");
-  return res.status(200).json({name:catalog[asset].name,url:chosen.url,format:/\\.glb(?:\\?|$)/i.test(chosen.url)?"glb":"gltf",provider:"Poly Haven",license:"CC0",credit:"Powered by Poly Haven"});
+  return res.status(200).json({name:catalog[asset].name,url:chosen.url,format:/\.glb(?:\?|$)/i.test(chosen.url)?"glb":"gltf",provider:"Poly Haven",license:"CC0",credit:"Powered by Poly Haven"});
  }catch(error){return res.status(503).json({error:"The 3D model is temporarily unavailable.",detail:String(error.message||"").slice(0,180)});}
 };
