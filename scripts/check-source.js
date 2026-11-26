@@ -32,6 +32,8 @@ const contracts = [
   ['visible visual section editor', app.includes('pw-section-editor')],
   ['working 3D model upload handler', app.includes('new FileReader()') && app.includes('data-three-model')],
   ['Studio design/media/history panels', ['themePanel','mediaPanel','historyPanel'].every(x => app.includes(x))],
+  ['Supabase Storage uploads', adapter.includes("storage.from('primewebs-media').upload") && app.includes('data-media-upload')],
+  ['Storage migration tracked', fs.existsSync(path.join(root, 'supabase/migrations/20261126230521_create_primewebs_media_bucket.sql'))],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 
