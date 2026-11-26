@@ -3,7 +3,7 @@
 (function () {
   const state = { client: null, user: null, profile: null, credits: null, ready: null, busy: false, loadPromise: null, lastProjects: [], lastCustomers: [], workspaceData: {finance:[],leads:[],images:{},invoices:[],invoiceDraft:{},invoiceDraftLines:[],financeProfile:{},creditBilling:'monthly',workMode:'clients'}, settingsData: {}, writeQueue: Promise.resolve(), writeError:null };
   const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return c==='x'?r:(r&3|8); }));
-  const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(String(v||''));
+  const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
   const local = (key, fallback) => { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (_) { return fallback; } };
   const put = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {} };
   const rows = async (table) => {
