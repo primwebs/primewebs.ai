@@ -258,7 +258,7 @@ const B={
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
   gallery:b=>{const im=(b.images||[]).filter(entry=>typeof entry==='string'?!!imgSrc(entry):!!(entry&&imgSrc(entry.url)));return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((entry,n)=>{const u=typeof entry==='string'?entry:entry.url;return `<figure><img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy"><figcaption>${entry&&entry.attribution?`<a href="${esc(entry.creditUrl||'#')}" target="_blank" rel="noopener">${esc(entry.attribution)}</a>`:''}</figcaption></figure>`}).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
-  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/dl\.polyhaven\.org\//i.test(b.modelUrl)?b.modelUrl:''),format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
+  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/models\.vinish\.dev\//i.test(b.modelUrl)?b.modelUrl:''),format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
   contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.whatsapp&&b.phone?`<a class="btn whatsapp" href="https://wa.me/${esc(String(b.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">Skriv på WhatsApp</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}${b.address?`<a class="btn secondary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Find os på Google Maps</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div><form id="pw-contact-form" class="contact-form"><h3>Send os en besked</h3><label>Dit navn<input name="name" autocomplete="name" required></label><label>Din e-mail<input name="email" type="email" autocomplete="email" required></label><label>Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel"></label><label>Hvad kan vi hjælpe med?<textarea name="message" rows="4" required></textarea></label><button class="btn" type="submit">Klargør besked</button><p id="pw-contact-note" class="form-note">Din e-mailapp åbnes med beskeden. Du skal selv trykke Send.</p></form></section>` ,
   reviews:b=>Array.isArray(b.items)&&b.items.length?`<section class="reviews-section"><h2>${esc(b.title||'Det siger vores kunder')}</h2><div class="g">${b.items.slice(0,8).map(x=>`<article class="c review">${Number(x.rating)>=1&&Number(x.rating)<=5?`<div aria-label="${Math.round(Number(x.rating))} ud af 5 stjerner" class="stars">${'★'.repeat(Math.round(Number(x.rating)))}</div>`:''}<p>“${esc(x.text)}”</p><strong>${esc(x.name)}</strong></article>`).join('')}</div></section>`:'' ,
   map:b=>b.address?`<section class="map-section"><h2>${esc(b.title||'Find os')}</h2><p>${esc(b.address)}</p><a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Åbn rutevejledning i Google Maps ↗</a></section>`:''};
@@ -1194,22 +1194,22 @@ async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
  const p=String(prompt||'').toLowerCase();
  const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
- const tire=/dæk|bildæk|tire|tyre/.test(p);
- if(!barber&&!tire)return site;
- const shape=barber?'barber-chair':'wheel',asset=barber?'BarberShopChair_01':'old_tyre';
- let block=site.blocks.find(b=>b&&b.type==='threeD'&&b.shape===shape);
- if(!block){
-   block={id:uid(),type:'threeD',shape,title:barber?'Ægte 3D-barberstol':'Rigtigt 3D-dæk',text:'Drej og udforsk den rigtige 3D-model.',color:barber?'#C9A24B':'#3B82F6',modelData:'',modelFormat:'glb'};
-   const ci=site.blocks.findIndex(b=>b&&b.type==='contact');
-   site.blocks.splice(ci<0?site.blocks.length:ci,0,block);
- }
- if(block.modelData||block.modelUrl)return site;
- try{
-  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset})});
-  if(!response.ok)return site;
-  const model=await response.json();
-  if(model&&model.url){block.modelUrl=model.url;block.modelFormat=model.format||'glb';block.modelProvider='Poly Haven';block.modelLicense='CC0';block.modelName=model.name||'';}
- }catch(error){console.warn('3D asset lookup unavailable:',error&&error.message||error)}
+ const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p);
+ if(!barber&&!mechanic)return site;
+ const wanted=barber?['barber-chair','barber-pole']:['car','engine'];
+ const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
+ wanted.forEach((shape,index)=>{
+  let block=site.blocks.find(x=>x&&x.type==='threeD'&&x.shape===shape);
+  if(!block){block={id:uid(),type:'threeD',shape};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,block)}
+  block.modelData='';block.modelUrl='';block.modelFormat='glb';block.modelAsset=shape;
+  block.modelProvider='vinish.dev';block.modelLicense='CC BY 4.0';
+  block.title=barber?(index===0?(english?'Real 3D barber chair':'Ægte 3D-barberstol'):(english?'Classic barber pole':'Klassisk barberstang')):(shape==='car'?(english?'Explore the grey sedan in 3D':'Se den grå sedan i 3D'):(english?'Detailed V8 engine':'Detaljeret V8-motor'));
+  block.text=barber?(english?'A real textured 3D model. Drag to rotate and scroll to see it move.':'En rigtig 3D-model med teksturer. Træk for at dreje, og scroll for at se den bevæge sig.'):(shape==='car'?(english?'Explore this detailed grey sport sedan from every angle.':'Udforsk denne detaljerede grå sedan fra alle vinkler.'):(english?'Explore a detailed V8 engine from every angle.':'Udforsk en detaljeret V8-motor fra alle vinkler.'));
+ });
+ await Promise.all(site.blocks.filter(x=>x&&x.type==='threeD'&&wanted.includes(x.shape)).map(async block=>{
+  try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:block.modelAsset})});if(!r.ok)return;const m=await r.json();if(m&&m.url){block.modelUrl=m.url;block.modelFormat='glb';block.modelProvider=m.provider;block.modelLicense=m.license;block.modelCredit=m.credit;block.modelCreditUrl=m.creditUrl;block.modelName=m.name}}
+  catch(e){console.warn('Curated 3D model unavailable:',e&&e.message||e)}
+ }));
  return site;
 }
 async function enrichIndustryImages(site,prompt) {
