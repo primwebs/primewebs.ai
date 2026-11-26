@@ -1163,9 +1163,9 @@ function ensureIndustryImages(site, prompt) {
 function imageSearchTerms(prompt) {
   const p=String(prompt||'').toLowerCase();
   const groups=[
-    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'professional barber cutting hair modern barbershop interior'],
-    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'professional mechanic working in modern automotive repair workshop'],
-    [/dæk|bildæk|tire|tyre/,'real car tire wheel alloy rim close up'],
+    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'real editorial photograph of professional barber cutting a clients hair, premium modern barbershop interior'],
+    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'real photograph of professional mechanic repairing a modern car inside a clean automotive garage'],
+    [/dæk|bildæk|tire|tyre/,'real close-up photograph of premium car tyre and alloy wheel'],
     [/maler|painting|painter/,'professional house painter painting interior wall'],
     [/tømrer|carpenter|snedker|woodwork/,'professional carpenter woodworking custom joinery workshop'],
     [/elektriker|electrician|el-installatør/,'licensed electrician installing electrical equipment'],
@@ -1215,7 +1215,9 @@ async function enrichIndustryModels(site,prompt){
 async function enrichIndustryImages(site,prompt) {
   ensureIndustryImages(site,prompt);
   if(!site||!Array.isArray(site.blocks))return site;
-  const needsHero=site.blocks.some(b=>b&&b.type==='hero'&&!b.image);
+  const heroBlock=site.blocks.find(b=>b&&b.type==='hero');
+  const explicitHeroImage=/hero|forside|baggrund|background|cover|banner/i.test(String(prompt||''));
+  const needsHero=!!heroBlock&&(!heroBlock.image||explicitHeroImage);
   const gallery=site.blocks.find(b=>b&&b.type==='gallery');
   const explicitImageRequest=/billede|billeder|foto|photos|images|image|gallery|galleri|picture|visuals/i.test(String(prompt||''));
   const needsGallery=explicitImageRequest||!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
@@ -1227,7 +1229,7 @@ async function enrichIndustryImages(site,prompt) {
     const unique=Array.from(new Map(media.filter(x=>x&&x.url).map(x=>[x.url,x])).values());
     if(!unique.length)return site;
     const hero=site.blocks.find(b=>b&&b.type==='hero');
-    if(hero&&!hero.image){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
+    if(hero&&needsHero){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
     const about=site.blocks.find(b=>b&&b.type==='about');
     if(about&&!about.image&&unique.length){const x=unique.shift();about.image=x.url;about.imageAttribution=x.attribution;about.imageCreditUrl=x.creditUrl;}
     if(needsGallery){
