@@ -2,5 +2,10 @@
   "name": "primewebs-ai",
   "private": true,
   "description": "PRIME WEBS AI – AI website builder",
-  "engines": { "node": "26.x" }
+  "engines": {
+    "node": "26.x"
+  },
+  "scripts": {
+    "test": "node scripts/check-source.js"
+  }
 }
