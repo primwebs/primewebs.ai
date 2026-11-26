@@ -137,7 +137,7 @@ function sanitizeSite(site, fallbackLanguage) {
     if (!b || typeof b !== "object") continue;
     const id = str(b.id, 40) || Math.random().toString(36).slice(2, 9);
     if (["features", "services", "steps", "faq", "team"].includes(b.type)) {
-      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => { const item={ t: str(i && i.t, 160), d: str(i && i.d, 600) }; const image=imgRef(i&&i.image); if(image)item.image=image; if(i&&i.imageAlt)item.imageAlt=str(i.imageAlt,160); if(i&&i.imageAttribution)item.imageAttribution=str(i.imageAttribution,240); if(i&&/^https:\/\//i.test(i.imageCreditUrl||''))item.imageCreditUrl=str(i.imageCreditUrl,500); return item; });
       out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
     } else if (b.type === "pricing") {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600), price: str(i && i.price, 80) }));
@@ -151,16 +151,16 @@ function sanitizeSite(site, fallbackLanguage) {
     } else if (b.type === "threeD") {
       const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine"].includes(b.shape) ? b.shape : "orb";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
-      const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : "";
-      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
+      const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : ""; const modelUrl = typeof b.modelUrl === "string" && /^https:\/\/dl\.polyhaven\.org\//i.test(b.modelUrl) ? str(b.modelUrl, 1000) : "";
+      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
     } else if (b.type === "booking") {
       out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
-      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
+      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(item => { const url = imgRef(typeof item === "string" ? item : item && item.url); if (!url) return null; return typeof item === "string" ? url : { url, attribution: str(item.attribution, 240), creditUrl: /^https:\/\//i.test(item.creditUrl || "") ? str(item.creditUrl, 500) : "" }; }).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
       const o = { id, type: b.type };
       TEXT_FIELDS[b.type].forEach(k => { o[k] = str(b[k], k === "text" ? 1200 : 160); });
-      if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; }
+      if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; if (b.imageAttribution) o.imageAttribution = str(b.imageAttribution, 240); if (b.imageCreditUrl && /^https:\/\//i.test(b.imageCreditUrl)) o.imageCreditUrl = str(b.imageCreditUrl, 500); }
       out.blocks.push(o);
     }
   }
@@ -243,7 +243,7 @@ module.exports = async (req, res) => {
       "\nDescription: " + String(body.description || "").slice(0, 5000) +
       "\nStyle preference: " + String(body.style || "Moderne").slice(0, 40) + extra(body)
     : "Edit this existing website according to the user's request. Return the complete updated site JSON.\nCurrent site: " +
-      JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-10).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1200) })) : []).slice(0, 10000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
+      JSON.stringify(body.site).slice(0, 24000) + "\nRecent conversation context (oldest first): " + JSON.stringify(Array.isArray(body.history) ? body.history.slice(-14).map(x => ({ role: x.r === "u" ? "user" : "assistant", text: String(x.t || "").slice(0, 1600) })) : []).slice(0, 16000) + "\nLatest user request: " + String(body.message).slice(0, 3000);
 
   try {
     let text = "";

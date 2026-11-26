@@ -247,18 +247,18 @@ const AI={mode:'api',
 
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
-  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
-  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
-  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<img src="${esc(im)}" alt="${esc(b.title)}">`:''}</section>`},
+  hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
+  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<article class="c">${i.image?`<img class="pw-card-image" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin-bottom:1rem" src="${esc(imgSrc(i.image))}" alt="${esc(i.imageAlt||i.t||b.title)}" loading="lazy">`:''}<h3>${esc(i.t)}</h3><p>${esc(i.d)}</p>${i.imageAttribution?`<small class="pw-image-credit"><a href="${esc(i.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(i.imageAttribution)}</a></small>`:''}<a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></article>`).join('')}</div></section>`,
+  about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
   services:b=>B.features(b),
   pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   team:b=>`<section class="team-section"><h2>${esc(b.title||'Mød teamet')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c team-card"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
   steps:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map((i,n)=>`<div class="c"><h3>${n+1}. ${esc(i.t)}</h3><p>${esc(i.d)}</p></div>`).join('')}</div></section>`,
   faq:b=>`<section><h2>${esc(b.title)}</h2>${b.items.map(i=>`<details class="c" style="margin-bottom:.6rem"><summary style="cursor:pointer;font-weight:600">${esc(i.t)}</summary><p>${esc(i.d)}</p></details>`).join('')}</section>`,
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
-  gallery:b=>{const im=(b.images||[]).map(imgSrc).filter(Boolean);return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((u,n)=>`<img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy">`).join('')}</div></section>`:''},
+  gallery:b=>{const im=(b.images||[]).filter(entry=>typeof entry==='string'?!!imgSrc(entry):!!(entry&&imgSrc(entry.url)));return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((entry,n)=>{const u=typeof entry==='string'?entry:entry.url;return `<figure><img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy"><figcaption>${entry&&entry.attribution?`<a href="${esc(entry.creditUrl||'#')}" target="_blank" rel="noopener">${esc(entry.attribution)}</a>`:''}</figcaption></figure>`}).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
-  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:'',format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
+  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/(?:models\.vinish\.dev|cdn\.3dassets\.dev)\//i.test(b.modelUrl)?b.modelUrl:''),format=b.modelFormat==='gltf'?'gltf':'glb';return `<section class="pw-3d-section"><div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div><div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}" ><div class="pw-three-fallback" aria-hidden="true"><span></span></div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div></section>`},
   contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.whatsapp&&b.phone?`<a class="btn whatsapp" href="https://wa.me/${esc(String(b.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">Skriv på WhatsApp</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}${b.address?`<a class="btn secondary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Find os på Google Maps</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div><form id="pw-contact-form" class="contact-form"><h3>Send os en besked</h3><label>Dit navn<input name="name" autocomplete="name" required></label><label>Din e-mail<input name="email" type="email" autocomplete="email" required></label><label>Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel"></label><label>Hvad kan vi hjælpe med?<textarea name="message" rows="4" required></textarea></label><button class="btn" type="submit">Klargør besked</button><p id="pw-contact-note" class="form-note">Din e-mailapp åbnes med beskeden. Du skal selv trykke Send.</p></form></section>` ,
   reviews:b=>Array.isArray(b.items)&&b.items.length?`<section class="reviews-section"><h2>${esc(b.title||'Det siger vores kunder')}</h2><div class="g">${b.items.slice(0,8).map(x=>`<article class="c review">${Number(x.rating)>=1&&Number(x.rating)<=5?`<div aria-label="${Math.round(Number(x.rating))} ud af 5 stjerner" class="stars">${'★'.repeat(Math.round(Number(x.rating)))}</div>`:''}<p>“${esc(x.text)}”</p><strong>${esc(x.name)}</strong></article>`).join('')}</div></section>`:'' ,
   map:b=>b.address?`<section class="map-section"><h2>${esc(b.title||'Find os')}</h2><p>${esc(b.address)}</p><a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Åbn rutevejledning i Google Maps ↗</a></section>`:''};
@@ -322,7 +322,7 @@ const Renderer={html(p){
   h3{line-height:1.25}p{color:${mu};max-width:68ch}.btn{display:inline-block;background:${a};color:${bt};padding:1rem 1.7rem;border-radius:${t.radius==='large'?'22px':'13px'};text-decoration:none;font-weight:800;box-shadow:0 12px 28px #00000020;transition:transform .2s,box-shadow .2s}.btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px #00000028}
   .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem}.c{background:linear-gradient(145deg,${sf},${sf}E8);color:${fg};border:1px solid ${ln};border-radius:${t.radius==='large'?'26px':'18px'};padding:1.7rem;box-shadow:0 16px 38px #0000000D;transition:transform .22s,box-shadow .22s,border-color .22s}.c:hover{transform:translateY(-4px);box-shadow:0 20px 42px #00000016}
   a{color:${a}}footer{padding:2rem;text-align:center;color:${fg};background:${sf};border-top:1px solid ${ln}}
-  .hero{position:relative;isolation:isolate;overflow:hidden;min-height:440px;display:flex;align-items:center;border:1px solid ${ln};border-radius:${t.radius==='large'?'34px':'24px'};margin-top:2rem;margin-bottom:2rem;background:radial-gradient(circle at 84% 18%,${a}30,transparent 34%),radial-gradient(circle at 12% 92%,${a}20,transparent 38%),linear-gradient(135deg,${sf},${bg});box-shadow:0 28px 90px #00000014}.hero:before{content:"";position:absolute;z-index:-1;width:340px;height:340px;border-radius:50%;right:-70px;top:-100px;background:${a}22;filter:blur(2px)}.hero:after{content:"";position:absolute;z-index:-1;width:220px;height:220px;border-radius:50%;right:22%;bottom:-130px;background:${a}18;filter:blur(4px)}.hero p{font-size:1.18rem;max-width:58ch}
+  .hero.two{position:relative;isolation:isolate;display:flex;align-items:center;min-height:clamp(430px,62vw,680px);overflow:hidden;border-radius:var(--radius,24px);background:#101827}.hero.two>figure{position:absolute;inset:0;width:100%;height:100%;margin:0;z-index:-1}.hero.two>figure:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,15,28,.88),rgba(8,15,28,.48) 58%,rgba(8,15,28,.18))}.hero.two>figure img{width:100%;height:100%;object-fit:cover;object-position:center}.hero.two>div{position:relative;z-index:1;max-width:760px;padding:clamp(2rem,6vw,5.5rem);color:#fff}.hero.two h1,.hero.two p{color:#fff}.hero.two h1{font-size:clamp(2.5rem,5vw,5rem);line-height:1.02;max-width:14ch}.hero.two p{font-size:clamp(1rem,1.6vw,1.2rem);max-width:62ch}.hero.two .btn.secondary{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.55);color:#fff}.hero.two figcaption{position:absolute;right:1rem;bottom:.6rem;z-index:2;color:#fff;font-size:.68rem;opacity:.85}.hero.two figcaption a{color:#fff}@media(max-width:700px){.hero.two{min-height:540px}.hero.two>div{padding:2rem 1.3rem}.hero.two h1{font-size:clamp(2.2rem,10vw,3.4rem)}}.hero{position:relative;isolation:isolate;overflow:hidden;min-height:440px;display:flex;align-items:center;border:1px solid ${ln};border-radius:${t.radius==='large'?'34px':'24px'};margin-top:2rem;margin-bottom:2rem;background:radial-gradient(circle at 84% 18%,${a}30,transparent 34%),radial-gradient(circle at 12% 92%,${a}20,transparent 38%),linear-gradient(135deg,${sf},${bg});box-shadow:0 28px 90px #00000014}.hero:before{content:"";position:absolute;z-index:-1;width:340px;height:340px;border-radius:50%;right:-70px;top:-100px;background:${a}22;filter:blur(2px)}.hero:after{content:"";position:absolute;z-index:-1;width:220px;height:220px;border-radius:50%;right:22%;bottom:-130px;background:${a}18;filter:blur(4px)}.hero p{font-size:1.18rem;max-width:58ch}
   .hero.two,.ab.two{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:center}
   .hero img,.ab img{width:100%;border-radius:22px;object-fit:cover;aspect-ratio:4/3}
   .gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:16px}
@@ -330,7 +330,210 @@ const Renderer={html(p){
   ${red?'header,footer{background:'+bg+'}header nav a{color:'+fg+'} .btn{background:#FFFFFF;color:#8F1D2B} .c{background:'+sf+'}':''}
     .pw-3d-section{display:grid;grid-template-columns:minmax(0,.9fr) minmax(280px,1.1fr);align-items:center;gap:clamp(1.5rem,4vw,3.5rem);max-width:1200px}.pw-3d-copy{min-width:0}.pw-3d-kicker{display:inline-flex;align-items:center;font-size:.72rem;font-weight:850;letter-spacing:.16em;color:${a};margin-bottom:1rem}.pw-three-scene{position:relative;isolation:isolate;min-width:0;width:100%;height:clamp(280px,36vw,440px);min-height:280px;overflow:hidden;border:1px solid ${ln};border-radius:28px;background:radial-gradient(circle at 50% 42%,${a}28,transparent 58%),linear-gradient(145deg,${sf},${bg});box-shadow:0 28px 80px #00000018;touch-action:pan-y}.pw-three-scene canvas{position:absolute;inset:0;display:block;width:100%;height:100%;outline:none}.pw-three-controls{position:absolute;z-index:2;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;padding:6px;border:1px solid #FFFFFF35;border-radius:14px;background:#111827B8;backdrop-filter:blur(12px)}.pw-three-controls button{min-width:34px;min-height:34px;padding:0 9px;border:1px solid #FFFFFF35;border-radius:9px;background:#FFFFFF18;color:#fff;font:700 14px system-ui;cursor:pointer}.pw-three-controls button[aria-pressed=true]{background:${a};color:${bt}}.pw-three-fallback{position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFFFFFB8,${a}55 35%,${a}18 68%,transparent 72%);filter:blur(1px);animation:pw-three-pulse 4s ease-in-out infinite alternate;pointer-events:none}.pw-three-fallback span{position:absolute;inset:12%;border:1px solid #FFFFFF55;border-radius:50%;transform:rotateX(65deg) rotateZ(-25deg);box-shadow:0 0 35px ${a}44}.pw-three-ready .pw-three-fallback{display:none}.pw-three-fallback-only .pw-three-fallback{display:block}@keyframes pw-three-pulse{to{transform:scale(.88);opacity:.7}}@media(max-width:700px){.pw-3d-section{grid-template-columns:1fr;gap:1rem}.pw-three-scene{height:300px;min-height:300px}}
 @media(max-width:900px){header{position:relative;top:auto;align-items:center;flex-direction:row;flex-wrap:wrap;gap:.5rem;padding:.9rem 1rem}.pw-menu-toggle{display:flex;margin-left:auto}header nav{display:none;flex:0 0 100%;width:100%;flex-direction:column;align-items:stretch;gap:.25rem;padding:.5rem 0 0;overflow:visible}header nav.is-open{display:flex}header nav a{display:block;padding:.65rem .75rem;font-size:.9rem;white-space:normal;border-radius:9px}.actions{align-items:stretch}.actions .btn{width:100%}.mobile-actions{position:fixed;display:flex;left:0;right:0;bottom:0;z-index:9;gap:.5rem;padding:.65rem;background:${sf}F2;border-top:1px solid ${ln};backdrop-filter:blur(16px)}.mobile-actions a{flex:1;text-align:center;padding:.75rem .4rem;border-radius:12px;background:${a};color:${bt};font-weight:800;text-decoration:none}.wa-float{right:14px;bottom:84px}.contact-form{margin-bottom:2rem}.hero.two,.ab.two{grid-template-columns:1fr;gap:1.5rem}.hero{min-height:0}section{padding:3rem 1.2rem}section:nth-of-type(even){border-radius:18px;margin-top:.8rem;margin-bottom:.8rem}.g{grid-template-columns:1fr}.gal{grid-template-columns:repeat(2,minmax(0,1fr))}.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center}}@media(max-width:380px){h1{font-size:clamp(2.15rem,12vw,3rem)}header nav a{font-size:.76rem;padding:.35rem .45rem}.gal{grid-template-columns:1fr}}
-  </style></head><body class="pw-motion-${animLevel}"><header id="top"><a class="brand" href="#top">${esc(s.meta.title)}</a>${nav}</header><main id="pw-home">${body}</main>${pageViews}<footer><strong>${esc(s.meta.title)}</strong><div class="footer-links"><a href="#kontakt">Kontakt</a><a href="#top">Til toppen ↑</a></div><small>© ${new Date().getFullYear()} ${esc(s.meta.title)}</small></footer>${contact.phone?`<div class="mobile-actions"><a href="tel:${esc(String(contact.phone).replace(/[^+\\d]/g,''))}">Ring</a>${hasBooking?`<a href="#booking">Book tid</a>`:''}${contact.whatsapp?`<a href="https://wa.me/${esc(String(contact.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">WhatsApp</a>`:''}</div>`:''}${contact.whatsapp?`<a class="wa-float" href="https://wa.me/${esc(String(contact.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener" aria-label="Skriv på WhatsApp">WhatsApp ↗</a>`:''}<script>(function(){const home=document.getElementById('pw-home');const views=[...document.querySelectorAll('.pw-page-view')];const menuBtn=document.querySelector('.pw-menu-toggle'),siteNav=document.getElementById('pw-site-nav');if(menuBtn&&siteNav){menuBtn.addEventListener('click',()=>{const open=menuBtn.getAttribute('aria-expanded')!=='true';menuBtn.setAttribute('aria-expanded',String(open));menuBtn.setAttribute('aria-label',open?'Luk menu':'Åbn menu');siteNav.classList.toggle('is-open',open)});siteNav.addEventListener('click',e=>{if(e.target.closest('a')){menuBtn.setAttribute('aria-expanded','false');menuBtn.setAttribute('aria-label','Åbn menu');siteNav.classList.remove('is-open')}})}function route(){const m=location.hash.match(/^#page\\/([a-z0-9-]+)/i);const slug=m&&m[1];if(!home)return;if(slug){home.hidden=true;views.forEach(v=>v.hidden=v.dataset.page!==slug);const active=views.find(v=>v.dataset.page===slug);if(active){const h=active.querySelector('.pw-page-heading h1');document.title=(h?h.textContent:'')+' · '+${JSON.stringify(String(s.meta.title||p.name))};window.scrollTo(0,0)}else{home.hidden=false;views.forEach(v=>v.hidden=true)}}else if(location.hash!=='#booking'){home.hidden=false;views.forEach(v=>v.hidden=true)}}window.addEventListener('hashchange',route);route()})();</script><script>(function(){const level='${animLevel}';if(level==='none'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const roots=[...document.querySelectorAll('main#pw-home > section, .pw-page-view section')];roots.forEach((el,i)=>{el.classList.add('pw-reveal');el.style.transitionDelay=Math.min(i*70,350)+'ms'});document.querySelectorAll('h1,h2').forEach((el,i)=>{el.classList.add('pw-text-reveal');el.style.transitionDelay=Math.min(i*45,250)+'ms'});const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('pw-visible');io.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -35px 0px'});document.querySelectorAll('.pw-reveal,.pw-text-reveal').forEach(el=>io.observe(el));if(level==='immersive'&&window.matchMedia('(pointer:fine)').matches){document.querySelectorAll('.pw-motion-immersive .card,.pw-motion-immersive article').forEach(el=>{el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform='perspective(1000px) rotateX('+(-y*3)+'deg) rotateY('+(x*3)+'deg) translateY(-3px)'});el.addEventListener('pointerleave',()=>{el.style.transform=''})})}})();</script><script type="module">(async()=>{const nodes=[...document.querySelectorAll('[data-pw-three]')].filter(n=>!n.dataset.modelSrc);if(!nodes.length)return;const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;let THREE;try{try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js')}catch(primary){THREE=await import('https://unpkg.com/three@0.170.0/build/three.module.js')}}catch(e){nodes.forEach(n=>{n.classList.add('pw-three-fallback-only');n.dataset.pwThreeStatus='library-load-failed'});return}const {Scene,PerspectiveCamera,WebGLRenderer,Mesh,MeshStandardMaterial,AmbientLight,DirectionalLight,Group,TorusGeometry,SphereGeometry,BoxGeometry,TorusKnotGeometry,CylinderGeometry}=THREE;nodes.forEach(host=>{let renderer;try{const scene=new Scene(),camera=new PerspectiveCamera(38,1,.1,100);camera.position.set(0,0,5);renderer=new WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.setSize(host.clientWidth||420,host.clientHeight||300);renderer.setClearColor(0x000000,0);host.appendChild(renderer.domElement);const group=new Group();scene.add(group);const material=new MeshStandardMaterial({color:host.dataset.color||'#6D7CFF',metalness:.48,roughness:.24});const shape=host.dataset.shape||'orb';const accent=new MeshStandardMaterial({color:'#FFFFFF',metalness:.6,roughness:.2,wireframe:true,transparent:true,opacity:.12});const dark=new MeshStandardMaterial({color:'#202633',metalness:.72,roughness:.28});const silver=new MeshStandardMaterial({color:'#BFC8D8',metalness:.86,roughness:.2});const red=new MeshStandardMaterial({color:'#D83B4B',metalness:.28,roughness:.32});const blue=new MeshStandardMaterial({color:'#3268D8',metalness:.35,roughness:.3});const white=new MeshStandardMaterial({color:'#F2F4F8',metalness:.18,roughness:.34});const add=(geo,mat,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>{const o=new Mesh(geo,mat);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);group.add(o);return o};if(shape==='barber-pole'){add(new CylinderGeometry(.34,.34,2.25,48),white);for(let i=0;i<7;i++)add(new TorusGeometry(.345,.065,10,48),i%2?blue:red,0,-.92+i*.3,0,Math.PI/2);add(new CylinderGeometry(.4,.4,.13,48),silver,0,1.2,0);add(new CylinderGeometry(.4,.4,.13,48),silver,0,-1.2,0)}else if(shape==='shampoo-bottle'){add(new CylinderGeometry(.48,.56,1.55,48),material,0,-.08,0);add(new CylinderGeometry(.2,.2,.3,32),silver,0,.86,0);add(new CylinderGeometry(.24,.24,.16,32),dark,0,1.08,0);add(new BoxGeometry(.5,.52,.035),white,0,-.1,.49);add(new BoxGeometry(.08,.25,.04),accent,0,-.1,.52)}else if(shape==='scissors'){add(new TorusGeometry(.28,.075,16,48),silver,-.25,-.72,.04);add(new TorusGeometry(.28,.075,16,48),silver,.25,-.72,.04);add(new BoxGeometry(.13,1.5,.07),silver,-.12,.05,0,0,0,-.22);add(new BoxGeometry(.13,1.5,.07),silver,.12,.05,0,0,0,.22);add(new SphereGeometry(.12,24,16),red,0,-.55,.06)}else if(shape==='barber-chair'){add(new CylinderGeometry(.12,.16,.85,32),silver,0,-.65,0);add(new CylinderGeometry(.58,.58,.12,40),dark,0,-1.08,0);add(new BoxGeometry(1.25,.22,.95),material,0,-.12,0);add(new BoxGeometry(1.2,1.15,.2),material,0,.55,-.36,-.18);add(new BoxGeometry(.16,.72,.16),silver,-.68,.05,0);add(new BoxGeometry(.16,.72,.16),silver,.68,.05,0);add(new BoxGeometry(.95,.14,.72),dark,0,-.3,.02)}else if(shape==='car'){add(new BoxGeometry(2.25,.52,1.12),material,0,-.22,0);add(new BoxGeometry(1.25,.62,.94),blue,0,.28,-.04);for(const x of [-.72,.72])for(const z of [-.58,.58]){add(new TorusGeometry(.28,.12,16,40),dark,x,-.58,z,Math.PI/2);add(new CylinderGeometry(.17,.17,.12,32),silver,x,-.58,z,0,0,Math.PI/2)}}else if(shape==='wheel'){add(new TorusGeometry(.88,.25,24,80),dark);add(new CylinderGeometry(.63,.63,.2,48),silver,0,0,0,Math.PI/2);for(let i=0;i<8;i++){const a=i*Math.PI/4;add(new BoxGeometry(.09,.95,.1),silver,Math.cos(a)*.35,Math.sin(a)*.35,.14,0,0,a)}add(new CylinderGeometry(.2,.2,.24,32),dark,0,0,.18,Math.PI/2)}else if(shape==='engine'){add(new BoxGeometry(1.45,1.15,.95),dark);for(let i=0;i<4;i++){const x=-.48+i*.32;add(new CylinderGeometry(.13,.13,.72,24),silver,x,.78,0);add(new CylinderGeometry(.18,.18,.12,24),red,x,1.18,0)}add(new TorusGeometry(.55,.09,14,48),silver,0,-.05,.54);add(new BoxGeometry(.55,.25,.18),material,0,-.72,0)}else{const geometry=shape==='torus'?new TorusGeometry(1.05,.34,24,100):shape==='box'?new BoxGeometry(1.8,1.8,1.8,4,4,4):shape==='knot'?new TorusKnotGeometry(.85,.27,140,18):new SphereGeometry(1.18,64,48);add(geometry,material);if(shape==='orb'||shape==='box')add(shape==='box'?new BoxGeometry(2.1,2.1,2.1):new SphereGeometry(1.48,32,24),accent)}scene.add(new AmbientLight(0xffffff,.85));const key=new DirectionalLight(0xffffff,2.2);key.position.set(3,4,5);scene.add(key);const fill=new DirectionalLight(0x879cff,1.2);fill.position.set(-4,-2,2);scene.add(fill);let active=true,raf=0,frame=0,autoRotate=true;const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};const ro=new ResizeObserver(resize);ro.observe(host);const draw=()=>{if(!active)return;if(!reduceMotion)raf=requestAnimationFrame(draw);frame+=.008;if(!reduceMotion&&autoRotate){group.rotation.y=frame*.65;group.rotation.x=Math.sin(frame*.7)*.16}renderer.render(scene,camera)};const io=new IntersectionObserver(entries=>{active=entries[0].isIntersecting;if(active&&!raf)draw();else if(!active&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);host.style.touchAction='pan-y';let dragging=false,lastX=0,lastY=0;const activePointers=new Map();let pinchDistance=0;const clampZoom=()=>{camera.position.z=Math.max(2.8,Math.min(9,camera.position.z))};const resetView=()=>{group.rotation.set(0,0,0);camera.position.set(0,0,5)};host.addEventListener('pointerdown',e=>{activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(activePointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else if(activePointers.size===2){dragging=false;const pts=[...activePointers.values()];pinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)}});host.addEventListener('pointerup',e=>{activePointers.delete(e.pointerId);dragging=activePointers.size===1;if(dragging){const p=[...activePointers.values()][0];lastX=p.x;lastY=p.y}else pinchDistance=0});host.addEventListener('pointercancel',e=>{activePointers.delete(e.pointerId);dragging=false;pinchDistance=0});host.addEventListener('pointermove',e=>{if(!activePointers.has(e.pointerId))return;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(activePointers.size===2){const pts=[...activePointers.values()],dist=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance>0)camera.position.z=Math.max(2.8,Math.min(9,camera.position.z+(pinchDistance-dist)*.018));pinchDistance=dist;return}if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;group.rotation.y+=dx*.008;group.rotation.x+=dy*.008});host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z+=e.deltaY*.006;clampZoom()},{passive:false});host.addEventListener('dblclick',resetView);host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const direction=Number(btn.getAttribute('data-3d-zoom'));camera.position.z+=direction<0?.65:-.65;clampZoom()}));const resetBtn=host.querySelector('[data-3d-reset]');if(resetBtn)resetBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();resetView()});const autoBtn=host.querySelector('[data-3d-auto]');if(autoBtn)autoBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();autoRotate=!autoRotate;autoBtn.setAttribute('aria-pressed',String(autoRotate));autoBtn.textContent=autoRotate?'Auto rotation':'Rotation paused'});resize();draw();host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='rendered'}catch(e){if(renderer)renderer.dispose();host.classList.remove('pw-three-ready');host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='webgl-render-failed'}})})();</script><script type="module">(async()=>{const nodes=[...document.querySelectorAll('[data-pw-three][data-model-src]')].filter(n=>n.dataset.modelSrc);if(!nodes.length)return;const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;let THREE,GLTFLoader;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');({GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){nodes.forEach(n=>n.classList.add('pw-three-fallback-only'));return}nodes.forEach(async host=>{let renderer;try{const {Scene,PerspectiveCamera,WebGLRenderer,AmbientLight,DirectionalLight,Box3,Vector3,Group}=THREE;const scene=new Scene(),camera=new PerspectiveCamera(38,1,.1,1000);camera.position.set(0,0,5);renderer=new WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setSize(host.clientWidth||420,host.clientHeight||300);host.appendChild(renderer.domElement);scene.add(new AmbientLight(0xffffff,1.1));const key=new DirectionalLight(0xffffff,2.1);key.position.set(3,4,5);scene.add(key);const fill=new DirectionalLight(0x879cff,1.1);fill.position.set(-4,-2,2);scene.add(fill);const root=new Group();scene.add(root);const loader=new GLTFLoader(),src=host.dataset.modelSrc,comma=src.indexOf(','),raw=atob(src.slice(comma+1)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const ready=gltf=>{root.add(gltf.scene);const bounds=new Box3().setFromObject(root),size=bounds.getSize(new Vector3()),center=bounds.getCenter(new Vector3()),max=Math.max(size.x,size.y,size.z)||1;root.position.sub(center);root.scale.setScalar(2.6/max);host.classList.add('pw-three-ready')};if(host.dataset.modelFormat==='gltf'){const json=new TextDecoder().decode(bytes);loader.parse(json,'',ready,()=>host.classList.add('pw-three-fallback-only'))}else loader.parse(bytes.buffer,'',ready,()=>host.classList.add('pw-three-fallback-only'));let active=true,raf=0,frame=0;const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};const ro=new ResizeObserver(resize);ro.observe(host);const draw=()=>{if(!active)return;if(!reduceMotion)raf=requestAnimationFrame(draw);frame+=.006;if(!reduceMotion)root.rotation.y=frame;renderer.render(scene,camera)};const io=new IntersectionObserver(entries=>{active=entries[0].isIntersecting;if(active&&!raf)draw();else if(!active&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);host.style.touchAction='pan-y';let dragging=false,lastX=0,lastY=0;host.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;host.setPointerCapture(e.pointerId)});host.addEventListener('pointerup',()=>{dragging=false});host.addEventListener('pointercancel',()=>{dragging=false});host.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;root.rotation.y+=dx*.008;root.rotation.x+=dy*.008});host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=Math.max(2.8,Math.min(9,camera.position.z+e.deltaY*.006))},{passive:false});resize();draw()}catch(e){if(renderer)renderer.dispose();host.classList.add('pw-three-fallback-only')}})})();</script></script>${bookingRuntime(s)}</body></html>`;
+  </style></head><body class="pw-motion-${animLevel}"><header id="top"><a class="brand" href="#top">${esc(s.meta.title)}</a>${nav}</header><main id="pw-home">${body}</main>${pageViews}<footer><strong>${esc(s.meta.title)}</strong><div class="footer-links"><a href="#kontakt">Kontakt</a><a href="#top">Til toppen ↑</a></div><small>© ${new Date().getFullYear()} ${esc(s.meta.title)}</small>${s.blocks.some(b=>b&&b.modelProvider==='Poly Haven')?'<small>3D assets powered by Poly Haven</small>':''}</footer>${contact.phone?`<div class="mobile-actions"><a href="tel:${esc(String(contact.phone).replace(/[^+\\d]/g,''))}">Ring</a>${hasBooking?`<a href="#booking">Book tid</a>`:''}${contact.whatsapp?`<a href="https://wa.me/${esc(String(contact.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">WhatsApp</a>`:''}</div>`:''}${contact.whatsapp?`<a class="wa-float" href="https://wa.me/${esc(String(contact.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener" aria-label="Skriv på WhatsApp">WhatsApp ↗</a>`:''}<script>(function(){const home=document.getElementById('pw-home');const views=[...document.querySelectorAll('.pw-page-view')];const menuBtn=document.querySelector('.pw-menu-toggle'),siteNav=document.getElementById('pw-site-nav');if(menuBtn&&siteNav){menuBtn.addEventListener('click',()=>{const open=menuBtn.getAttribute('aria-expanded')!=='true';menuBtn.setAttribute('aria-expanded',String(open));menuBtn.setAttribute('aria-label',open?'Luk menu':'Åbn menu');siteNav.classList.toggle('is-open',open)});siteNav.addEventListener('click',e=>{if(e.target.closest('a')){menuBtn.setAttribute('aria-expanded','false');menuBtn.setAttribute('aria-label','Åbn menu');siteNav.classList.remove('is-open')}})}function route(){const m=location.hash.match(/^#page\\/([a-z0-9-]+)/i);const slug=m&&m[1];if(!home)return;if(slug){home.hidden=true;views.forEach(v=>v.hidden=v.dataset.page!==slug);const active=views.find(v=>v.dataset.page===slug);if(active){const h=active.querySelector('.pw-page-heading h1');document.title=(h?h.textContent:'')+' · '+${JSON.stringify(String(s.meta.title||p.name))};window.scrollTo(0,0)}else{home.hidden=false;views.forEach(v=>v.hidden=true)}}else if(location.hash!=='#booking'){home.hidden=false;views.forEach(v=>v.hidden=true)}}window.addEventListener('hashchange',route);route()})();</script><script>(function(){const level='${animLevel}';if(level==='none'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const roots=[...document.querySelectorAll('main#pw-home > section, .pw-page-view section')];roots.forEach((el,i)=>{el.classList.add('pw-reveal');el.style.transitionDelay=Math.min(i*70,350)+'ms'});document.querySelectorAll('h1,h2').forEach((el,i)=>{el.classList.add('pw-text-reveal');el.style.transitionDelay=Math.min(i*45,250)+'ms'});const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('pw-visible');io.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -35px 0px'});document.querySelectorAll('.pw-reveal,.pw-text-reveal').forEach(el=>io.observe(el));if(level==='immersive'&&window.matchMedia('(pointer:fine)').matches){document.querySelectorAll('.pw-motion-immersive .card,.pw-motion-immersive article').forEach(el=>{el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;el.style.transform='perspective(1000px) rotateX('+(-y*3)+'deg) rotateY('+(x*3)+'deg) translateY(-3px)'});el.addEventListener('pointerleave',()=>{el.style.transform=''})})}})();</script><script type="module">(async()=>{
+const hosts=[...document.querySelectorAll('[data-pw-three]')].filter(n=>!n.dataset.modelSrc);
+if(!hosts.length)return;
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let T;
+try{try{T=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js')}catch(e){T=await import('https://unpkg.com/three@0.170.0/build/three.module.js')}}catch(e){hosts.forEach(h=>{h.classList.add('pw-three-fallback-only');h.dataset.pwThreeStatus='library-load-failed'});return}
+const {Scene,PerspectiveCamera,WebGLRenderer,Mesh,MeshStandardMaterial,MeshPhysicalMaterial,AmbientLight,HemisphereLight,DirectionalLight,Group,TorusGeometry,SphereGeometry,BoxGeometry,CylinderGeometry,ConeGeometry,LatheGeometry,Vector2,Shape,ExtrudeGeometry,MathUtils}=T;
+hosts.forEach(host=>{
+ let renderer,ro,io,raf=0;
+ try{
+  const scene=new Scene(),camera=new PerspectiveCamera(34,1,.1,100);camera.position.set(0,.15,6.1);
+  renderer=new WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));renderer.setSize(host.clientWidth||440,host.clientHeight||330);renderer.setClearColor(0x000000,0);
+  if('outputColorSpace'in renderer)renderer.outputColorSpace=T.SRGBColorSpace;
+  if('toneMapping'in renderer){renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12}
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;host.appendChild(renderer.domElement);
+  const root=new Group();scene.add(root);
+  const mats={
+   paint:new MeshPhysicalMaterial({color:host.dataset.color||'#B78A52',metalness:.48,roughness:.24,clearcoat:.9,clearcoatRoughness:.16}),
+   leather:new MeshPhysicalMaterial({color:'#242832',roughness:.56,metalness:.04,clearcoat:.18}),
+   seam:new MeshStandardMaterial({color:'#777E89',roughness:.78}),
+   rubber:new MeshStandardMaterial({color:'#171A20',roughness:.86}),
+   metal:new MeshStandardMaterial({color:'#AEB8C6',metalness:.9,roughness:.22}),
+   chrome:new MeshPhysicalMaterial({color:'#DCE4EF',metalness:1,roughness:.13,clearcoat:1}),
+   dark:new MeshStandardMaterial({color:'#252B35',metalness:.55,roughness:.38}),
+   glass:new MeshPhysicalMaterial({color:'#8DB7D5',metalness:.28,roughness:.12,transmission:.08,transparent:true,opacity:.78}),
+   red:new MeshStandardMaterial({color:'#B92F42',metalness:.32,roughness:.3}),
+   white:new MeshStandardMaterial({color:'#F2F3F5',roughness:.42}),
+   accent:new MeshStandardMaterial({color:host.dataset.color||'#B78A52',metalness:.35,roughness:.32})
+  };
+  const add=(g,m,x=0,y=0,z=0,rx=0,ry=0,rz=0,parent=root)=>{const o=new Mesh(g,m);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o};
+  const box=(w,h,d,m,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>add(new BoxGeometry(w,h,d,2,2,2),m,x,y,z,rx,ry,rz);
+  const cyl=(rt,rb,h,m,x=0,y=0,z=0,segments=48,rx=0,ry=0,rz=0)=>add(new CylinderGeometry(rt,rb,h,segments),m,x,y,z,rx,ry,rz);
+  const torus=(r,t,m,x=0,y=0,z=0,rx=0,ry=0,rz=0)=>add(new TorusGeometry(r,t,16,64),m,x,y,z,rx,ry,rz);
+  const shape=host.dataset.shape||'orb';
+  const makeChair=()=>{
+   const metal=mats.chrome,leather=mats.leather;
+   // Wide five-star castor base and hydraulic lift
+   cyl(.18,.2,.28,mats.dark,0,-1.12,0,40);
+   cyl(.105,.13,.55,metal,0,-.78,0,32);
+   cyl(.25,.19,.12,mats.dark,0,-.48,0,40);
+   for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const x=Math.cos(a)*.58,z=Math.sin(a)*.58;box(.72,.075,.11,metal,x,-1.12,z,0,-a,0);cyl(.105,.105,.09,mats.rubber,x,-1.19,z,24,Math.PI/2)}
+   // Seat cushion and thick backrest
+   box(1.42,.25,1.02,leather,0,-.25,.02,-.04,0,0);
+   box(1.3,.11,.92,mats.seam,0,-.39,.02);
+   box(1.34,1.22,.25,leather,0,.42,-.42,-.13,0,0);
+   box(1.2,1.08,.08,mats.dark,0,.43,-.275,-.13);
+   // Headrest and chrome support
+   box(.58,.38,.19,leather,0,1.13,-.39,-.13);
+   cyl(.045,.045,.38,metal,0,.93,-.37,20);
+   // Arm rests, supports and foot rest
+   for(const side of [-1,1]){
+    const x=side*.78;
+    cyl(.045,.045,.62,metal,x,.03,-.02,20,0,0,Math.PI/2);
+    box(.16,.12,.9,leather,x,.39,.02);
+    cyl(.055,.055,.48,metal,side*.61,-.08,-.12,20,0,0,Math.PI/2);
+   }
+   box(1.1,.12,.24,metal,0,-.58,.48);
+   box(1.18,.13,.32,mats.dark,0,-.52,.49);
+   // Visible upholstery piping
+   for(const z of [-.43,.47])torus(.12,.018,mats.seam,0,-.12,z,Math.PI/2);
+  };
+  const makeCar=()=>{
+   // Sculpted side profile extruded across vehicle width
+   const profile=new Shape();profile.moveTo(-1.48,-.2);profile.lineTo(-1.42,.05);profile.quadraticCurveTo(-1.32,.3,-.98,.34);profile.lineTo(-.55,.78);profile.quadraticCurveTo(-.35,.94,.02,.94);profile.lineTo(.65,.9);profile.quadraticCurveTo(.88,.85,1.02,.58);profile.lineTo(1.35,.42);profile.quadraticCurveTo(1.48,.35,1.5,.12);profile.lineTo(1.46,-.2);profile.closePath();
+   const body=add(new ExtrudeGeometry(profile,{depth:1.12,bevelEnabled:true,bevelSegments:4,steps:1,bevelSize:.075,bevelThickness:.07}),mats.paint,0,0,-.56);body.geometry.computeVertexNormals();
+   // Roof / cabin glass
+   const cabin=new Shape();cabin.moveTo(-.72,.43);cabin.lineTo(-.42,.78);cabin.quadraticCurveTo(-.3,.85,-.05,.85);cabin.lineTo(.53,.81);cabin.quadraticCurveTo(.68,.78,.8,.48);cabin.closePath();
+   add(new ExtrudeGeometry(cabin,{depth:.91,bevelEnabled:true,bevelSegments:3,bevelSize:.025,bevelThickness:.025}),mats.dark,0,0,-.455);
+   box(.04,.36,.86,mats.glass,-.08,.64,0,0,0,.04);
+   box(.04,.34,.86,mats.glass,.49,.63,0,0,0,-.08);
+   // wheels with layered sidewalls, alloy hubs and spokes
+   for(const x of [-.91, .96])for(const z of [-.61,.61]){
+    torus(.31,.115,mats.rubber,x,-.26,z,Math.PI/2);
+    torus(.225,.025,mats.seam,x,-.26,z*1.015,Math.PI/2);
+    cyl(.205,.205,.105,mats.chrome,x,-.26,z,48,Math.PI/2);
+    cyl(.155,.155,.115,mats.dark,x,-.26,z*1.04,40,Math.PI/2);
+    for(let k=0;k<10;k++){const a=k*Math.PI/5;box(.045,.29,.045,mats.chrome,x+Math.cos(a)*.1,-.26+Math.sin(a)*.1,z*1.055,0,0,a)}
+    cyl(.07,.07,.13,mats.chrome,x,-.26,z*1.08,32,Math.PI/2);
+   }
+   // lights, grille, mirrors and bumpers
+   box(.42,.14,.035,mats.dark,1.43,.08,0);
+   for(const z of [-.37,.37]){box(.2,.13,.045,mats.white,1.48,.2,z);box(.18,.1,.05,mats.red,-1.49,.05,z);box(.13,.1,.12,mats.paint,.12,.53,z*1.05)}
+   box(.18,.08,1.12,mats.chrome,1.48,-.18,0);
+   box(.16,.07,1.12,mats.dark,-1.48,-.2,0);
+   // side door lines and handles
+   for(const z of [-.575,.575]){box(.012,.38,.012,mats.dark,-.25,-.02,z);box(.12,.025,.025,mats.chrome,.12,.18,z)}
+  };
+  const makeWheel=()=>{
+   torus(.92,.24,mats.rubber);
+   torus(.91,.025,mats.seam,0,0,.02);
+   cyl(.65,.65,.24,mats.chrome,0,0,0,64,Math.PI/2);
+   cyl(.56,.56,.26,mats.dark,0,0,.02,64,Math.PI/2);
+   torus(.47,.035,mats.chrome,0,0,.17);
+   for(let i=0;i<10;i++){const a=i*Math.PI/5;const spoke=box(.075,.72,.075,mats.chrome,Math.cos(a)*.25,Math.sin(a)*.25,.18,0,0,a);spoke.scale.y=.72}
+   cyl(.22,.22,.3,mats.chrome,0,0,.2,48,Math.PI/2);
+   cyl(.12,.12,.31,mats.dark,0,0,.22,40,Math.PI/2);
+   // tread blocks around circumference
+   for(let i=0;i<36;i++){const a=i*Math.PI*2/36;box(.12,.08,.38,mats.dark,Math.cos(a)*1.13,Math.sin(a)*1.13,0,0,0,a)}
+  };
+  const makeEngine=()=>{
+   box(1.5,1.08,.92,mats.dark);
+   box(1.18,.16,.98,mats.chrome,0,.58,0);
+   for(let i=0;i<4;i++){const x=-.48+i*.32;cyl(.14,.14,.55,mats.chrome,x,.86,0,28);cyl(.18,.18,.12,mats.red,x,1.2,0,28);box(.18,.08,.16,mats.dark,x,1.31,0)}
+   torus(.52,.075,mats.chrome,0,-.08,.51);
+   cyl(.22,.22,.2,mats.dark,0,-.08,.53,40,Math.PI/2);
+   for(let i=0;i<5;i++)box(.08,.62,.07,mats.chrome,-.78+i*.39,-.05,-.51);
+   // hoses, pulleys and belt
+   torus(.25,.045,mats.rubber,.52,-.55,.2,Math.PI/2);
+   cyl(.2,.2,.13,mats.chrome,.52,-.55,.2,32,Math.PI/2);
+   for(let i=0;i<3;i++)torus(.12+i*.09,.025,mats.rubber,-.55+i*.13,-.7,.15,Math.PI/2);
+  };
+  const makePole=()=>{cyl(.3,.3,2.15,mats.white);for(let i=0;i<9;i++){const y=-.88+i*.22;torus(.305,.055,i%2?mats.red:new MeshStandardMaterial({color:'#3268D8',metalness:.25,roughness:.35}),0,y,0,Math.PI/2)}cyl(.36,.36,.14,mats.chrome,0,1.14,0);cyl(.36,.36,.14,mats.chrome,0,-1.14,0)}
+  const makeBottle=()=>{const pts=[new Vector2(0,-.95),new Vector2(.32,-.95),new Vector2(.48,-.82),new Vector2(.49,.55),new Vector2(.42,.72),new Vector2(.2,.78),new Vector2(.18,1.04),new Vector2(.25,1.08),new Vector2(.25,1.2),new Vector2(.0,1.2)];add(new LatheGeometry(pts,64),mats.paint);cyl(.23,.23,.12,mats.chrome,0,1.19,0,40);box(.48,.42,.025,mats.white,0,-.08,.465);box(.22,.08,.035,mats.accent,0,.02,.49)}
+  const makeScissors=()=>{for(const x of [-.26,.26]){torus(.22,.065,mats.chrome,x,-.73,.04);torus(.14,.018,mats.dark,x,-.73,.1)}const blade=(x,rz)=>{const sh=new Shape();sh.moveTo(-.07,-.38);sh.lineTo(.07,-.38);sh.quadraticCurveTo(.12,.38,0,1.02);sh.quadraticCurveTo(-.1,.35,-.07,-.38);sh.closePath();add(new ExtrudeGeometry(sh,{depth:.035,bevelEnabled:true,bevelSegments:2,bevelSize:.018,bevelThickness:.018}),mats.chrome,x,0,.02,0,0,rz)};blade(-.12,-.13);blade(.12,.13);cyl(.09,.09,.12,mats.red,0,-.5,.09,32,Math.PI/2)}
+  if(shape==='barber-chair')makeChair();
+  else if(shape==='car')makeCar();
+  else if(shape==='wheel')makeWheel();
+  else if(shape==='engine')makeEngine();
+  else if(shape==='barber-pole')makePole();
+  else if(shape==='shampoo-bottle')makeBottle();
+  else if(shape==='scissors')makeScissors();
+  else if(shape==='torus'){torus(1,.3,mats.paint);torus(.56,.06,mats.chrome,0,0,.12)}
+  else if(shape==='box'){box(1.55,1.55,1.55,mats.paint);const cage=box(1.68,1.68,1.68,mats.chrome,0,0,0);cage.material=new MeshStandardMaterial({color:'#FFFFFF',wireframe:true,transparent:true,opacity:.2})}
+  else if(shape==='knot')add(new T.TorusKnotGeometry(.85,.25,180,24),mats.paint);
+  else add(new SphereGeometry(1.12,64,48),mats.paint);
+  scene.add(new HemisphereLight(0xeaf2ff,0x31394a,1.25));
+  const key=new DirectionalLight(0xffffff,3.2);key.position.set(4,6,6);key.castShadow=true;scene.add(key);
+  const fill=new DirectionalLight(0x8db8ff,1.5);fill.position.set(-5,1,4);scene.add(fill);
+  const rim=new DirectionalLight(0xffd5a1,2);rim.position.set(1,3,-5);scene.add(rim);
+  let visible=true,frame=0,auto=true,dragging=false,lastX=0,lastY=0,pinch=0,scrollTarget=0;const pointers=new Map();
+  const updateScrollPose=()=>{const r=host.getBoundingClientRect(),vh=Math.max(1,window.innerHeight||1);scrollTarget=Math.max(-1,Math.min(1,((vh-r.top)/(vh+r.height)-.5)*2));};
+  updateScrollPose();window.addEventListener('scroll',updateScrollPose,{passive:true});window.addEventListener('resize',updateScrollPose,{passive:true});
+  const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  ro=new ResizeObserver(resize);ro.observe(host);
+  const clamp=()=>{camera.position.z=Math.max(3.2,Math.min(9,camera.position.z))};
+  const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.15,6.1)};
+  const draw=()=>{if(!visible)return;raf=0;root.rotation.y+=(scrollTarget*.72-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0038;if(!reduced&&auto)root.rotation.x+=(scrollTarget*.13+Math.sin(frame*.006)*.025-root.rotation.x)*.025;frame++;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
+  host.style.touchAction='pan-y';
+  host.addEventListener('pointerdown',e=>{pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
+  const pointerEnd=e=>{pointers.delete(e.pointerId);dragging=pointers.size===1;if(dragging){const p=[...pointers.values()][0];lastX=p.x;lastY=p.y}else pinch=0};
+  host.addEventListener('pointerup',pointerEnd);host.addEventListener('pointercancel',pointerEnd);
+  host.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(pinch)camera.position.z=MathUtils.clamp(camera.position.z+(pinch-d)*.016,3.2,9);pinch=d;return}if(dragging){root.rotation.y+=(e.clientX-lastX)*.008;root.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY}});
+  host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=MathUtils.clamp(camera.position.z+e.deltaY*.006,3.2,9)},{passive:false});
+  host.addEventListener('dblclick',reset);
+  host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();camera.position.z=MathUtils.clamp(camera.position.z+(Number(btn.dataset['3dZoom'])<0 ? 0.65 : -0.65),3.2,9)}));
+  const rb=host.querySelector('[data-3d-reset]');if(rb)rb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();reset()});
+  const ab=host.querySelector('[data-3d-auto]');if(ab)ab.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();auto=!auto;ab.setAttribute('aria-pressed',String(auto));ab.textContent=auto?'Auto rotation':'Rotation paused'});
+  resize();draw();host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='rendered';
+ }catch(e){if(raf)cancelAnimationFrame(raf);if(ro)ro.disconnect();if(io)io.disconnect();if(renderer)renderer.dispose();host.classList.remove('pw-three-ready');host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='webgl-render-failed'}
+});
+})();<\/script><script type="module">(async()=>{
+const hosts=[...document.querySelectorAll('[data-pw-three][data-model-src]')].filter(h=>h.dataset.modelSrc);
+if(!hosts.length)return;
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let THREE,GLTFLoader;
+try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');({GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){hosts.forEach(h=>{h.classList.add('pw-three-fallback-only');h.dataset.pwThreeStatus='model-library-load-failed'});return}
+hosts.forEach(host=>{
+ let renderer,ro,io,raf=0;
+ try{
+  const {Scene,PerspectiveCamera,WebGLRenderer,AmbientLight,HemisphereLight,DirectionalLight,Box3,Vector3,Group,MathUtils}=THREE;
+  const scene=new Scene(),camera=new PerspectiveCamera(36,1,.1,1000);camera.position.set(0,.12,5.8);
+  renderer=new WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));renderer.setSize(host.clientWidth||420,host.clientHeight||320);renderer.setClearColor(0x000000,0);
+  if('outputColorSpace'in renderer)renderer.outputColorSpace=THREE.SRGBColorSpace;
+  if('toneMapping'in renderer){renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12}
+  host.appendChild(renderer.domElement);
+  scene.add(new AmbientLight(0xffffff,1.1),new HemisphereLight(0xeaf2ff,0x303747,1.2));
+  const key=new DirectionalLight(0xffffff,2.8);key.position.set(3,5,6);scene.add(key);
+  const fill=new DirectionalLight(0x9abaff,1.35);fill.position.set(-4,-2,3);scene.add(fill);
+  const rim=new DirectionalLight(0xffd6a4,1.6);rim.position.set(1,3,-5);scene.add(rim);
+  const root=new Group();scene.add(root);
+  const loader=new GLTFLoader(),src=host.dataset.modelSrc,comma=src.indexOf(',');
+  let baseDistance=5.8;
+  const ready=gltf=>{
+   root.add(gltf.scene);
+   const bounds=new Box3().setFromObject(root),size=bounds.getSize(new Vector3()),center=bounds.getCenter(new Vector3()),max=Math.max(size.x,size.y,size.z)||1;
+   root.position.sub(center);root.scale.setScalar(2.65/max);
+   baseDistance=Math.max(4.2,Math.min(8.5,2.65*2.15));camera.position.set(0,.12,baseDistance);
+   gltf.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.needsUpdate=true}}});
+   host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='model-rendered';
+  };
+  const fail=()=>{host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-parse-failed'};
+  if(/^https:\/\//i.test(src)){loader.load(src,ready,undefined,fail)}else{if(comma<0)throw new Error('Invalid embedded model');const raw=atob(src.slice(comma+1)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);if(host.dataset.modelFormat==='gltf')loader.parse(new TextDecoder().decode(bytes),'',ready,fail);else loader.parse(bytes.buffer,'',ready,fail)}
+  let visible=true,auto=true,dragging=false,lastX=0,lastY=0,pinch=0,scrollTarget=0;const pointers=new Map();const updateScrollPose=()=>{const r=host.getBoundingClientRect(),vh=Math.max(1,window.innerHeight||1);scrollTarget=Math.max(-1,Math.min(1,((vh-r.top)/(vh+r.height)-.5)*2));};updateScrollPose();window.addEventListener('scroll',updateScrollPose,{passive:true});window.addEventListener('resize',updateScrollPose,{passive:true});
+  const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  ro=new ResizeObserver(resize);ro.observe(host);
+  const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.12,baseDistance)};
+  const draw=()=>{if(!visible)return;raf=0;root.rotation.y+=(scrollTarget*.9-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0035;root.rotation.x+=(scrollTarget*.12-root.rotation.x)*.02;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
+  host.style.touchAction='pan-y';
+  host.addEventListener('pointerdown',e=>{pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
+  const end=e=>{pointers.delete(e.pointerId);dragging=pointers.size===1;if(dragging){const p=[...pointers.values()][0];lastX=p.x;lastY=p.y}else pinch=0};
+  host.addEventListener('pointerup',end);host.addEventListener('pointercancel',end);
+  host.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(pinch)camera.position.z=MathUtils.clamp(camera.position.z+(pinch-d)*.016,2.8,10);pinch=d;return}if(dragging){root.rotation.y+=(e.clientX-lastX)*.008;root.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY}});
+  host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=MathUtils.clamp(camera.position.z+e.deltaY*.006,2.8,10)},{passive:false});
+  host.addEventListener('dblclick',reset);
+  host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();camera.position.z=MathUtils.clamp(camera.position.z+(Number(btn.dataset['3dZoom'])<0 ? .65 : -.65),2.8,10)}));
+  const rb=host.querySelector('[data-3d-reset]');if(rb)rb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();reset()});
+  const ab=host.querySelector('[data-3d-auto]');if(ab)ab.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();auto=!auto;ab.setAttribute('aria-pressed',String(auto));ab.textContent=auto?'Auto rotation':'Rotation paused'});
+  resize();draw();
+ }catch(e){if(raf)cancelAnimationFrame(raf);if(ro)ro.disconnect();if(io)io.disconnect();if(renderer)renderer.dispose();host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-render-failed'}
+});
+})();<\/script></script>${bookingRuntime(s)}</body></html>`;
 }};
 
 /* ===== Lag 4: UI ===== */
@@ -518,7 +721,7 @@ function vDash(){
 function vBuilder(){const p=getP();if(!p)return vPick('builder');const blocks=p.site.blocks||[];
  const field=(bi,k,v,extra='')=>`<label class="block-field">${LBL[k]||k}<input data-b="${bi}" data-k="${k}" ${extra} value="${esc(v??'')}"></label>`;
  const itemFields=(bi,items)=>items.map((it,ii)=>`<div class="block-item-fields"><span class="block-item-number">${ii+1}</span><div>${it.name!==undefined?field(bi,'name',it.name,`data-i="${ii}" data-ik="name"`):field(bi,'t',it.t,`data-i="${ii}" data-ik="t"`)}${it.text!==undefined?field(bi,'text',it.text,`data-i="${ii}" data-ik="text"`):field(bi,'d',it.d,`data-i="${ii}" data-ik="d"`)}${it.price!==undefined?field(bi,'price',it.price,`data-i="${ii}" data-ik="price"`):''}${it.rating!==undefined?field(bi,'rating',it.rating,`data-i="${ii}" data-ik="rating"`):''}</div></div>`).join('');
- const cards=blocks.map((b,bi)=>`<article class="block-editor-card"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type','modelData','modelFormat','modelName'].includes(k)).map(k=>Array.isArray(b[k])?(b[k].length&&typeof b[k][0]==='object'?itemFields(bi,b[k]):b[k].map((it,ii)=>`<label class="block-field">${k==='images'?'Billede URL':'Element'}<input data-b="${bi}" data-k="${k}" data-i="${ii}" value="${esc(it)}" placeholder="https://..."></label>`).join('')):field(bi,k,b[k])).join('')}</div>${b.type==='threeD'?`<div class="block-editor-fields"><label class="block-field">3D-model (GLB eller GLTF)<input type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" data-three-model="${bi}"><small>Upload en selvstændig model. GLTF-filer skal have indlejrede data-URI'er; eksterne teksturer/filer understøttes ikke endnu. Maks. 2 MB.</small></label>${b.modelName?`<div class="block-field"><strong>Valgt model: ${esc(b.modelName)}</strong><button type="button" class="btn ghost" data-act="threeModelRemove" data-i="${bi}">Fjern model</button></div>`:'<p class="mu">Ingen egen model valgt – den indbyggede 3D-figur vises i stedet.</p>'}</div>`:''}</article>`).join('');
+ const cards=blocks.map((b,bi)=>`<article class="block-editor-card"><header><span class="block-editor-icon">${({hero:'✦',features:'▦',about:'◉',services:'⌘',steps:'↗',faq:'?',cta:'➜',gallery:'▧',contact:'✉',booking:'◷'})[b.type]||'▤'}</span><div><strong>${BT[b.type]||b.type}</strong><small>Sektion ${bi+1} af ${blocks.length}</small></div><span class="sp"></span><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="-1" ${bi===0?'disabled':''} aria-label="Flyt sektion op">↑</button><button class="btn ghost block-move" data-act="bmove" data-i="${bi}" data-d="1" ${bi===blocks.length-1?'disabled':''} aria-label="Flyt sektion ned">↓</button>${b.type==='hero'||b.type==='contact'?'<span class="block-fixed-label">Fast sektion</span>':`<button class="btn ghost block-remove" data-act="brem" data-i="${bi}">Fjern</button>`}</header><div class="block-editor-fields">${Object.keys(b).filter(k=>!['id','type','modelData','modelFormat','modelName'].includes(k)).map(k=>Array.isArray(b[k])?(b[k].length&&typeof b[k][0]==='object'?itemFields(bi,b[k]):b[k].map((it,ii)=>`<label class="block-field">${k==='images'?'Billede URL':'Element'}<input data-b="${bi}" data-k="${k}" data-i="${ii}" value="${esc(it)}" placeholder="https://..."></label>`).join('')):k==='shape'&&b.type==='threeD'?`<label class="block-field">3D-objekt<select data-b="${bi}" data-k="shape"><option value="barber-chair" ${b.shape==='barber-chair'?'selected':''}>Barberstol</option><option value="barber-pole" ${b.shape==='barber-pole'?'selected':''}>Barberstang</option><option value="scissors" ${b.shape==='scissors'?'selected':''}>Frisørsaks</option><option value="shampoo-bottle" ${b.shape==='shampoo-bottle'?'selected':''}>Shampoo-flaske</option><option value="car" ${b.shape==='car'?'selected':''}>Bil</option><option value="wheel" ${b.shape==='wheel'?'selected':''}>Bildæk / hjul</option><option value="engine" ${b.shape==='engine'?'selected':''}>Motor</option><option value="orb" ${b.shape==='orb'?'selected':''}>3D-kugle</option><option value="torus" ${b.shape==='torus'?'selected':''}>3D-ring</option><option value="box" ${b.shape==='box'?'selected':''}>3D-form</option><option value="knot" ${b.shape==='knot'?'selected':''}>3D-design</option></select></label>`:field(bi,k,b[k])).join('')}</div>${b.type==='threeD'?`<div class="block-editor-fields"><label class="block-field">3D-model (GLB eller GLTF)<input type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" data-three-model="${bi}"><small>Upload en selvstændig model. GLTF-filer skal have indlejrede data-URI'er; eksterne teksturer/filer understøttes ikke endnu. Maks. 2 MB.</small></label>${b.modelName?`<div class="block-field"><strong>Valgt model: ${esc(b.modelName)}</strong><button type="button" class="btn ghost" data-act="threeModelRemove" data-i="${bi}">Fjern model</button></div>`:'<p class="mu">Ingen egen model valgt – den indbyggede 3D-figur vises i stedet.</p>'}</div>`:''}</article>`).join('');
  const addTypes=['features','services','about','steps','faq','cta','gallery','booking','pricing','team','reviews','map','threeD'];
  const anim=p.site.meta.animation||{level:'immersive'};const level=anim.level||'immersive';
  return `<div class="editor-workspace-head"><div><span class="dash-section-kicker">PRIME WEBS AI · WEBSITE STUDIO</span><h1>${esc(p.name)}</h1><p class="mu">Byg, redigér og se resultatet ét sted – med AI-chat og live preview side om side.</p></div><div class="row"><button class="btn ghost" data-act="go" data-v="customize">Design</button><button class="btn ghost" data-act="go" data-v="media">Billeder</button><button class="btn ghost" data-act="go" data-v="files">Filer</button><button class="btn ghost" data-act="go" data-v="history">Versioner</button><button class="btn ghost" data-act="go" data-v="code">Kode</button></div></div>
@@ -875,6 +1078,7 @@ function ensureIndustry3D(site,prompt,previousSite){
   const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(text);
   const salon=/salon|skønhedsklinik|beauty clinic|beauty salon|kosmetolog|negletekniker|nail studio|spa|wellness/.test(text);
   const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(text);
+  const tire=/dæk|bildæk|hjul|tire|tyre|wheel/.test(text);
   const architecture=/arkitekt|arkitektur|architecture|interior design|indretningsarkitekt|ejendomsudvikling|property development/.test(text);
   const ecommerce=/webshop|e-commerce|ecommerce|online store|produktbrand|product brand|product design|møbler|furniture|smykker|jewelry|ure|watches/.test(text);
   const technology=/teknologi|technology|software|saas|app development|it company|tech company|gaming|spiludvikling|game studio/.test(text);
@@ -895,13 +1099,27 @@ function ensureIndustry3D(site,prompt,previousSite){
   if(removing)return site;
   let wanted=[];
   if(barber)wanted=['barber-chair','barber-pole'];
-  else if(mechanic)wanted=['car','engine'];
+  else if(mechanic)wanted=tire?['car','wheel']:['car','engine'];
+  else if(tire)wanted=['wheel','car'];
   else if(salon)wanted=['shampoo-bottle','scissors'];
   else if(architecture)wanted=['box','knot'];
   else if(ecommerce)wanted=['box','orb'];
   else if(technology)wanted=['torus','knot'];
   else if(fitness)wanted=['orb','torus'];
   else if(explicit)wanted=['orb'];
+  // Enforce industry-to-object matching: an auto/engine object must never appear on a barber site.
+  if(barber){
+    const scenes=site.blocks.filter(b=>b&&b.type==='threeD');
+    if(scenes.length){
+      scenes[0].shape='barber-chair';
+      scenes[0].modelData='';
+      scenes[0].modelUrl='';
+      scenes[0].modelName='Barber Shop Chair 01';
+      scenes[0].title=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Real 3D barber chair':'Ægte 3D-barberstol';
+      scenes[0].text=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Explore a detailed, real-world barber chair in 3D. Scroll to see it rotate.':'Oplev en detaljeret barberstol i 3D. Scroll ned, og se den dreje rundt.';
+      scenes.slice(1).forEach(b=>{if(['car','wheel','engine'].includes(b.shape))b.shape='barber-pole'});
+    }
+  }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
   const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
   const names=english?{
@@ -927,19 +1145,151 @@ function ensureIndustry3D(site,prompt,previousSite){
   }
   return site;
 }
-// Image helpers: keep generation independent of optional image-enrichment logic.
+// Industry-aware, openly licensed image enrichment. Images are searched on the server;
+// only commercial-use licenses are requested and each image keeps visible attribution.
 function ensureIndustryImages(site, prompt) {
   if (!site || !Array.isArray(site.blocks)) return site;
-  // Only retain explicitly supplied, usable image sources; never invent URLs.
   const validImage = value => typeof value === 'string' &&
     (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(value.trim()) || value.trim().startsWith('/'));
-  site.blocks = site.blocks.map(block => {
+  const cleanBlocks = blocks => (Array.isArray(blocks)?blocks:[]).map(block => {
     if (!block || typeof block !== 'object') return block;
     const copy = { ...block };
     if (typeof copy.image === 'string' && !validImage(copy.image)) delete copy.image;
-    if (Array.isArray(copy.images)) copy.images = copy.images.filter(validImage);
+    if (Array.isArray(copy.images)) copy.images = copy.images.filter(x => validImage(typeof x === 'string' ? x : x && x.url));
+    if(Array.isArray(copy.items))copy.items=copy.items.map(item=>{if(!item||typeof item!=='object')return item;const next={...item};if(next.image&&!validImage(next.image))delete next.image;return next});
     return copy;
   });
+  site.blocks=cleanBlocks(site.blocks);
+  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:cleanBlocks(page.blocks)}:page);
+  return site;
+}
+function imageSearchTerms(prompt) {
+  const p=String(prompt||'').toLowerCase();
+  const groups=[
+    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'real editorial photograph of professional barber cutting a clients hair, premium modern barbershop interior'],
+    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'real photograph of professional mechanic repairing a modern car inside a clean automotive garage'],
+    [/dæk|bildæk|tire|tyre/,'real close-up photograph of premium car tyre and alloy wheel'],
+    [/maler|painting|painter/,'professional house painter painting interior wall'],
+    [/tømrer|carpenter|snedker|woodwork/,'professional carpenter woodworking custom joinery workshop'],
+    [/elektriker|electrician|el-installatør/,'licensed electrician installing electrical equipment'],
+    [/vvs|blikkenslager|plumber|plumbing/,'professional plumber pipe installation bathroom'],
+    [/bygge|construction|entreprenør|contractor|murer|bricklayer/,'professional construction team building renovation'],
+    [/restaurant|café|cafe|bistro|pizza|sushi|catering/,'restaurant chef preparing food modern restaurant interior'],
+    [/frisør|salon|skønhed|beauty|spa|nail/,'professional beauty salon hair styling manicure'],
+    [/fitness|gym|træning|yoga|pilates|personal trainer/,'modern fitness studio personal training'],
+    [/tandlæge|dentist|klinik|fysioterapi|clinic|læge|doctor/,'modern dental medical clinic professional'],
+    [/advokat|lawyer|jurist|accountant|revisor|consultant/,'professional law office business consulting workspace'],
+    [/ejendom|estate|realtor|bolig|property/,'modern real estate home interior property agent'],
+    [/hotel|overnatning|bed and breakfast|bnb/,'boutique hotel room interior hospitality'],
+    [/fotograf|photographer|photo studio/,'professional photographer camera photo studio'],
+    [/webshop|butik|shop|fashion|tøj|clothing|jewelry|smykker/,'modern retail boutique product display'],
+    [/have|landskab|gardener|landscaping|gartner/,'professional gardener landscaping garden maintenance'],
+    [/rengøring|cleaning|cleaner/,'professional cleaning service modern home'],
+    [/hund|dog|dyrlæge|veterinarian|pet/,'veterinary clinic pet care dog grooming'],
+    [/transport|logistik|delivery|flyttefirma|moving/,'professional logistics delivery van warehouse'],
+    [/software|saas|technology|tech|it company|gaming/,'modern technology software team workstation'],
+    [/accountant|bogholder|revisor|regnskab|accounting/,'professional accountant working with financial reports in modern office'],
+    [/advokat|lawyer|law firm|jurist/,'professional lawyer in contemporary law office'],
+    [/autoværksted|bilforhandler|car dealer|used cars|biludlejning|car rental/,'modern car showroom and professional automotive service workshop'],
+    [/blomster|florist|flower shop/,'florist arranging fresh flowers in a flower studio'],
+    [/event|bryllup|wedding|fest|party|venue/,'elegant event venue decorated for a celebration'],
+    [/skole|kursus|undervisning|education|tutor|school/,'modern classroom and professional teacher helping students'],
+    [/arkitekt|architecture|interior design|indretningsarkitekt/,'architectural interior design studio with material samples'],
+    [/tattoo|tatovering/,'professional tattoo artist working in a clean tattoo studio'],
+    [/dyrehandel|pet shop|grooming|hundesalon/,'professional dog grooming salon and pet care'],
+    [/flytning|moving company|storage|opbevaring/,'professional moving team carrying furniture into a home'],
+    [/autoværksted|mechanic|car repair/,'professional mechanic inspecting a vehicle on a workshop lift']
+  ];
+  const match=groups.find(([re])=>re.test(p));
+  const brand=String(prompt||'').slice(0,120);
+  return match?[match[1],brand+' business professional workspace',match[1]+' real commercial photography']:['professional small business team workplace',brand+' business services','real professional photography for '+brand];
+}
+async function enrichIndustryModels(site,prompt){
+ if(!site||!Array.isArray(site.blocks))return site;
+ const p=String(prompt||'').toLowerCase();
+ const barber=/barber|barbershop|barber shop/.test(p);
+ const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
+ const tire=/dæk|bildæk|dækcenter|tire|tyre|fælg|alloy wheel/.test(p);
+ const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p)||tire;
+ let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel']:['car','v8-engine']):[];
+ if(!assets.length)return site;
+ const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
+ const titles={
+  'barber-chair':english?'Real 3D barber chair':'Ægte 3D-barberstol',
+  'barber-pole':english?'Classic barber pole':'Klassisk barberstang',
+  'salon-styling-chair':english?'Real salon styling chair':'Ægte frisørstol',
+  'shampoo-backwash-unit':english?'Shampoo wash station':'Vaske- og shampoo-station',
+  car:english?'Explore the grey sport sedan in 3D':'Udforsk den grå sports-sedan i 3D',
+  'v8-engine':english?'Detailed V8 engine':'Detaljeret V8-motor',
+  'alloy-wheel':english?'Real tyre and alloy wheel':'Rigtigt bildæk med alufælg'
+ };
+ const descriptions={
+  'barber-chair':'Hydraulic Barber Chair by vinish.dev, CC BY 4.0.',
+  'barber-pole':'Barber Pole by vinish.dev, CC BY 4.0.',
+  'salon-styling-chair':'Salon Styling Chair by vinish.dev, CC BY 4.0.',
+  'shampoo-backwash-unit':'Shampoo Backwash Unit by vinish.dev, CC BY 4.0.',
+  car:'Sport Sedan by vinish.dev, CC BY 4.0.',
+  'v8-engine':'V8 Engine by vinish.dev, CC BY 4.0.',
+  'alloy-wheel':'Alloy Wheel by vinish.dev, CC BY 4.0.'
+ };
+ for(const asset of assets){
+  const shape=asset==='barber-chair'?'barber-chair':asset==='barber-pole'?'barber-pole':asset==='salon-styling-chair'?'barber-chair':asset==='shampoo-backwash-unit'?'shampoo-bottle':asset==='car'?'car':asset==='v8-engine'?'engine':'wheel';
+  let block=site.blocks.find(x=>x&&x.type==='threeD'&&(x.modelAsset===asset||x.shape===shape));
+  if(!block){block={id:uid(),type:'threeD',shape};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,block)}
+  block.shape=shape;block.modelData='';block.modelUrl='';block.modelFormat='glb';block.modelAsset=asset;
+  block.modelProvider='vinish.dev';block.modelLicense='CC BY 4.0';
+  block.title=titles[asset];
+  block.text=(english?'Drag to rotate the real 3D model, or scroll to explore it. ':'Træk for at dreje den rigtige 3D-model, eller scroll for at udforske den. ')+descriptions[asset];
+ }
+ await Promise.all(site.blocks.filter(x=>x&&x.type==='threeD'&&assets.includes(x.modelAsset)).map(async block=>{
+  try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:block.modelAsset})});if(!r.ok)throw new Error('Model API returned '+r.status);const m=await r.json();if(m&&m.url){block.modelUrl=m.url;block.modelFormat='glb';block.modelProvider=m.provider;block.modelLicense=m.license;block.modelCredit=m.credit;block.modelCreditUrl=m.creditUrl;block.modelName=m.name}}
+  catch(e){console.warn('Curated 3D model unavailable:',e&&e.message||e)}
+ }));
+ return site;
+}
+async function enrichIndustryImages(site,prompt) {
+  ensureIndustryImages(site,prompt);
+  if(!site||!Array.isArray(site.blocks))return site;
+  const heroBlock=site.blocks.find(b=>b&&b.type==='hero');
+  const explicitHeroImage=/hero|forside|baggrund|background|cover|banner/i.test(String(prompt||''));
+  const needsHero=!!heroBlock&&(!heroBlock.image||explicitHeroImage);
+  const gallery=site.blocks.find(b=>b&&b.type==='gallery');
+  const explicitImageRequest=/billede|billeder|foto|photos|images|image|gallery|galleri|picture|visuals/i.test(String(prompt||''));
+  const needsGallery=explicitImageRequest||!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
+  if(!needsHero&&!needsGallery)return site;
+  try{
+    const terms=imageSearchTerms(prompt);
+    const responses=await Promise.all(terms.slice(0,3).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:8})}).then(r=>r.ok?r.json():null).catch(()=>null)));
+    const media=responses.flatMap(r=>r&&Array.isArray(r.images)?r.images:[]);
+    const unique=Array.from(new Map(media.filter(x=>x&&x.url).map(x=>[x.url,x])).values());
+    if(!unique.length)return site;
+    const hero=site.blocks.find(b=>b&&b.type==='hero');
+    if(hero&&needsHero){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
+    const about=site.blocks.find(b=>b&&b.type==='about');
+    if(about&&!about.image&&unique.length){const x=unique.shift();about.image=x.url;about.imageAttribution=x.attribution;about.imageCreditUrl=x.creditUrl;}
+    // Give image-led service/feature cards their own relevant real photos, not just a hero and a gallery.
+    for(const section of site.blocks.filter(b=>b&&['services','features'].includes(b.type))){
+      for(const item of (Array.isArray(section.items)?section.items:[])){
+        if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
+      }
+    }
+    // Apply the same industry imagery to generated sub-pages, not only the homepage.
+    for(const page of (Array.isArray(site.pages)?site.pages:[])){
+      if(!page||!Array.isArray(page.blocks))continue;
+      const pageHero=page.blocks.find(b=>b&&b.type==='hero');
+      if(pageHero&&!pageHero.image&&unique.length){const x=unique.shift();pageHero.image=x.url;pageHero.imageAttribution=x.attribution;pageHero.imageCreditUrl=x.creditUrl;}
+      for(const section of page.blocks.filter(b=>b&&['services','features'].includes(b.type))){
+        for(const item of (Array.isArray(section.items)?section.items:[]))if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||page.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
+      }
+    }
+    if(needsGallery){
+      const images=unique.slice(0,6).map(x=>({url:x.url,attribution:x.attribution,creditUrl:x.creditUrl}));
+      if(images.length){
+        if(!gallery)site.blocks.push({id:'gallery-'+Math.random().toString(36).slice(2,9),type:'gallery',title:'Galleri',images});
+        else gallery.images=images;
+      }
+    }
+  }catch(error){console.warn('Industry image search unavailable:',error&&error.message||error)}
   return site;
 }
 function keepImages(previousSite, nextSite) {
@@ -974,7 +1324,7 @@ async function generate(){
   site.meta.language=({Dansk:'da',English:'en',Español:'es',Deutsch:'de',Français:'fr'})[f.lang||'Dansk']||'da';
   const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
   ensureIndustry3D(site,promptText);
-  ensureIndustryImages(site,promptText);
+  await enrichIndustryImages(site,promptText);await enrichIndustryModels(site,promptText);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
@@ -987,7 +1337,7 @@ async function send(t){
   const p=getP();
   if(!p||!p.id){S.busy=false;S.err='Den valgte hjemmeside kunne ikke genfindes. Din besked er ikke sendt. Gå til Dashboard, og åbn projektet igen.';banner(S.err);render();return}
   if(Credits.balance()<Credits.cost.edit){upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t},{r:'ai',t:'Du har ikke flere credits til at udføre ændringen. Din besked er gemt.'})});return render()}
-  const conversation=[...(p.chat||[]).slice(-9),{r:'u',t}];
+  const conversation=[...(p.chat||[]).slice(-13),{r:'u',t}];
   upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'u',t})});
   S.busy=true;S.chatStatus='Jeg har modtaget din besked. Jeg arbejder på hjemmesiden nu…';render();
   try {
@@ -996,7 +1346,7 @@ async function send(t){
       const reply=String(r&&r.reply||'Jeg kunne ikke bekræfte, at ændringen blev gennemført. Prøv at formulere ønsket lidt anderledes.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:reply})});
     } else {
-      r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=ensureIndustryImages(r.site,[p.name,t].join(' '));
+      r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=await enrichIndustryImages(r.site,[p.name,t].join(' '));r.site=await enrichIndustryModels(r.site,[p.name,t].join(' '));
       const reply=String(r.reply||'Færdigt — jeg har opdateret hjemmesiden efter din besked. Kig i previewet, og fortæl mig, hvis du vil have flere ændringer.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;q.chat.push({r:'ai',t:reply});Credits.spend('edit')});
     }
