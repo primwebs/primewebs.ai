@@ -31,7 +31,7 @@ const $=s=>document.querySelector(s);
 // Storage: browseren nu, database (fx Supabase) senere
 const Storage={mem:{},
   get(k,d){try{const v=localStorage.getItem(k);if(!v)return d;const x=JSON.parse(v);return(x==null||Array.isArray(x)!==Array.isArray(d)||typeof x!==typeof d)?d:x}catch(e){return k in this.mem?this.mem[k]:d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}if(window.PWDB)window.PWDB.persistKey(k,v)}};
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){this.mem[k]=v}if(window.PWDB)return window.PWDB.persistKey(k,v);return undefined}};
 // Session og credits hentes fra Supabase efter login.
 const Session={user:()=>({id:window.PWDB&&window.PWDB.user&&window.PWDB.user.id,name:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.display_name)||'Bruger',role:(window.PWDB&&window.PWDB.profile&&window.PWDB.profile.role)||'user',email:(window.PWDB&&window.PWDB.user&&window.PWDB.user.email)||''}),can:()=>['owner','admin'].includes(Session.user().role)};
 const Credits={cost:{generate:6,edit:1},
@@ -96,7 +96,7 @@ const Projects={
   },
   save(list){
     const result=normalizeProjectIds(dedupeProjectRecords((Array.isArray(list)?list:[]).map(fixP).filter(Boolean)));
-    Storage.set('pw.projects',result.projects);
+    return Storage.set('pw.projects',result.projects);
   }
 };
 // Defensive record normalizers used by the project/customer repositories.
@@ -1109,7 +1109,7 @@ function ext(a,b){const id=b.dataset.id,d=b.dataset;
   if(a==='rdy'){upd(id,q=>{q.status=q.status==='ready'?'draft':'ready'});return 1}
   if(a==='cadd'){const f=S.cf;if(!f.name.trim()){S.err='Skriv et navn.';return 1}const pl=PLANS.find(p=>p[0]===f.plan)||PLANS[0];Customers.save([{id:uid(),name:f.name.trim(),email:f.email.trim(),plan:pl[0],credits:pl[1],createdAt:Date.now()},...Customers.all()]);S.cf={name:'',email:'',plan:'Gratis'};S.err='';return 1}
   if(a==='cc'){const c=Customers.all(),u=c.find(x=>x.id===id);if(u){u.credits=Math.max(0,u.credits+ +d.n);Customers.save(c)}return 1}
-  if(a==='cdel'){if(S.cdel===id){Customers.save(Customers.all().filter(x=>x.id!==id));S.cdel=null}else S.cdel=id;return 1}
+  if(a==='cdel'){if(S.cdel===id){Customers.save(Customers.all().filter(x=>x.id!==id));if(window.PWDB&&window.PWDB.deleteCustomer)window.PWDB.deleteCustomer(id).catch(err=>banner('Kunden kunne ikke slettes i skyen: '+err.message));S.cdel=null}else S.cdel=id;return 1}
   if(a==='bk'){S.out=snap();S.outId='bk';return 1}
   if(a==='bkDownload'){const data=snap(),blob=new Blob([data],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a'),stamp=new Date().toISOString().replace(/[:.]/g,'-');a.href=url;a.download='primewebs-backup-'+stamp+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);S.msg='Sikkerhedskopien er downloadet.';return 1}
   if(a==='rs'){if(!S.rc){S.rc=1;S.msg='';return 1}S.rc=0;
@@ -1524,7 +1524,7 @@ async function generate(){
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
-  Projects.save([p,...Projects.all()]);
+  try{await Projects.save([p,...Projects.all()]);if(window.PWDB&&window.PWDB.flush)await window.PWDB.flush();}catch(saveError){console.error('New project cloud save failed:',saveError);window.__pwCloudError=saveError.message||'Projektet kunne ikke synkroniseres til skyen.';}
   S.id=p.id;Storage.set('pw.activeProject',p.id);
   S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='builder';S.miniTab='edit';S.id=p.id;render();
 }
@@ -1572,7 +1572,7 @@ document.addEventListener('click',e=>{
 
   if(a==='list'){S.view='dash';S.del=null}
   else if(a==='new'){S.view='new';S.err=''}
-  else if(a==='del'){Projects.save(Projects.all().filter(p=>String(p.id)!==String(id)));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Project deleted from your workspace.')}
+  else if(a==='del'){Projects.save(Projects.all().filter(p=>String(p.id)!==String(id)));if(window.PWDB&&window.PWDB.deleteProject)window.PWDB.deleteProject(id).catch(err=>banner('Projektet kunne ikke slettes i skyen: '+err.message));if(String(S.id)===String(id)){S.id=null;Storage.set('pw.activeProject',null)}S.del=null;banner('Project deleted from your workspace.')}
   else if(a==='undo'||a==='redo')hist(a);
   else if(a==='dev')S.device=b.dataset.d;
   render();
