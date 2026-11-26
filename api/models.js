@@ -12,7 +12,20 @@ const CATALOG={
  "car-lift":{name:"Two Post Car Lift",path:"garage-and-workshop/two-post-car-lift.glb",credit:'"Two Post Car Lift" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
  "tire-changer":{name:"Tire Changer",path:"garage-and-workshop/tire-changer.glb",credit:'"Tire Changer" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
  "v8-engine":{name:"V8 Engine",path:"engines-and-motors/v8-engine.glb",credit:'"V8 Engine" by vinish.dev',creditUrl:CREDIT+"engines-and-motors",license:"CC BY 4.0"},
- "alloy-wheel":{name:"Alloy Wheel and Tyre",path:"car-parts/alloy-wheel.glb",credit:'"Alloy Wheel" by vinish.dev',creditUrl:CREDIT+"car-parts",license:"CC BY 4.0"}
+ "alloy-wheel":{name:"Alloy Wheel and Tyre",path:"car-parts/alloy-wheel.glb",credit:'"Alloy Wheel" by vinish.dev',creditUrl:CREDIT+"car-parts",license:"CC BY 4.0"},
+ "grand-tourer":{name:"Grand Tourer",path:"realistic-cars/grand-tourer.glb",credit:'"Grand Tourer" by vinish.dev',creditUrl:CREDIT+"realistic-cars",license:"CC BY 4.0"},
+ "muscle-coupe":{name:"Muscle Coupe",path:"realistic-cars/muscle-coupe.glb",credit:'"Muscle Coupe" by vinish.dev',creditUrl:CREDIT+"realistic-cars",license:"CC BY 4.0"},
+ "luxury-suv":{name:"Luxury SUV",path:"realistic-cars/luxury-suv.glb",credit:'"Luxury SUV" by vinish.dev',creditUrl:CREDIT+"realistic-cars",license:"CC BY 4.0"},
+ "rolling-tool-chest":{name:"Rolling Tool Chest",path:"garage-and-workshop/rolling-tool-chest.glb",credit:'"Rolling Tool Chest" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "hydraulic-floor-jack":{name:"Hydraulic Floor Jack",path:"garage-and-workshop/hydraulic-floor-jack.glb",credit:'"Hydraulic Floor Jack" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "wheel-balancer":{name:"Wheel Balancer",path:"garage-and-workshop/wheel-balancer.glb",credit:'"Wheel Balancer" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "garage-workbench":{name:"Garage Workbench",path:"garage-and-workshop/garage-workbench.glb",credit:'"Garage Workbench" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "engine-hoist":{name:"Engine Hoist",path:"garage-and-workshop/engine-hoist.glb",credit:'"Engine Hoist" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "mechanic-creeper":{name:"Mechanic Creeper",path:"garage-and-workshop/mechanic-creeper.glb",credit:'"Mechanic Creeper" by vinish.dev',creditUrl:CREDIT+"garage-and-workshop",license:"CC BY 4.0"},
+ "armchair":{name:"Armchair",path:"furniture/armchair.glb",credit:'"Armchair" by vinish.dev',creditUrl:CREDIT+"furniture",license:"CC BY 4.0"},
+ "dining-chair":{name:"Dining Chair",path:"furniture/dining-chair.glb",credit:'"Dining Chair" by vinish.dev',creditUrl:CREDIT+"furniture",license:"CC BY 4.0"},
+ "office-chair":{name:"Office Chair",path:"furniture/office-chair.glb",credit:'"Office Chair" by vinish.dev',creditUrl:CREDIT+"furniture",license:"CC BY 4.0"},
+ "three-seat-sofa":{name:"Three-Seat Sofa",path:"furniture/three-seat-sofa.glb",credit:'"Three-Seat Sofa" by vinish.dev',creditUrl:CREDIT+"furniture",license:"CC BY 4.0"}
 };
 module.exports=async(req,res)=>{
  res.setHeader("Cache-Control","public, max-age=86400, stale-while-revalidate=604800");
