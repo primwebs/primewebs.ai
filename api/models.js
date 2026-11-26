@@ -13,8 +13,22 @@ const CATALOG={
 };
 module.exports=async(req,res)=>{
  res.setHeader("Cache-Control","public, max-age=86400, stale-while-revalidate=604800");
- if(req.method!=="POST")return res.status(405).json({error:"Use POST."});
- const item=CATALOG[String(req.body&&req.body.asset||"").toLowerCase()];
+ const asset=String((req.query&&req.query.asset)||(req.body&&req.body.asset)||"").toLowerCase();
+ const item=CATALOG[asset];
  if(!item)return res.status(400).json({error:"Unknown curated model."});
- return res.status(200).json({...item,url:BASE+item.path,format:"glb",provider:"vinish.dev"});
+ // Stream the GLB through PrimeWebs. The upstream host only allows its own
+ // origin via CORS, so browsers cannot load its model URLs directly.
+ if(req.method==="GET"&&String(req.query&&req.query.download||"")==="1"){
+  try{
+   const upstream=await fetch(BASE+item.path,{signal:AbortSignal.timeout(25000)});
+   if(!upstream.ok)return res.status(502).json({error:"3D model source returned HTTP "+upstream.status});
+   const bytes=Buffer.from(await upstream.arrayBuffer());
+   res.setHeader("Content-Type","model/gltf-binary");
+   res.setHeader("Content-Length",String(bytes.length));
+   res.setHeader("X-Content-Type-Options","nosniff");
+   return res.status(200).send(bytes);
+  }catch(error){return res.status(502).json({error:"Could not retrieve 3D model.",detail:String(error.message||"").slice(0,160)})}
+ }
+ if(req.method!=="POST")return res.status(405).json({error:"Use POST for model metadata or GET with download=1."});
+ return res.status(200).json({...item,url:"https://primewebs.site/api/models?asset="+encodeURIComponent(asset)+"&download=1",format:"glb",provider:"vinish.dev"});
 };
