@@ -1163,16 +1163,28 @@ function ensureIndustryImages(site, prompt) {
 function imageSearchTerms(prompt) {
   const p=String(prompt||'').toLowerCase();
   const groups=[
-    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'modern barber shop interior barber cutting hair'],
-    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'professional auto mechanic workshop car repair'],
-    [/dæk|bildæk|tire|tyre/,'car tire wheel close up automotive'],
-    [/maler|painting|painter/,'professional house painter painting interior'],
-    [/tømrer|carpenter|snedker/,'professional carpenter woodworking workshop'],
-    [/restaurant|café|cafe|bistro|pizza|sushi/,'restaurant interior chef food'],
-    [/frisør|salon|skønhed|beauty|spa|nail/,'beauty salon professional hair styling'],
-    [/fitness|gym|træning|yoga|pilates/,'modern gym fitness training'],
-    [/tandlæge|klinik|fysioterapi|clinic/,'modern healthcare clinic interior'],
-    [/webshop|butik|shop|fashion|tøj/,'modern retail boutique product display']
+    [/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon/,'professional barber cutting hair modern barbershop interior'],
+    [/mekaniker|autoværksted|bilværksted|garage|car repair|auto repair|mechanic/,'professional mechanic working in modern automotive repair workshop'],
+    [/dæk|bildæk|tire|tyre/,'real car tire wheel alloy rim close up'],
+    [/maler|painting|painter/,'professional house painter painting interior wall'],
+    [/tømrer|carpenter|snedker|woodwork/,'professional carpenter woodworking custom joinery workshop'],
+    [/elektriker|electrician|el-installatør/,'licensed electrician installing electrical equipment'],
+    [/vvs|blikkenslager|plumber|plumbing/,'professional plumber pipe installation bathroom'],
+    [/bygge|construction|entreprenør|contractor|murer|bricklayer/,'professional construction team building renovation'],
+    [/restaurant|café|cafe|bistro|pizza|sushi|catering/,'restaurant chef preparing food modern restaurant interior'],
+    [/frisør|salon|skønhed|beauty|spa|nail/,'professional beauty salon hair styling manicure'],
+    [/fitness|gym|træning|yoga|pilates|personal trainer/,'modern fitness studio personal training'],
+    [/tandlæge|dentist|klinik|fysioterapi|clinic|læge|doctor/,'modern dental medical clinic professional'],
+    [/advokat|lawyer|jurist|accountant|revisor|consultant/,'professional law office business consulting workspace'],
+    [/ejendom|estate|realtor|bolig|property/,'modern real estate home interior property agent'],
+    [/hotel|overnatning|bed and breakfast|bnb/,'boutique hotel room interior hospitality'],
+    [/fotograf|photographer|photo studio/,'professional photographer camera photo studio'],
+    [/webshop|butik|shop|fashion|tøj|clothing|jewelry|smykker/,'modern retail boutique product display'],
+    [/have|landskab|gardener|landscaping|gartner/,'professional gardener landscaping garden maintenance'],
+    [/rengøring|cleaning|cleaner/,'professional cleaning service modern home'],
+    [/hund|dog|dyrlæge|veterinarian|pet/,'veterinary clinic pet care dog grooming'],
+    [/transport|logistik|delivery|flyttefirma|moving/,'professional logistics delivery van warehouse'],
+    [/software|saas|technology|tech|it company|gaming/,'modern technology software team workstation']
   ];
   const match=groups.find(([re])=>re.test(p));
   const brand=String(prompt||'').slice(0,120);
