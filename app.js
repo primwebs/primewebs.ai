@@ -1133,7 +1133,7 @@ function ensureIndustry3D(site,prompt,previousSite){
       scenes[0].modelName='Barber Shop Chair 01';
       scenes[0].title=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Real 3D barber chair':'Ægte 3D-barberstol';
       scenes[0].text=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en')?'Explore a detailed, real-world barber chair in 3D. Scroll to see it rotate.':'Oplev en detaljeret barberstol i 3D. Scroll ned, og se den dreje rundt.';
-      scenes.slice(1).forEach(b=>{if(['car','wheel','engine'].includes(b.shape))b.shape='barber-pole'});
+      scenes.slice(1).forEach(b=>{b.shape='barber-pole';b.modelData='';b.modelUrl='';b.modelAsset=''});
     }
   }
   // A mechanic site must never keep AI-generated generic orb/bubble scenes.
