@@ -1172,7 +1172,8 @@ async function enrichIndustryImages(site,prompt) {
   if(!site||!Array.isArray(site.blocks))return site;
   const needsHero=site.blocks.some(b=>b&&b.type==='hero'&&!b.image);
   const gallery=site.blocks.find(b=>b&&b.type==='gallery');
-  const needsGallery=!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
+  const explicitImageRequest=/billede|billeder|foto|photos|images|image|gallery|galleri|picture|visuals/i.test(String(prompt||''));
+  const needsGallery=explicitImageRequest||!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
   if(!needsHero&&!needsGallery)return site;
   try{
     const terms=imageSearchTerms(prompt);
