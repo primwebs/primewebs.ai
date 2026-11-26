@@ -1286,17 +1286,17 @@ async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
     const clearGeneratedImages=blocks=>(Array.isArray(blocks)?blocks:[]).map(block=>{
       if(!block||typeof block!=='object')return block;
       const copy={...block};
-      if(typeof copy.image==='string'&&/^https?:\\/\\//i.test(copy.image)){
+      if(typeof copy.image==='string'&&(copy.image.startsWith('http://')||copy.image.startsWith('https://'))){
         delete copy.image;delete copy.imageAttribution;delete copy.imageCreditUrl;delete copy.imageAlt;
       }
       if(Array.isArray(copy.images))copy.images=copy.images.filter(item=>{
         const url=typeof item==='string'?item:item&&item.url;
-        return typeof url==='string'&&!/^https?:\\/\\//i.test(url);
+        return typeof url==='string'&&!(url.startsWith('http://')||url.startsWith('https://'));
       });
       if(Array.isArray(copy.items))copy.items=copy.items.map(item=>{
         if(!item||typeof item!=='object')return item;
         const next={...item};
-        if(typeof next.image==='string'&&/^https?:\\/\\//i.test(next.image)){
+        if(typeof next.image==='string'&&(next.image.startsWith('http://')||next.image.startsWith('https://'))){
           delete next.image;delete next.imageAttribution;delete next.imageCreditUrl;delete next.imageAlt;
         }
         return next;
