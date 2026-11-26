@@ -1277,9 +1277,35 @@ async function enrichIndustryModels(site,prompt){
  }));
  return site;
 }
-async function enrichIndustryImages(site,prompt) {
+async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   ensureIndustryImages(site,prompt);
   if(!site||!Array.isArray(site.blocks))return site;
+  // On a brand-new website, replace AI-supplied/legacy remote stock images with
+  // fresh industry-matched, attributed Openverse photos. Keep embedded user uploads.
+  if(replaceGeneratedImages){
+    const clearGeneratedImages=blocks=>(Array.isArray(blocks)?blocks:[]).map(block=>{
+      if(!block||typeof block!=='object')return block;
+      const copy={...block};
+      if(typeof copy.image==='string'&&/^https?:\\/\\//i.test(copy.image)){
+        delete copy.image;delete copy.imageAttribution;delete copy.imageCreditUrl;delete copy.imageAlt;
+      }
+      if(Array.isArray(copy.images))copy.images=copy.images.filter(item=>{
+        const url=typeof item==='string'?item:item&&item.url;
+        return typeof url==='string'&&!/^https?:\\/\\//i.test(url);
+      });
+      if(Array.isArray(copy.items))copy.items=copy.items.map(item=>{
+        if(!item||typeof item!=='object')return item;
+        const next={...item};
+        if(typeof next.image==='string'&&/^https?:\\/\\//i.test(next.image)){
+          delete next.image;delete next.imageAttribution;delete next.imageCreditUrl;delete next.imageAlt;
+        }
+        return next;
+      });
+      return copy;
+    });
+    site.blocks=clearGeneratedImages(site.blocks);
+    if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:clearGeneratedImages(page.blocks)}:page);
+  }
   const heroBlock=site.blocks.find(b=>b&&b.type==='hero');
   const explicitHeroImage=/hero|forside|baggrund|background|cover|banner/i.test(String(prompt||''));
   const needsHero=!!heroBlock&&(!heroBlock.image||explicitHeroImage);
@@ -1354,7 +1380,7 @@ async function generate(){
   site.meta.language=({Dansk:'da',English:'en',Español:'es',Deutsch:'de',Français:'fr'})[f.lang||'Dansk']||'da';
   const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
   ensureIndustry3D(site,promptText);
-  await enrichIndustryImages(site,promptText);await enrichIndustryModels(site,promptText);
+  await enrichIndustryImages(site,promptText,true);await enrichIndustryModels(site,promptText);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
