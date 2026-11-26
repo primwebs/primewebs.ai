@@ -80,7 +80,7 @@ const Projects={
       const automotive=/autoshop|auto.?service|auto.?repair|auto.?mechanic|autoværksted|automekaniker|bilværksted|bilmekaniker|car repair|automotive|tire shop|tyre shop/.test(words);
       if(!automotive||meta.pwGarageExperienceVersion>=1||blocks.some(b=>b&&b.type==='garage3D'))return;
       const english=String(meta.language||'da').toLowerCase().startsWith('en');
-      const assets=['car','grand-tourer','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
+      const assets=['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
       const models=assets.map(asset=>({asset,url:'https://primewebs.site/api/models?asset='+asset+'&download=1',name:asset,credit:'3D model by vinish.dev, CC BY 4.0',creditUrl:'https://vinish.dev/free-3d-models/',license:'CC BY 4.0'}));
       const garage={id:'pw-garage-'+p.id,type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll down to move through a realistic workshop with three detailed cars, a V8 engine and professional service equipment.':'Scroll ned for at bevæge dig gennem et realistisk værksted med tre detaljerede biler, en V8-motor og professionelt værkstedsudstyr.',models};
       p.site.meta=p.site.meta||{};p.site.meta.pwGarageExperienceVersion=1;
@@ -589,7 +589,7 @@ for(const host of hosts){let renderer,raf=0,ro,visible=true;try{
  for(let x=-8;x<=8;x+=4){const beam=new Mesh(new BoxGeometry(.18,.18,38),metalMat);beam.position.set(x,6.5,-1);scene.add(beam);const lamp=new Mesh(new BoxGeometry(1.8,.07,.32),lightMat);lamp.position.set(x,6.25,-1);scene.add(lamp)}
  for(let z=-17;z<=13;z+=5){const line=new Mesh(new BoxGeometry(17,.018,.035),stripeMat);line.position.set(0,.01,z);scene.add(line)}
  const bayLines=new MeshStandardMaterial({color:'#bfc7d0',roughness:.8});for(const x of [-7.7,-2.7,2.7,7.7]){const line=new Mesh(new BoxGeometry(.045,.02,25),bayLines);line.position.set(x,.02,-3);scene.add(line)}
- const loader=new GLTFLoader(),models=JSON.parse(host.dataset.models||'[]'),loaded={},carSpecs=[{asset:'car',x:-5.1,z:0,yaw:0},{asset:'grand-tourer',x:0,z:-5.3,yaw:0},{asset:'realistic-muscle-coupe',x:5.1,z:0,yaw:0}];
+ const loader=new GLTFLoader(),models=JSON.parse(host.dataset.models||'[]'),loaded={},carSpecs=[{asset:'car',x:-5.1,z:0,yaw:0},{asset:'v12-grand-coupe',x:0,z:-5.3,yaw:0},{asset:'realistic-muscle-coupe',x:5.1,z:0,yaw:0}];
  const loadAsset=async asset=>{if(loaded[asset])return loaded[asset];const spec=models.find(m=>m.asset===asset);if(!spec)return null;const gltf=await loader.loadAsync(spec.url);loaded[asset]=gltf.scene;return loaded[asset]};
  const cars=[];
  for(const spec of carSpecs){try{const original=await loadAsset(spec.asset);if(!original)continue;const model=original.clone(true);model.position.set(spec.x,0,spec.z);model.rotation.y=spec.yaw;scene.add(model);model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m.map)m.map.colorSpace=THREE.SRGBColorSpace})}});cars.push(model)}catch(e){console.warn('Car model failed:',spec.asset,e)}}
@@ -1336,7 +1336,7 @@ async function enrichIndustryModels(site,prompt){
  if(!assets.length)return site;
  if(mechanic){
   const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
-  const assets=['car','grand-tourer','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
+  const assets=['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
   const labels={
    car:english?'Sport sedan':'Sports-sedan',
    'grand-tourer':'Grand Tourer',
@@ -1350,7 +1350,7 @@ async function enrichIndustryModels(site,prompt){
   };
   const credits={
    car:'"Sport Sedan" by vinish.dev, CC BY 4.0',
-   'grand-tourer':'"Grand Tourer" by vinish.dev, CC BY 4.0',
+   'v12-grand-coupe':'"V12 Grand Coupe" by vinish.dev, CC BY 4.0',
    'realistic-muscle-coupe':'"Muscle Coupe" by vinish.dev, CC BY 4.0',
    'v8-engine':'"V8 Engine" by vinish.dev, CC BY 4.0',
    'car-lift':'"Two Post Car Lift" by vinish.dev, CC BY 4.0',
