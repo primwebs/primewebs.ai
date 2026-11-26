@@ -137,7 +137,7 @@ function sanitizeSite(site, fallbackLanguage) {
     if (!b || typeof b !== "object") continue;
     const id = str(b.id, 40) || Math.random().toString(36).slice(2, 9);
     if (["features", "services", "steps", "faq", "team"].includes(b.type)) {
-      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600) }));
+      const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => { const item={ t: str(i && i.t, 160), d: str(i && i.d, 600) }; const image=imgRef(i&&i.image); if(image)item.image=image; if(i&&i.imageAlt)item.imageAlt=str(i.imageAlt,160); if(i&&i.imageAttribution)item.imageAttribution=str(i.imageAttribution,240); if(i&&/^https:\/\//i.test(i.imageCreditUrl||''))item.imageCreditUrl=str(i.imageCreditUrl,500); return item; });
       out.blocks.push({ id, type: b.type, title: str(b.title, 160), items });
     } else if (b.type === "pricing") {
       const items = (Array.isArray(b.items) ? b.items : []).slice(0, 8).map(i => ({ t: str(i && i.t, 160), d: str(i && i.d, 600), price: str(i && i.price, 80) }));
