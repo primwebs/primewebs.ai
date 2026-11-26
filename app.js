@@ -1524,7 +1524,7 @@ async function generate(){
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
-  try{await Projects.save([p,...Projects.all()]);if(window.PWDB&&window.PWDB.flush)await window.PWDB.flush();}catch(saveError){console.error('New project cloud save failed:',saveError);window.__pwCloudError=saveError.message||'Projektet kunne ikke synkroniseres til skyen.';}
+  try{await Projects.save([p,...Projects.all()]);if(window.PWDB&&window.PWDB.flush)await window.PWDB.flush();window.__pwCloudError=null;}catch(saveError){console.error('New project cloud save failed:',saveError);window.__pwCloudError=saveError.message||'Projektet kunne ikke synkroniseres til skyen.';banner('Hjemmesiden er oprettet, men cloud-gemningen fejlede. Den ligger lokalt og prøver igen ved næste synkronisering.');}
   S.id=p.id;Storage.set('pw.activeProject',p.id);
   S.form={name:'',desc:'',style:'Moderne'};S.busy=false;S.view='builder';S.miniTab='edit';S.id=p.id;render();
 }
@@ -1549,9 +1549,9 @@ async function send(t){
   } catch(error) {
     upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:'Jeg kunne ikke gennemføre ændringen: '+(error.message||'AI-forbindelsen svarede ikke. Din hjemmeside er ikke ændret.')})});
   }
-  S.busy=false;S.chatStatus='';render();
+  S.busy=false;S.chatStatus='';if(window.PWDB&&window.PWDB.flush){try{await window.PWDB.flush();window.__pwCloudError=null;}catch(syncError){window.__pwCloudError=syncError.message||'Cloud sync failed';banner('Ændringen er gemt lokalt, men kunne ikke synkroniseres til skyen. Den prøver igen ved næste synkronisering.')}}render();
 }
-function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()})}
+async function hist(a){upd(S.id,q=>{const from=a==='undo'?q.history:q.future,to=a==='undo'?q.future:q.history;if(!from.length)return;to.push(q.site);q.site=from.pop()});if(window.PWDB&&window.PWDB.flush){try{await window.PWDB.flush()}catch(e){banner('Versionen er ændret lokalt, men cloud-sync fejlede.')}}}
 
 document.addEventListener('click',e=>{
   const target=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;
@@ -1824,11 +1824,12 @@ function pwInvCurrent(){
  return {...p,...d,id:d.id||uid(),number,person:p.person,email:p.email,phone:p.phone,lines:lines.filter(x=>x.description||+x.price),total:sub+tax};
 }
 document.addEventListener('input',function(e){
- const k=e.target.dataset.pwInvProfile;if(k){const p=pwFinData();p[k]=e.target.value;Storage.set(PW_FIN_KEY,p);return}
- const d=e.target.dataset;if(d.inv){const v=Storage.get('pw.invoiceDraft',{});v[d.inv]=e.target.value;Storage.set('pw.invoiceDraft',v)}
- if(d.invLine!==undefined){const a=Storage.get('pw.invoiceDraftLines',[{description:'',qty:1,price:''}]);a[+d.i][d.invLine]=e.target.value;Storage.set('pw.invoiceDraftLines',a)}
+ const d=e.target.dataset;
+ // Keep typing responsive; persist the draft on change/blur rather than
+ // issuing a Supabase write for every keystroke.
+ if(d.inv||d.invLine!==undefined||d.pwInvProfile)return;
 });
-document.addEventListener('change',function(e){const d=e.target.dataset;if(d.inv){const v=Storage.get('pw.invoiceDraft',{});v[d.inv]=e.target.value;Storage.set('pw.invoiceDraft',v)}if(d.invLine!==undefined){const a=Storage.get('pw.invoiceDraftLines',[{description:'',qty:1,price:''}]);a[+d.i][d.invLine]=e.target.value;Storage.set('pw.invoiceDraftLines',a)}});
+document.addEventListener('change',function(e){const d=e.target.dataset,k=d.pwInvProfile;if(k){const p=pwFinData();p[k]=e.target.value;Storage.set(PW_FIN_KEY,p);return}if(d.inv){const v=Storage.get('pw.invoiceDraft',{});v[d.inv]=e.target.value;Storage.set('pw.invoiceDraft',v)}if(d.invLine!==undefined){const a=Storage.get('pw.invoiceDraftLines',[{description:'',qty:1,price:''}]);a[+d.i][d.invLine]=e.target.value;Storage.set('pw.invoiceDraftLines',a)}});
 document.addEventListener('click',function(e){
  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
  if(a==='pwCreditBilling'){Storage.set('pw.creditBilling',b.dataset.billing||'monthly');render();return}
