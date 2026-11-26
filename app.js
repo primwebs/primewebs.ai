@@ -73,7 +73,23 @@ const Projects={
   all(){
     const result=normalizeProjectIds(Storage.get('pw.projects',[]).map(fixP).filter(Boolean));
     const unique=dedupeProjectRecords(result.projects);
-    if(result.changed||unique.length!==result.projects.length)Storage.set('pw.projects',unique);
+    let migrated=false;
+    unique.forEach(p=>{
+      const meta=p.site&&p.site.meta||{},blocks=Array.isArray(p.site&&p.site.blocks)?p.site.blocks:[];
+      const words=[p.name,meta.title,meta.description,...blocks.flatMap(b=>[b&&b.title,b&&b.text])].join(' ').toLowerCase();
+      const automotive=/autoshop|auto.?service|auto.?repair|auto.?mechanic|autoværksted|automekaniker|bilværksted|bilmekaniker|car repair|automotive|tire shop|tyre shop/.test(words);
+      if(!automotive||meta.pwGarageExperienceVersion>=1||blocks.some(b=>b&&b.type==='garage3D'))return;
+      const english=String(meta.language||'da').toLowerCase().startsWith('en');
+      const assets=['car','grand-tourer','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
+      const models=assets.map(asset=>({asset,url:'https://primewebs.site/api/models?asset='+asset+'&download=1',name:asset,credit:'3D model by vinish.dev, CC BY 4.0',creditUrl:'https://vinish.dev/free-3d-models/',license:'CC BY 4.0'}));
+      const garage={id:'pw-garage-'+p.id,type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll down to move through a realistic workshop with three detailed cars, a V8 engine and professional service equipment.':'Scroll ned for at bevæge dig gennem et realistisk værksted med tre detaljerede biler, en V8-motor og professionelt værkstedsudstyr.',models};
+      p.site.meta=p.site.meta||{};p.site.meta.pwGarageExperienceVersion=1;
+      p.site.blocks=blocks.filter(b=>b&&b.type!=='threeD'&&b.type!=='garage3D');
+      const contactIndex=p.site.blocks.findIndex(b=>b&&b.type==='contact');
+      p.site.blocks.splice(contactIndex<0?p.site.blocks.length:contactIndex,0,garage);
+      migrated=true;
+    });
+    if(result.changed||unique.length!==result.projects.length||migrated)Storage.set('pw.projects',unique);
     return unique;
   },
   save(list){
