@@ -514,11 +514,11 @@ hosts.forEach(host=>{
   };
   const fail=()=>{host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-parse-failed'};
   if(/^https:\/\//i.test(src)){loader.load(src,ready,undefined,fail)}else{if(comma<0)throw new Error('Invalid embedded model');const raw=atob(src.slice(comma+1)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);if(host.dataset.modelFormat==='gltf')loader.parse(new TextDecoder().decode(bytes),'',ready,fail);else loader.parse(bytes.buffer,'',ready,fail)}
-  let visible=true,auto=true,dragging=false,lastX=0,lastY=0,pinch=0;const pointers=new Map();
+  let visible=true,auto=true,dragging=false,lastX=0,lastY=0,pinch=0,scrollTarget=0;const pointers=new Map();const updateScrollPose=()=>{const r=host.getBoundingClientRect(),vh=Math.max(1,window.innerHeight||1);scrollTarget=Math.max(-1,Math.min(1,((vh-r.top)/(vh+r.height)-.5)*2));};updateScrollPose();window.addEventListener('scroll',updateScrollPose,{passive:true});window.addEventListener('resize',updateScrollPose,{passive:true});
   const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   ro=new ResizeObserver(resize);ro.observe(host);
   const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.12,baseDistance)};
-  const draw=()=>{if(!visible)return;raf=0;if(!reduced&&auto)root.rotation.y+=.0035;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  const draw=()=>{if(!visible)return;raf=0;root.rotation.y+=(scrollTarget*.9-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0035;root.rotation.x+=(scrollTarget*.12-root.rotation.x)*.02;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
   io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
   host.style.touchAction='pan-y';
   host.addEventListener('pointerdown',e=>{pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
@@ -1192,7 +1192,7 @@ async function enrichIndustryModels(site,prompt){
  }
  if(block.modelData||block.modelUrl)return site;
  try{
-  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:barber?'BarberShopChair_01':'car_01'})});
+  const response=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset:barber?'BarberShopChair_01':'covered_car'})});
   if(!response.ok)return site;
   const model=await response.json();
   if(model&&model.url){block.modelUrl=model.url;block.modelFormat=model.format||'glb';block.modelProvider='Poly Haven';block.modelLicense='CC0';block.modelName=model.name||'';}
