@@ -1350,7 +1350,7 @@ function imageSearchTerms(prompt) {
   ];
   const match=groups.find(([re])=>re.test(p));
   const brand=String(prompt||'').slice(0,120);
-  return match?[match[1],brand+' business professional workspace',match[1]+' real commercial photography']:['professional small business team workplace',brand+' business services','real professional photography for '+brand];
+  return match?[match[1],brand+' authentic professional workplace photography',brand+' customer-facing service photography']:['professional small business team workplace',brand+' business services'];
 }
 async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
@@ -1475,11 +1475,11 @@ async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   const needsHero=!!heroBlock&&(!heroBlock.image||explicitHeroImage);
   const gallery=site.blocks.find(b=>b&&b.type==='gallery');
   const explicitImageRequest=/billede|billeder|foto|photos|images|image|gallery|galleri|picture|visuals/i.test(String(prompt||''));
-  const needsGallery=explicitImageRequest||!gallery||!Array.isArray(gallery.images)||gallery.images.length<3;
+  const needsGallery=explicitImageRequest||!!(gallery&&(!Array.isArray(gallery.images)||gallery.images.length<3));
   if(!needsHero&&!needsGallery)return site;
   try{
     const terms=imageSearchTerms(prompt);
-    const responses=await Promise.all(terms.slice(0,3).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:8})}).then(r=>r.ok?r.json():null).catch(()=>null)));
+    const responses=await Promise.all(terms.slice(0,explicitImageRequest?3:2).map(query=>fetch('/api/images',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,limit:explicitImageRequest?8:4})}).then(r=>r.ok?r.json():null).catch(()=>null)));
     const media=responses.flatMap(r=>r&&Array.isArray(r.images)?r.images:[]);
     const unique=Array.from(new Map(media.filter(x=>x&&x.url).map(x=>[x.url,x])).values());
     if(!unique.length)return site;
@@ -1487,23 +1487,25 @@ async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
     if(hero&&needsHero){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
     const about=site.blocks.find(b=>b&&b.type==='about');
     if(about&&!about.image&&unique.length){const x=unique.shift();about.image=x.url;about.imageAttribution=x.attribution;about.imageCreditUrl=x.creditUrl;}
-    // Give image-led service/feature cards their own relevant real photos, not just a hero and a gallery.
+    // Keep the image count deliberate: one hero, one supporting about image,
+    // and one service-card image by default. More are added only on explicit request.
+    let serviceImages=0;const serviceImageLimit=explicitImageRequest?3:1;
     for(const section of site.blocks.filter(b=>b&&['services','features'].includes(b.type))){
       for(const item of (Array.isArray(section.items)?section.items:[])){
-        if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
+        if(serviceImages>=serviceImageLimit)break;
+        if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;serviceImages++;}
       }
+      if(serviceImages>=serviceImageLimit)break;
     }
-    // Apply the same industry imagery to generated sub-pages, not only the homepage.
+    // A small number of sub-page hero images is enough; avoid decorating every page with another photo.
+    let subPageImages=0;const subPageImageLimit=explicitImageRequest?2:1;
     for(const page of (Array.isArray(site.pages)?site.pages:[])){
-      if(!page||!Array.isArray(page.blocks))continue;
+      if(!page||!Array.isArray(page.blocks)||subPageImages>=subPageImageLimit)continue;
       const pageHero=page.blocks.find(b=>b&&b.type==='hero');
-      if(pageHero&&!pageHero.image&&unique.length){const x=unique.shift();pageHero.image=x.url;pageHero.imageAttribution=x.attribution;pageHero.imageCreditUrl=x.creditUrl;}
-      for(const section of page.blocks.filter(b=>b&&['services','features'].includes(b.type))){
-        for(const item of (Array.isArray(section.items)?section.items:[]))if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||page.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
-      }
+      if(pageHero&&!pageHero.image&&unique.length){const x=unique.shift();pageHero.image=x.url;pageHero.imageAttribution=x.attribution;pageHero.imageCreditUrl=x.creditUrl;subPageImages++;}
     }
     if(needsGallery){
-      const images=unique.slice(0,6).map(x=>({url:x.url,attribution:x.attribution,creditUrl:x.creditUrl}));
+      const images=unique.slice(0,explicitImageRequest?4:3).map(x=>({url:x.url,attribution:x.attribution,creditUrl:x.creditUrl}));
       if(images.length){
         if(!gallery)site.blocks.push({id:'gallery-'+Math.random().toString(36).slice(2,9),type:'gallery',title:'Galleri',images});
         else gallery.images=images;
