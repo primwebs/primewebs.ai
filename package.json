@@ -6,6 +6,6 @@
     "node": "26.x"
   },
   "scripts": {
-    "test": "node scripts/check-source.js"
+    "test": "node scripts/check-source.js && node scripts/test-cloud-persistence.js"
   }
 }
