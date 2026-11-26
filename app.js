@@ -1133,15 +1133,16 @@ function ensureIndustry3D(site,prompt,previousSite){
       scenes.push(block);
     }
     scenes=scenes.slice(0,2);
-    const titles=english?['Interactive 3D car','Detailed 3D engine']:['Interaktiv 3D-bil','Detaljeret 3D-motor'];
+    const mechanicEnglish=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
+    const titles=mechanicEnglish?['Interactive 3D car','Detailed 3D engine']:['Interaktiv 3D-bil','Detaljeret 3D-motor'];
     scenes.forEach((block,index)=>{
       block.shape=mechanicShapes[index];
       block.modelAsset=mechanicAssets[index];
       block.modelData='';
       block.modelUrl='';
       block.modelFormat='glb';
-      block.title=tire&&index===1?(english?'Real alloy wheel and tyre':'Rigtigt alufælg og dæk'):titles[index];
-      block.text=english?'Drag with your mouse to rotate. Scroll down to zoom in and scroll up to zoom out.':'Træk med musen for at dreje modellen. Scroll ned for at zoome ind og op for at zoome ud.';
+      block.title=tire&&index===1?(mechanicEnglish?'Real alloy wheel and tyre':'Rigtigt alufælg og dæk'):titles[index];
+      block.text=mechanicEnglish?'Drag with your mouse to rotate. Scroll down to zoom in and scroll up to zoom out.':'Træk med musen for at dreje modellen. Scroll ned for at zoome ind og op for at zoome ud.';
       block.color='#3B82F6';
     });
     const keep=new Set(scenes);
