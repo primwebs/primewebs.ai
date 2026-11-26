@@ -23,6 +23,7 @@ for (const file of files) {
 
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const adapter = fs.readFileSync(path.join(root, 'pw-supabase.js'), 'utf8');
+const ai = fs.readFileSync(path.join(root, 'api/ai.js'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 const contracts = [
@@ -34,6 +35,9 @@ const contracts = [
   ['Studio design/media/history panels', ['themePanel','mediaPanel','historyPanel'].every(x => app.includes(x))],
   ['Supabase Storage uploads', adapter.includes("storage.from('primewebs-media').upload") && app.includes('data-media-upload')],
   ['Storage migration tracked', fs.existsSync(path.join(root, 'supabase/migrations/20261126230521_create_primewebs_media_bucket.sql'))],
+  ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
+  ['no automatic gallery by default', app.includes('const needsGallery=explicitImageRequest||!!(gallery&&')],
+  ['automotive gets one dedicated garage scene', ai.includes('dedicated interactive garage3D experience')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 
