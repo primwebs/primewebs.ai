@@ -512,7 +512,7 @@ hosts.forEach(host=>{
   const rim=new DirectionalLight(0xffd6a4,1.6);rim.position.set(1,3,-5);scene.add(rim);
   const root=new Group();scene.add(root);
   const loader=new GLTFLoader(),src=host.dataset.modelSrc,comma=src.indexOf(',');
-  let baseDistance=5.8,detachWheel=null,wheelHome=null,wheelOffset=0,wheelTarget=0;
+  let baseDistance=5.8,detachWheel=null,wheelHome=null,wheelOffset=0,wheelTarget=0,liftParts=[],liftHomes=[],liftAmount=0,liftTarget=0,turntable=null,turntableActive=false;
   const ready=gltf=>{
    root.add(gltf.scene);
    host.dataset.pwGlbLoaded='true';
@@ -524,6 +524,11 @@ hosts.forEach(host=>{
    gltf.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m)return;if(m.map)m.map.colorSpace=THREE.SRGBColorSpace;if(m.emissiveMap)m.emissiveMap.colorSpace=THREE.SRGBColorSpace;});}});
    const wheel=root.getObjectByName('Wheel_FL')||root.getObjectByName('Wheel_FR');
    if(wheel){detachWheel=wheel;wheelHome=wheel.position.clone();const controls=host.querySelector('.pw-three-controls');if(controls){const action=document.createElement('button');action.type='button';action.textContent='Afmonter hjul';action.setAttribute('aria-label','Afmonter eller monter forhjulet');action.dataset.wheelAction='1';action.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();wheelTarget=wheelTarget?0:1;action.textContent=wheelTarget?'Monter hjul':'Afmonter hjul';});controls.insertBefore(action,controls.querySelector('[data-3d-auto]')||null);}}
+   const controls=host.querySelector('.pw-three-controls');
+   ['Lift_Carriage_Left','Lift_Carriage_Right'].forEach(name=>{const part=root.getObjectByName(name);if(part){liftParts.push(part);liftHomes.push(part.position.clone());}});
+   if(liftParts.length&&controls){const liftButton=document.createElement('button');liftButton.type='button';liftButton.textContent='Løft bilen';liftButton.setAttribute('aria-label','Løft eller sænk autoliften');liftButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();liftTarget=liftTarget?0:1;liftButton.textContent=liftTarget?'Sænk bilen':'Løft bilen';});controls.insertBefore(liftButton,controls.querySelector('[data-3d-auto]')||null);}
+   turntable=root.getObjectByName('tire-changer_turntable');
+   if(turntable&&controls){const spinButton=document.createElement('button');spinButton.type='button';spinButton.textContent='Start dækskift';spinButton.setAttribute('aria-label','Start eller stop dækskifterens drejeskive');spinButton.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();turntableActive=!turntableActive;spinButton.textContent=turntableActive?'Stop dækskift':'Start dækskift';});controls.insertBefore(spinButton,controls.querySelector('[data-3d-auto]')||null);}
    host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='model-rendered';
   };
   const fail=()=>{if(renderer){renderer.dispose();renderer.domElement.remove()}host.removeAttribute('data-model-src');host.classList.remove('pw-three-ready');host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-load-failed';};
@@ -532,7 +537,7 @@ hosts.forEach(host=>{
   const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
   ro=new ResizeObserver(resize);ro.observe(host);
   const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.12,baseDistance)};
-  const draw=()=>{if(!visible)return;raf=0;root.rotation.y+=(scrollTarget*.9-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0035;root.rotation.x+=(scrollTarget*.12-root.rotation.x)*.02;if(detachWheel&&wheelHome){wheelOffset+=(wheelTarget-wheelOffset)*.09;const side=Math.sign(wheelHome.x)||-1;detachWheel.position.set(wheelHome.x+side*.9*wheelOffset,wheelHome.y-.2*wheelOffset,wheelHome.z+.12*wheelOffset);}renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  const draw=()=>{if(!visible)return;raf=0;root.rotation.y+=(scrollTarget*.9-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0035;root.rotation.x+=(scrollTarget*.12-root.rotation.x)*.02;if(detachWheel&&wheelHome){wheelOffset+=(wheelTarget-wheelOffset)*.09;const side=Math.sign(wheelHome.x)||-1;detachWheel.position.set(wheelHome.x+side*.9*wheelOffset,wheelHome.y-.2*wheelOffset,wheelHome.z+.12*wheelOffset);}if(liftParts.length){liftAmount+=(liftTarget-liftAmount)*.045;liftParts.forEach((part,i)=>{part.position.y=liftHomes[i].y+2.1*liftAmount;});}if(turntableActive&&turntable)turntable.rotation.z+=.045;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
   io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
   host.style.touchAction='pan-y';host.style.cursor='grab';
   host.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;auto=false;const autoButton=host.querySelector('[data-3d-auto]');if(autoButton){autoButton.setAttribute('aria-pressed','false');autoButton.textContent='Rotation paused'}host.style.cursor='grabbing';pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
