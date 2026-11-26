@@ -1235,7 +1235,7 @@ function imageSearchTerms(prompt) {
 async function enrichIndustryModels(site,prompt){
  if(!site||!Array.isArray(site.blocks))return site;
  const p=String(prompt||'').toLowerCase();
- const barber=/barber|barbershop|barber shop/.test(p);
+ const barber=/barber|barbershop|barber shop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
  const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
  const tire=/dæk|bildæk|dækcenter|tire|tyre|fælg|alloy wheel/.test(p);
  const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p)||tire;
