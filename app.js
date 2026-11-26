@@ -1138,7 +1138,7 @@ function ensureIndustry3D(site,prompt,previousSite){
   const removing=/\\b(remove|delete|fjern|slet)\\b.{0,30}\\b(3d|three.?d|model|modeller)\\b/.test(text);
   const barber=/barber|barbershop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(text);
   const salon=/salon|skønhedsklinik|beauty clinic|beauty salon|kosmetolog|negletekniker|nail studio|spa|wellness/.test(text);
-  const mechanic=/mekaniker|automekaniker|automekanik|bilmekanik|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(text);
+  const mechanic=/mekaniker|automekaniker|automekanik|bilmekanik|autoværksted|bilværksted|bilmekaniker|autoservice|auto service|auto shop|garage|car service|car repair|auto repair|mechanic|automotive/.test(text);
   const tire=/dæk|bildæk|hjul|tire|tyre|wheel/.test(text);
   const architecture=/arkitekt|arkitektur|architecture|interior design|indretningsarkitekt|ejendomsudvikling|property development/.test(text);
   const ecommerce=/webshop|e-commerce|ecommerce|online store|produktbrand|product brand|product design|møbler|furniture|smykker|jewelry|ure|watches/.test(text);
@@ -1314,7 +1314,7 @@ async function enrichIndustryModels(site,prompt){
  const barber=/barber|barbershop|barber shop|frisør|frisørsalon|hairdresser|hair salon|hårsalon/.test(p);
  const salon=!barber&&/frisør|frisørsalon|hairdresser|hair salon|skønhedssalon|beauty salon|salon/.test(p);
  const tire=/dæk|bildæk|dækcenter|tire|tyre|fælg|alloy wheel/.test(p);
- const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|garage|car repair|auto repair|mechanic|automotive/.test(p)||tire;
+ const mechanic=/mekaniker|autoværksted|bilværksted|bilmekaniker|autoservice|auto service|auto shop|garage|car service|car repair|auto repair|mechanic|automotive/.test(p)||tire;
  const muscleCar=/mustang|muscle car|muscle coupe|amerikansk muskelbil|amerikansk sportsvogn/.test(p);
  let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel','tire-changer']:muscleCar?['muscle-coupe','v8-engine','car-lift','tire-changer']:['car','v8-engine','car-lift','tire-changer']):[];
  if(!assets.length)return site;
