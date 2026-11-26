@@ -1167,7 +1167,8 @@ function ensureIndustry3D(site,prompt,previousSite){
     const shapes=painter?['paint-roller','paint-bucket']:['work-lamp','ceiling-lamp'];
     const scenes=site.blocks.filter(b=>b&&b.type==='threeD');
     while(scenes.length<2){const b={id:uid(),type:'threeD',shape:shapes[scenes.length],color:painter?'#D58A35':'#D6B45A',modelData:'',modelUrl:''};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,b);scenes.push(b)}
-    scenes.slice(0,2).forEach((b,i)=>{b.shape=shapes[i];b.modelData='';b.modelUrl='';b.modelAsset='';b.modelFormat='glb';b.title=painter?(english?'Interactive paint roller':'Interaktiv malerrulle'): (english?'Interactive work lamp':'Interaktiv arbejdslampe');b.text=painter?(english?'Explore painting tools in interactive 3D.':'Udforsk professionelt malerværktøj i interaktiv 3D.'): (english?'Explore professional lighting in interactive 3D.':'Udforsk professionel belysning i interaktiv 3D.');b.color=painter?'#D58A35':'#D6B45A'});
+    const industryEnglish=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
+    scenes.slice(0,2).forEach((b,i)=>{b.shape=shapes[i];b.modelData='';b.modelUrl='';b.modelAsset='';b.modelFormat='glb';b.title=painter?(industryEnglish?'Interactive paint roller':'Interaktiv malerrulle'): (industryEnglish?'Interactive work lamp':'Interaktiv arbejdslampe');b.text=painter?(industryEnglish?'Explore painting tools in interactive 3D.':'Udforsk professionelt malerværktøj i interaktiv 3D.'): (industryEnglish?'Explore professional lighting in interactive 3D.':'Udforsk professionel belysning i interaktiv 3D.');b.color=painter?'#D58A35':'#D6B45A'});
     const keep=new Set(scenes.slice(0,2));site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
   }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
