@@ -14,6 +14,7 @@
 - The server supports Gemini generation with Anthropic fallback, and an optional Anthropic conversational reply layer when Gemini is the active website provider.
 - Edit requests include the current site JSON and recent chat history.
 - The renderer already supports multi-page site data and blocks including hero, features, about, services, pricing, team, steps, FAQ, CTA, gallery, booking, contact, reviews, map and threeD.
+- Existing `ensureIndustry3D` adds industry-matched built-in 3D shapes (for example barber chair/pole, salon bottle/scissors, car/engine); `ensureIndustryImages` validates supplied image URLs/data and `keepImages` preserves existing images during edits. None of these functions retrieves new stock photographs or realistic 3D model files.
 - Hero/about images and gallery images can render when valid image URLs or stored image references already exist.
 - A Three.js scene renderer exists. It supports built-in shapes and can load an uploaded GLB/GLTF model supplied as data.
 - The app has local project helpers, project deduplication logic, browser storage, and a Supabase persistence adapter.
@@ -23,7 +24,7 @@
 ## 30 improvement opportunities — without duplicating existing work
 
 ### AI understanding, conversation and editing
-1. **Longer, more useful edit memory — IMPLEMENTED ON THIS BRANCH.** Edit requests now include up to 14 recent chat messages, 1,600 characters each, with a 16 KB cap (previously 10 messages / 1,200 characters / 10 KB). Verify against real multi-turn edits.
+1. **Longer, more useful edit memory — IMPLEMENTED ON THIS BRANCH.** The frontend now sends up to 13 previous chat messages plus the current request; the server accepts up to 14 messages, 1,600 characters each, with a 16 KB cap (previously the frontend sent only 9 previous messages and the server allowed 10 / 1,200 characters / 10 KB). Verify against real multi-turn edits.
 2. **Structured conversation memory — NEXT.** Preserve explicit preferences (language, colours, style, target audience, requested pages, constraints) as compact context instead of relying only on raw chat text.
 3. **Intent classification — NEXT.** Distinguish questions, content edits, visual redesigns, new pages, image requests and functional requests before changing site JSON.
 4. **Clarifying-question discipline — NEXT.** Ask one focused question only when a missing fact blocks a safe result; otherwise make a reasonable design decision.
