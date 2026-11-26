@@ -1318,7 +1318,7 @@ async function enrichIndustryModels(site,prompt){
  const muscleCar=/mustang|muscle car|muscle coupe|amerikansk muskelbil|amerikansk sportsvogn/.test(p);
  let assets=barber?['barber-chair','barber-pole']:salon?['salon-styling-chair','shampoo-backwash-unit']:mechanic?(tire?['car','alloy-wheel','tire-changer']:muscleCar?['muscle-coupe','v8-engine','car-lift','tire-changer']:['car','v8-engine','car-lift','tire-changer']):[];
  if(!assets.length)return site;
- if(mechanic&&!tire){
+ if(mechanic){
   const english=String(site.meta&&site.meta.language||'').toLowerCase().startsWith('en');
   const assets=['car','grand-tourer','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
   const labels={
