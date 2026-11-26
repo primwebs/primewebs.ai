@@ -156,11 +156,11 @@ function sanitizeSite(site, fallbackLanguage) {
     } else if (b.type === "booking") {
       out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
-      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(imgRef).filter(Boolean).slice(0, 8) });
+      out.blocks.push({ id, type: "gallery", title: str(b.title, 160), images: (Array.isArray(b.images) ? b.images : []).map(item => { const url = imgRef(typeof item === "string" ? item : item && item.url); if (!url) return null; return typeof item === "string" ? url : { url, attribution: str(item.attribution, 240), creditUrl: /^https:\/\//i.test(item.creditUrl || "") ? str(item.creditUrl, 500) : "" }; }).filter(Boolean).slice(0, 8) });
     } else if (TEXT_FIELDS[b.type]) {
       const o = { id, type: b.type };
       TEXT_FIELDS[b.type].forEach(k => { o[k] = str(b[k], k === "text" ? 1200 : 160); });
-      if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; }
+      if (b.type === "hero" || b.type === "about") { const im = imgRef(b.image); if (im) o.image = im; if (b.imageAttribution) o.imageAttribution = str(b.imageAttribution, 240); if (b.imageCreditUrl && /^https:\/\//i.test(b.imageCreditUrl)) o.imageCreditUrl = str(b.imageCreditUrl, 500); }
       out.blocks.push(o);
     }
   }
