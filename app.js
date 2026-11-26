@@ -480,7 +480,60 @@ hosts.forEach(host=>{
   resize();draw();host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='rendered';
  }catch(e){if(raf)cancelAnimationFrame(raf);if(ro)ro.disconnect();if(io)io.disconnect();if(renderer)renderer.dispose();host.classList.remove('pw-three-ready');host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='webgl-render-failed'}
 });
-})();<\/script><script type="module">(async()=>{const nodes=[...document.querySelectorAll('[data-pw-three][data-model-src]')].filter(n=>n.dataset.modelSrc);if(!nodes.length)return;const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;let THREE,GLTFLoader;try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');({GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){nodes.forEach(n=>n.classList.add('pw-three-fallback-only'));return}nodes.forEach(async host=>{let renderer;try{const {Scene,PerspectiveCamera,WebGLRenderer,AmbientLight,DirectionalLight,Box3,Vector3,Group}=THREE;const scene=new Scene(),camera=new PerspectiveCamera(38,1,.1,1000);camera.position.set(0,0,5);renderer=new WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setSize(host.clientWidth||420,host.clientHeight||300);host.appendChild(renderer.domElement);scene.add(new AmbientLight(0xffffff,1.1));const key=new DirectionalLight(0xffffff,2.1);key.position.set(3,4,5);scene.add(key);const fill=new DirectionalLight(0x879cff,1.1);fill.position.set(-4,-2,2);scene.add(fill);const root=new Group();scene.add(root);const loader=new GLTFLoader(),src=host.dataset.modelSrc,comma=src.indexOf(','),raw=atob(src.slice(comma+1)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const ready=gltf=>{root.add(gltf.scene);const bounds=new Box3().setFromObject(root),size=bounds.getSize(new Vector3()),center=bounds.getCenter(new Vector3()),max=Math.max(size.x,size.y,size.z)||1;root.position.sub(center);root.scale.setScalar(2.6/max);host.classList.add('pw-three-ready')};if(host.dataset.modelFormat==='gltf'){const json=new TextDecoder().decode(bytes);loader.parse(json,'',ready,()=>host.classList.add('pw-three-fallback-only'))}else loader.parse(bytes.buffer,'',ready,()=>host.classList.add('pw-three-fallback-only'));let active=true,raf=0,frame=0;const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};const ro=new ResizeObserver(resize);ro.observe(host);const draw=()=>{if(!active)return;if(!reduceMotion)raf=requestAnimationFrame(draw);frame+=.006;if(!reduceMotion)root.rotation.y=frame;renderer.render(scene,camera)};const io=new IntersectionObserver(entries=>{active=entries[0].isIntersecting;if(active&&!raf)draw();else if(!active&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);host.style.touchAction='pan-y';let dragging=false,lastX=0,lastY=0;host.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;host.setPointerCapture(e.pointerId)});host.addEventListener('pointerup',()=>{dragging=false});host.addEventListener('pointercancel',()=>{dragging=false});host.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;root.rotation.y+=dx*.008;root.rotation.x+=dy*.008});host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=Math.max(2.8,Math.min(9,camera.position.z+e.deltaY*.006))},{passive:false});resize();draw()}catch(e){if(renderer)renderer.dispose();host.classList.add('pw-three-fallback-only')}})})();</script></script>${bookingRuntime(s)}</body></html>`;
+})();<\/script><script type="module">(async()=>{
+const hosts=[...document.querySelectorAll('[data-pw-three][data-model-src]')].filter(h=>h.dataset.modelSrc);
+if(!hosts.length)return;
+const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let THREE,GLTFLoader;
+try{THREE=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js');({GLTFLoader}=await import('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js'))}catch(e){hosts.forEach(h=>{h.classList.add('pw-three-fallback-only');h.dataset.pwThreeStatus='model-library-load-failed'});return}
+hosts.forEach(host=>{
+ let renderer,ro,io,raf=0;
+ try{
+  const {Scene,PerspectiveCamera,WebGLRenderer,AmbientLight,HemisphereLight,DirectionalLight,Box3,Vector3,Group,MathUtils}=THREE;
+  const scene=new Scene(),camera=new PerspectiveCamera(36,1,.1,1000);camera.position.set(0,.12,5.8);
+  renderer=new WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));renderer.setSize(host.clientWidth||420,host.clientHeight||320);renderer.setClearColor(0x000000,0);
+  if('outputColorSpace'in renderer)renderer.outputColorSpace=THREE.SRGBColorSpace;
+  if('toneMapping'in renderer){renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12}
+  host.appendChild(renderer.domElement);
+  scene.add(new AmbientLight(0xffffff,1.1),new HemisphereLight(0xeaf2ff,0x303747,1.2));
+  const key=new DirectionalLight(0xffffff,2.8);key.position.set(3,5,6);scene.add(key);
+  const fill=new DirectionalLight(0x9abaff,1.35);fill.position.set(-4,-2,3);scene.add(fill);
+  const rim=new DirectionalLight(0xffd6a4,1.6);rim.position.set(1,3,-5);scene.add(rim);
+  const root=new Group();scene.add(root);
+  const loader=new GLTFLoader(),src=host.dataset.modelSrc,comma=src.indexOf(',');
+  if(comma<0)throw new Error('Invalid embedded model');
+  const raw=atob(src.slice(comma+1)),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+  let baseDistance=5.8;
+  const ready=gltf=>{
+   root.add(gltf.scene);
+   const bounds=new Box3().setFromObject(root),size=bounds.getSize(new Vector3()),center=bounds.getCenter(new Vector3()),max=Math.max(size.x,size.y,size.z)||1;
+   root.position.sub(center);root.scale.setScalar(2.65/max);
+   baseDistance=Math.max(4.2,Math.min(8.5,2.65*2.15));camera.position.set(0,.12,baseDistance);
+   gltf.scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.needsUpdate=true}}});
+   host.classList.add('pw-three-ready');host.dataset.pwThreeStatus='model-rendered';
+  };
+  const fail=()=>{host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-parse-failed'};
+  if(host.dataset.modelFormat==='gltf')loader.parse(new TextDecoder().decode(bytes),'',ready,fail);else loader.parse(bytes.buffer,'',ready,fail);
+  let visible=true,auto=true,dragging=false,lastX=0,lastY=0,pinch=0;const pointers=new Map();
+  const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)};
+  ro=new ResizeObserver(resize);ro.observe(host);
+  const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.12,baseDistance)};
+  const draw=()=>{if(!visible)return;raf=0;if(!reduced&&auto)root.rotation.y+=.0035;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
+  host.style.touchAction='pan-y';
+  host.addEventListener('pointerdown',e=>{pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
+  const end=e=>{pointers.delete(e.pointerId);dragging=pointers.size===1;if(dragging){const p=[...pointers.values()][0];lastX=p.x;lastY=p.y}else pinch=0};
+  host.addEventListener('pointerup',end);host.addEventListener('pointercancel',end);
+  host.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const p=[...pointers.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(pinch)camera.position.z=MathUtils.clamp(camera.position.z+(pinch-d)*.016,2.8,10);pinch=d;return}if(dragging){root.rotation.y+=(e.clientX-lastX)*.008;root.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY}});
+  host.addEventListener('wheel',e=>{e.preventDefault();camera.position.z=MathUtils.clamp(camera.position.z+e.deltaY*.006,2.8,10)},{passive:false});
+  host.addEventListener('dblclick',reset);
+  host.querySelectorAll('[data-3d-zoom]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();camera.position.z=MathUtils.clamp(camera.position.z+(Number(btn.dataset['3dZoom'])<0 ? .65 : -.65),2.8,10)}));
+  const rb=host.querySelector('[data-3d-reset]');if(rb)rb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();reset()});
+  const ab=host.querySelector('[data-3d-auto]');if(ab)ab.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();auto=!auto;ab.setAttribute('aria-pressed',String(auto));ab.textContent=auto?'Auto rotation':'Rotation paused'});
+  resize();draw();
+ }catch(e){if(raf)cancelAnimationFrame(raf);if(ro)ro.disconnect();if(io)io.disconnect();if(renderer)renderer.dispose();host.classList.add('pw-three-fallback-only');host.dataset.pwThreeStatus='model-render-failed'}
+});
+})();<\/script></script>${bookingRuntime(s)}</body></html>`;
 }};
 
 /* ===== Lag 4: UI ===== */
