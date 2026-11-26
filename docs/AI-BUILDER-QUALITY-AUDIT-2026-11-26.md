@@ -72,3 +72,17 @@
 - Live browser QA: not performed in this audit.
 - Production deployment: not changed by this branch.
 - Database schema/data: not changed.
+
+
+## Live Supabase checks (read-only, 2026-11-26)
+The connected project was inspected without changing schema or data.
+
+- Confirmed tables: `profiles`, `credit_accounts`, `customers`, `projects`, `user_settings`, `credit_transactions`, `admin_code_attempts`, `admin_login_attempts`, `booking_requests`.
+- RLS is enabled on all listed public tables. User-facing tables have owner/self policies. The two admin-attempt tables have no RLS policies; this is consistent with server-only access only if browser roles cannot access them. Keep that invariant and verify API access paths.
+- Existing migrations include profile-role locking, admin login rate limiting and public booking submission.
+- `spend_credits` checks `auth.uid()`, locks the caller's credit row, refuses invalid amounts and records transactions. Its SECURITY DEFINER warning should be treated as a privilege-review item, not blindly removed; confirm EXECUTE grants remain limited to authenticated users.
+- `is_primewebs_owner` checks the caller's own profile role. Review its EXECUTE grants and SECURITY DEFINER ownership/search_path; do not remove it without replacing the existing RLS owner logic.
+- `submit_booking` is intentionally callable by the public booking page and uses a per-site public key, validates input lengths/date and writes an owner-linked booking request. Its anon SECURITY DEFINER warning is therefore potentially intentional. Review key entropy/rotation, rate limiting and whether project selection is unambiguous before changing grants.
+- Supabase security advisor also reports leaked-password protection disabled. This is an Auth dashboard setting, not a schema migration; enable after confirming the desired login policy.
+- Performance advisor reports 9 RLS policies that re-evaluate `auth.uid()` per row and 4 currently unused indexes. These are optimization candidates only; do not rewrite policies or drop indexes without testing query plans and access behavior.
+- Current table row counts show the workspace is lightly populated. Do not treat unused indexes as proof they are unnecessary; low traffic can explain this.
