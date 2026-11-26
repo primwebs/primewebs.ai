@@ -30,7 +30,7 @@ const contracts = [
   ['local/cloud project reconciliation', adapter.includes('cloudProjectsById')],
   ['awaited generated project save', app.includes('await Projects.save([p,...Projects.all()])')],
   ['visible visual section editor', app.includes('pw-section-editor')],
-  ['working 3D model upload handler', app.includes('new FileReader()') && app.includes('data-three-model')],
+  ['working 3D model upload handler', app.includes('uploadAsset(file,S.id)') && app.includes('data-three-model')],
   ['Studio design/media/history panels', ['themePanel','mediaPanel','historyPanel'].every(x => app.includes(x))],
   ['Supabase Storage uploads', adapter.includes("storage.from('primewebs-media').upload") && app.includes('data-media-upload')],
   ['Storage migration tracked', fs.existsSync(path.join(root, 'supabase/migrations/20261126230521_create_primewebs_media_bucket.sql'))],
