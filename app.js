@@ -248,7 +248,7 @@ const AI={mode:'api',
 /* ===== Lag 3: renderer (JSON -> HTML). Samme output bruges til udgivelse/eksport senere ===== */
 const B={
   hero:b=>{const im=imgSrc(b.image);return `<section class="hero${im?' two':''}"><div><h1>${esc(b.title)}</h1><p>${esc(b.text)}</p><div class="actions"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se vores ydelser</a></div></div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
-  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<div class="c"><h3>${esc(i.t)}</h3><p>${esc(i.d)}</p><a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></div>`).join('')}</div></section>`,
+  features:b=>`<section><h2>${esc(b.title)}</h2><div class="g">${b.items.map(i=>`<article class="c">${i.image?`<img class="pw-card-image" src="${esc(imgSrc(i.image))}" alt="${esc(i.imageAlt||i.t||b.title)}" loading="lazy">`:''}<h3>${esc(i.t)}</h3><p>${esc(i.d)}</p>${i.imageAttribution?`<small class="pw-image-credit"><a href="${esc(i.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(i.imageAttribution)}</a></small>`:''}<a class="text-link" href="#kontakt">Spørg os om dette <span aria-hidden="true">→</span></a></article>`).join('')}</div></section>`,
   about:b=>{const im=imgSrc(b.image),tx=String(b.text||'').split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join('');return `<section class="ab${im?' two':''}"><div><h2>${esc(b.title)}</h2>${tx}</div>${im?`<figure><img src="${esc(im)}" alt="${esc(b.title)}"><figcaption>${b.imageAttribution?`<a href="${esc(b.imageCreditUrl||'#')}" target="_blank" rel="noopener">${esc(b.imageAttribution)}</a>`:''}</figcaption></figure>`:''}</section>`},
   services:b=>B.features(b),
   pricing:b=>`<section class="pricing-section"><h2>${esc(b.title||'Priser og pakker')}</h2><div class="g">${(b.items||[]).map(i=>`<article class="c pricing-card"><h3>${esc(i.t)}</h3><div class="price">${esc(i.price||'Kontakt os')}</div><p>${esc(i.d)}</p></article>`).join('')}</div></section>`,
@@ -1151,13 +1151,16 @@ function ensureIndustryImages(site, prompt) {
   if (!site || !Array.isArray(site.blocks)) return site;
   const validImage = value => typeof value === 'string' &&
     (/^https?:\/\//i.test(value.trim()) || /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(value.trim()) || value.trim().startsWith('/'));
-  site.blocks = site.blocks.map(block => {
+  const cleanBlocks = blocks => (Array.isArray(blocks)?blocks:[]).map(block => {
     if (!block || typeof block !== 'object') return block;
     const copy = { ...block };
     if (typeof copy.image === 'string' && !validImage(copy.image)) delete copy.image;
     if (Array.isArray(copy.images)) copy.images = copy.images.filter(x => validImage(typeof x === 'string' ? x : x && x.url));
+    if(Array.isArray(copy.items))copy.items=copy.items.map(item=>{if(!item||typeof item!=='object')return item;const next={...item};if(next.image&&!validImage(next.image))delete next.image;return next});
     return copy;
   });
+  site.blocks=cleanBlocks(site.blocks);
+  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:cleanBlocks(page.blocks)}:page);
   return site;
 }
 function imageSearchTerms(prompt) {
@@ -1184,7 +1187,18 @@ function imageSearchTerms(prompt) {
     [/rengøring|cleaning|cleaner/,'professional cleaning service modern home'],
     [/hund|dog|dyrlæge|veterinarian|pet/,'veterinary clinic pet care dog grooming'],
     [/transport|logistik|delivery|flyttefirma|moving/,'professional logistics delivery van warehouse'],
-    [/software|saas|technology|tech|it company|gaming/,'modern technology software team workstation']
+    [/software|saas|technology|tech|it company|gaming/,'modern technology software team workstation'],
+    [/accountant|bogholder|revisor|regnskab|accounting/,'professional accountant working with financial reports in modern office'],
+    [/advokat|lawyer|law firm|jurist/,'professional lawyer in contemporary law office'],
+    [/autoværksted|bilforhandler|car dealer|used cars|biludlejning|car rental/,'modern car showroom and professional automotive service workshop'],
+    [/blomster|florist|flower shop/,'florist arranging fresh flowers in a flower studio'],
+    [/event|bryllup|wedding|fest|party|venue/,'elegant event venue decorated for a celebration'],
+    [/skole|kursus|undervisning|education|tutor|school/,'modern classroom and professional teacher helping students'],
+    [/arkitekt|architecture|interior design|indretningsarkitekt/,'architectural interior design studio with material samples'],
+    [/tattoo|tatovering/,'professional tattoo artist working in a clean tattoo studio'],
+    [/dyrehandel|pet shop|grooming|hundesalon/,'professional dog grooming salon and pet care'],
+    [/flytning|moving company|storage|opbevaring/,'professional moving team carrying furniture into a home'],
+    [/autoværksted|mechanic|car repair/,'professional mechanic inspecting a vehicle on a workshop lift']
   ];
   const match=groups.find(([re])=>re.test(p));
   const brand=String(prompt||'').slice(0,120);
@@ -1232,6 +1246,12 @@ async function enrichIndustryImages(site,prompt) {
     if(hero&&needsHero){const x=unique.shift();hero.image=x.url;hero.imageAttribution=x.attribution;hero.imageCreditUrl=x.creditUrl;}
     const about=site.blocks.find(b=>b&&b.type==='about');
     if(about&&!about.image&&unique.length){const x=unique.shift();about.image=x.url;about.imageAttribution=x.attribution;about.imageCreditUrl=x.creditUrl;}
+    // Give image-led service/feature cards their own relevant real photos, not just a hero and a gallery.
+    for(const section of site.blocks.filter(b=>b&&['services','features'].includes(b.type))){
+      for(const item of (Array.isArray(section.items)?section.items:[])){
+        if(!item.image&&unique.length){const x=unique.shift();item.image=x.url;item.imageAlt=item.t||section.title||'Business service';item.imageAttribution=x.attribution;item.imageCreditUrl=x.creditUrl;}
+      }
+    }
     if(needsGallery){
       const images=unique.slice(0,6).map(x=>({url:x.url,attribution:x.attribution,creditUrl:x.creditUrl}));
       if(images.length){
