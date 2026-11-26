@@ -123,3 +123,10 @@ Based on SiteDrop's public November 2026 product notes, the largest remaining ga
 8. Photo-to-walkthrough video generation.
 
 Do not count these as implemented until the provider/backend action is connected and tested. Preserve the existing PrimeWebs architecture and Supabase project; do not add mock controls that imply an integration exists.
+
+
+## Deployment gate
+
+- Main branch head: 2f226425fb5d452c8cde4ad9f0a21937c46c707c. GitHub Actions `npm test` passed on this exact commit, including syntax checks, source contracts, mocked offline/cloud project reconciliation, invoice/settings persistence, stable UUIDs and Supabase Storage upload behavior.
+- The latest Vercel production deployment is still commit aecd985e4b75627728c02670a243bb9624dc8c49 (READY, alias includes primewebs.site). Vercel reports a build-rate-limit failure for the current main head, so the latest cache-bust v8 and later AI/image/media-manager changes are not yet confirmed live. Do not describe them as live until a deployment for the current main SHA is READY and carries the primewebs.site alias.
+- Supabase database migrations and the media bucket/policies are applied independently of the Vercel deployment.
