@@ -135,12 +135,12 @@
       put('pw.workMode',state.workspaceData.workMode);
       const cleanSettings={...stored};['finance','leads','images','invoices','invoiceDraft','invoiceDraftLines','invoiceDraftLinesUpdatedAt','financeProfile','financeProfileUpdatedAt','creditBilling','workMode'].forEach(k=>delete cleanSettings[k]);
       put('pw.settings',cleanSettings);
-      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||!stored.images||state.workspaceData.leads.length!==cloudLeads.length||state.workspaceData.finance.length!==cloudFinance.length||Object.keys(state.workspaceData.images).length!==Object.keys(cloudImages).length||state.workspaceData.invoices.length!==cloudInvoices.length||JSON.stringify(state.workspaceData.invoiceDraft)!==JSON.stringify(cloudDraft)||JSON.stringify(state.workspaceData.invoiceDraftLines)!==JSON.stringify(cloudLines)||JSON.stringify(state.workspaceData.financeProfile)!==JSON.stringify(cloudProfile)||state.workspaceData.creditBilling!==(stored.creditBilling||'monthly')||state.workspaceData.workMode!==(stored.workMode||'clients')) await saveWorkspaceData();
+      if(!settings.data||!Array.isArray(stored.finance)||!Array.isArray(stored.leads)||!stored.images||state.workspaceData.leads.length!==cloudLeads.length||state.workspaceData.finance.length!==cloudFinance.length||Object.keys(state.workspaceData.images).length!==Object.keys(cloudImages).length||JSON.stringify(state.workspaceData.invoices)!==JSON.stringify(cloudInvoices)||JSON.stringify(state.workspaceData.invoiceDraft)!==JSON.stringify(cloudDraft)||JSON.stringify(state.workspaceData.invoiceDraftLines)!==JSON.stringify(cloudLines)||JSON.stringify(state.workspaceData.financeProfile)!==JSON.stringify(cloudProfile)||state.workspaceData.creditBilling!==(stored.creditBilling||'monthly')||state.workspaceData.workMode!==(stored.workMode||'clients')) await saveWorkspaceData();
     } else {
       state.settingsData={};
       put('pw.settings',settings.data&&settings.data.settings||{});
       state.workspaceData={finance:[],leads:[],images:{},invoices:[],invoiceDraft:{},invoiceDraftLines:[],financeProfile:{},creditBilling:'monthly',workMode:'clients'};
-      put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});
+      put('pw.finance',[]);put('pw.leads',[]);put('pw.img',{});put('pw.invoices',[]);put('pw.invoiceDraft',{});put('pw.invoiceDraftLines',[]);put('pw.financeProfile',{});put('pw.creditBilling','monthly');put('pw.workMode','clients');
     }
     })();
     try { return await state.loadPromise; }
@@ -163,10 +163,8 @@
         const list=value.map(c=>{ if(!isUuid(c.id)) c.id=uuid(); return c; });
         put(key,list);
         const payload=list.map(c=>({id:c.id,user_id:user.id,name:c.name||'',email:c.email||null,phone:c.phone||null,notes:c.notes||null,data:{plan:c.plan||'Gratis',credits:c.credits||0,createdAt:c.createdAt||Date.now()}}));
-        const currentIds=payload.map(c=>c.id), removed=state.lastCustomers.filter(id=>!currentIds.includes(id));
-        if(removed.length){const {error}=await db.from('customers').delete().in('id',removed);if(error)throw error;}
         if(payload.length){const {error}=await db.from('customers').upsert(payload);if(error)throw error;}
-        state.lastCustomers=currentIds;
+        state.lastCustomers=payload.map(c=>c.id);
       } else if(key==='pw.settings') {
         const safe={...value};delete safe.aiCode;delete safe.finance;delete safe.leads;
         state.settingsData={...state.settingsData,...safe};
