@@ -614,7 +614,7 @@ for(const host of hosts){let renderer,raf=0,ro,visible=true;try{
  const io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);resize();host.classList.add('pw-garage-ready');draw();
  }catch(e){console.error('Garage scene failed',e);const l=host.querySelector('.pw-garage-loading');if(l)l.textContent='Værkstedet kunne ikke indlæses.';if(renderer)renderer.dispose();if(ro)ro.disconnect();if(raf)cancelAnimationFrame(raf)}
 }
-})();</script></script>${bookingRuntime(s)}</body></html>`;
+})();</script></script>${hasCinematic?'<script type="importmap">{"imports":{"three":"https://esm.sh/three@0.170.0","three/addons/":"https://esm.sh/three@0.170.0/examples/jsm/"}}</script><script>(function(){const clamp=v=>Math.max(0,Math.min(1,v));function update(){const s=window.LUMEN&&window.LUMEN.S;if(!s)return;const max=Math.max(1,document.documentElement.scrollHeight-innerHeight),p=clamp(scrollY/max);s.hero=clamp(p/.22);s.morphIn=clamp((p-.18)/.3);s.morph=Math.min(2.15,p*2.7);s.cta=clamp((p-.76)/.24);s.intro=1}window.addEventListener("lumen:ready",()=>{update();addEventListener("scroll",update,{passive:true});addEventListener("resize",update);if(window.LUMEN.intro)window.LUMEN.intro()})})();</script><script type="module" src="'+cinematicRuntimeUrl+'"></script>':''}${bookingRuntime(s)}</body></html>`;
 }};
 
 /* ===== Lag 4: UI ===== */
