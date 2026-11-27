@@ -25,6 +25,7 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
+cinematic: {id,type:"cinematic",title,text,preset:"liquid-particle-story"} (one cinematic, scroll-driven 3D storytelling section using the licensed Lumen scene; use for premium technology, product launches, architecture or brands where it genuinely adds value; do not use on every local-service site or alongside the automotive garage experience)
 threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine",color:"#6D7CFF",modelAsset:"optional curated asset key",scrollMotion:"drive|turn|float|none"} (real interactive 3D scene; use sparingly and only when it suits the business)
 pricing: {id,type:"pricing",title,items:[{t,d,price}]} (only use exact prices supplied by the user or existing site)
 team: {id,type:"team",title,items:[{t,d}]} (only use real names and roles supplied by the user or existing site)
@@ -148,6 +149,9 @@ function sanitizeSite(site, fallbackLanguage) {
     } else if (b.type === "map") {
       const address = str(b.address, 300).trim();
       if (address) out.blocks.push({ id, type: "map", title: str(b.title || "Find os", 160), address });
+    } else if (b.type === "cinematic") {
+      const preset = b.preset === "liquid-particle-story" ? b.preset : "liquid-particle-story";
+      if (!out.blocks.some(x => x.type === "cinematic")) out.blocks.push({ id, type: "cinematic", title: str(b.title || "En oplevelse ud over det sædvanlige", 160), text: str(b.text || "", 600), preset });
     } else if (b.type === "threeD") {
       const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine"].includes(b.shape) ? b.shape : "orb";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
