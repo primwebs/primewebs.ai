@@ -124,6 +124,7 @@ const COLORS={blå:'#2540D9',grøn:'#1E8E5A',rød:'#D12C3F',lilla:'#7B3FD1',oran
 const mk={
   hero:(n,d)=>({id:uid(),type:'hero',title:'Velkommen til '+n,text:(d?d+' ':'')+'Vi hjælper dig godt i gang med en løsning, der passer til dine behov. Kontakt os i dag for en uforpligtende samtale.',cta:'Kontakt os'}),
   threeD:(n)=>({id:uid(),type:'threeD',title:'Oplev det i 3D',text:'Et interaktivt 3D-element, der giver hjemmesiden dybde.',shape:'orb',color:'#6D7CFF',modelData:'',modelFormat:'glb',modelName:''}),
+  cinematic:()=>({id:uid(),type:'cinematic',title:'En oplevelse ud over det sædvanlige',text:'Scroll videre, og oplev detaljerne.',preset:'liquid-particle-story'}),
   features:()=>({id:uid(),type:'features',title:'Hvorfor vælge os',items:[
     {t:'Erfaring',d:'Vi kender branchen og leverer arbejde, du kan regne med.'},
     {t:'Hurtig levering',d:'Du får svar og løsning hurtigt, uden unødige omveje.'},
