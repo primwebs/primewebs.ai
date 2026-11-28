@@ -32,7 +32,7 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
-threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine|paint-roller|paint-bucket|work-lamp|ceiling-lamp",color:"#6D7CFF",scrollMode:boolean} (real interactive Three.js scene; the first scene on every page MUST set scrollMode:true and be the page’s principal pinned, scroll-driven visual moment; additional scenes may use false)
+threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine|paint-roller|paint-bucket|work-lamp|ceiling-lamp|walkthrough",journey:"barber|home|clothing|gym|restaurant|automotive|trade|generic",color:"#6D7CFF",scrollMode:boolean} (real interactive Three.js scene; the first scene on every page MUST set scrollMode:true and be the page’s principal pinned, scroll-driven visual moment; additional scenes may use false)
 pricing: {id,type:"pricing",title,items:[{t,d,price}]} (only use exact prices supplied by the user or existing site)
 team: {id,type:"team",title,items:[{t,d}]} (only use real names and roles supplied by the user or existing site)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
@@ -151,10 +151,11 @@ function sanitizeSite(site, fallbackLanguage) {
       const address = str(b.address, 300).trim();
       if (address) out.blocks.push({ id, type: "map", title: str(b.title || "Find os", 160), address });
     } else if (b.type === "threeD") {
-      const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine", "paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"].includes(b.shape) ? b.shape : "orb";
+      const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine", "paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp", "walkthrough"].includes(b.shape) ? b.shape : "orb";
+      const journey = ["barber", "home", "clothing", "gym", "restaurant", "automotive", "trade", "generic"].includes(b.journey) ? b.journey : "generic";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
       const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : ""; const modelUrl = typeof b.modelUrl === "string" && /^https:\/\/dl\.polyhaven\.org\//i.test(b.modelUrl) ? str(b.modelUrl, 1000) : "";
-      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, scrollMode: b.scrollMode === true, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
+      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, journey, color, scrollMode: b.scrollMode === true, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
     } else if (b.type === "booking") {
       out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
