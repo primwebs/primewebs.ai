@@ -303,7 +303,7 @@ const bookingRuntime=site=>{
 };
 const lum=h=>{const n=parseInt(h.slice(1),16);return((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000};
 const Renderer={html(p){
-  const s=p.site;s.meta=s.meta||{};s.meta.animation=s.meta.animation&&typeof s.meta.animation==='object'?s.meta.animation:{level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};const animLevel=s.blocks.some(b=>b&&b.type==='garage3D')?'none':(['none','subtle','advanced','immersive'].includes(s.meta.animation.level)?s.meta.animation.level:'immersive');if(s.blocks.some(b=>b.type==='booking')){s.meta.bookingPublicKey=s.meta.bookingPublicKey||((crypto.randomUUID&&crypto.randomUUID())||('pw_'+Math.random().toString(36).slice(2)+Date.now().toString(36)));if(p.id){const all=Projects.all(),stored=all.find(x=>x.id===p.id);if(stored&&stored.site){stored.site.meta=stored.site.meta||{};stored.site.meta.bookingPublicKey=s.meta.bookingPublicKey;Projects.save(all);}}}const t=s.meta.theme||{},d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
+  const s=p.site;s.meta=s.meta||{};s.meta.animation=s.meta.animation&&typeof s.meta.animation==='object'?s.meta.animation:{level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};const animLevel='immersive';if(s.blocks.some(b=>b.type==='booking')){s.meta.bookingPublicKey=s.meta.bookingPublicKey||((crypto.randomUUID&&crypto.randomUUID())||('pw_'+Math.random().toString(36).slice(2)+Date.now().toString(36)));if(p.id){const all=Projects.all(),stored=all.find(x=>x.id===p.id);if(stored&&stored.site){stored.site.meta=stored.site.meta||{};stored.site.meta.bookingPublicKey=s.meta.bookingPublicKey;Projects.save(all);}}}const t=s.meta.theme||{},d=t.mode==='dark',a=/^#[0-9a-fA-F]{6}$/.test(t.accent)?t.accent:'#2540D9',bt=lum(a)>150?'#0E1320':'#fff';
   const f=t.font==='serif'?'Georgia,"Times New Roman",serif':'system-ui,-apple-system,"Segoe UI",sans-serif';
   const bg=/^#[0-9a-fA-F]{6}$/.test(t.background)?t.background:(d?'#0E1320':'#fff');
   const bgStyle=typeof t.backgroundStyle==='string'&&/^(linear|radial)-gradient\([#a-zA-Z0-9.% ,()-]+\)$/.test(t.backgroundStyle)?t.backgroundStyle:bg;
@@ -377,7 +377,7 @@ const Renderer={html(p){
     const copy=section.querySelector('.pw-3d-copy');
     if(copy)gsap.fromTo(copy,{y:38,opacity:.72},{y:-24,opacity:1,ease:'none',scrollTrigger:{trigger:section,start:'top top',end:'bottom bottom',scrub:.8}});
    });
-   document.querySelectorAll('main#pw-home .hero img,main#pw-home .ab img,.pw-page-view .hero img,.pw-page-view .ab img').forEach(img=>{
+   document.querySelectorAll('main#pw-home img:not([data-no-parallax]),.pw-page-view img:not([data-no-parallax])').forEach(img=>{
     const section=img.closest('section')||img;
     gsap.fromTo(img,{yPercent:-5,scale:1.025},{yPercent:5,scale:1.06,ease:'none',scrollTrigger:{trigger:section,start:'top bottom',end:'bottom top',scrub:.9}});
    });
