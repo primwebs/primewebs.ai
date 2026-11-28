@@ -53,6 +53,10 @@ const contracts = [
   ['scroll parallax targets content images across all pages', app.includes("main#pw-home img:not([data-no-parallax]),.pw-page-view img:not([data-no-parallax])")],
   ['3D shape library includes painters and lighting trades', ai.includes('"paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"')],
   ['industry-specific 3D model selection is mapped', ai.includes('/maler|painter|painting|decorator/') && ai.includes('/electric|elektriker|lighting|belysning|lamp/')],
+  ['automotive enrichment never deletes galleries or image fields', !app.includes("site.blocks=site.blocks.filter(b=>b&&b.type!=='gallery')") && !app.includes("['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k])")],
+  ['industry enrichment preserves every additional 3D scene', !app.includes("site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b))") && !app.includes("site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b))")],
+  ['immersive invariant guard exists and is applied after generation and edits', app.includes('function enforceImmersiveInvariants(site)') && app.includes('enforceImmersiveInvariants(site);') && app.includes('enforceImmersiveInvariants(r.site);')],
+  ['every homepage and subpage retains a scroll-driven 3D focal scene', app.includes("first.scrollMode=true") && app.includes("site.pages=site.pages.map(page=>") && app.includes("type==='threeD'")],
   ['distinct visual blueprint prevents generic template repetition', ai.includes('DESIGN BLUEPRINT — make each site feel art-directed, not templated') && ai.includes('Do not make every business look like the same purple orb template')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
