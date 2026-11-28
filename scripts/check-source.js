@@ -39,6 +39,8 @@ const contracts = [
   ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
   ['no automatic gallery by default', app.includes('const needsGallery=explicitImageRequest||!!(gallery&&')],
   ['automotive keeps its dedicated 3D garage renderer', app.includes('data-pw-garage') && app.includes('pwGarageExperienceVersion')],
+  ['automotive keeps immersive scroll animation enabled', app.includes("level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true") && !app.includes("level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false")],
+  ['automotive preserves existing 3D scenes and galleries', app.includes("const rest=blocks.filter(b=>b&&b.type!=='garage3D');") && !app.includes("site.blocks=site.blocks.filter(x=>x&&x.type!=='threeD'&&x.type!=='garage3D'&&x.type!=='gallery')")],
   ['scroll-driven 3D renderer', app.includes('data-pw-scroll3d') && app.includes('scrollJourney')],
   ['AI preserves scroll-driven 3D mode', ai.includes('scrollMode: b.scrollMode === true') && ai.includes('scrollMode:boolean')],
   ['Lenis smooth-scroll runtime with native fallback', app.includes('lenis@1.3.29') && app.includes('pw-native-scroll-fallback') && app.includes('syncTouch:false')],
