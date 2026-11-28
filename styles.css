@@ -1724,3 +1724,7 @@ body{background:var(--pw-canvas);color:var(--pw-ink);-webkit-font-smoothing:anti
 @media(max-width:650px){.pw-studio-panel-head{align-items:flex-start;flex-direction:column}.pw-studio-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.pw-studio-tabs button{padding:9px 6px;font-size:11px}.pw-studio-add-section{width:100%}.pw-studio-add-section select{flex:1;min-width:0}.pw-studio-history-item{align-items:flex-start;flex-direction:column}.pw-studio-large-preview{min-height:430px;height:70vh}}
 
 .block-field textarea{width:100%;min-height:76px;resize:vertical;font:inherit;font-size:.86rem;line-height:1.5;padding:.6rem .7rem;margin-top:.25rem;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--fg)}
+
+/* Lenis native-scroll enhancement: sticky layouts and anchor links remain browser-native. */
+html.pw-lenis-active{scroll-behavior:auto!important}
+html.pw-lenis-active body{overscroll-behavior-y:auto}
