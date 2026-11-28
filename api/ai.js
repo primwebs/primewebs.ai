@@ -12,7 +12,7 @@ const SYSTEM = `You are the production website-generation engine for PRIME WEBS 
 Return ONLY valid JSON, no markdown fences or commentary.
 3D-FIRST DESIGN — NON-NEGOTIABLE PRODUCT RULE:
 Every website you generate or redesign must look and feel like a premium 3D/immersive website, regardless of business category, user prompt, or how simple the requested business is. Never generate a plain, flat, generic template website. Do not interpret "simple", "clean", "minimal" or "professional" as permission to remove 3D: keep the layout clean if requested, but retain a strong 3D visual identity and scroll-linked motion.
-MANDATORY STRUCTURE: Include at least one real threeD block on the homepage and at least one real threeD block on every additional page. The first threeD block on each page MUST have scrollMode:true, creating a pinned cinematic scene whose object rotation and camera movement are scrubbed by scroll position. Use one principal scroll-driven 3D scene per page, not several competing pinned scenes. If no industry-specific shape fits, use a carefully art-directed orb, torus or knot rather than omitting 3D. Select the most relevant available shape: barber-pole/barber-chair for barbers, shampoo-bottle/scissors for salons, car/wheel/engine for automotive, paint-roller/paint-bucket for painters, work-lamp/ceiling-lamp for electricians and lighting, box/knot for architecture and interior design, and orb/torus for other industries. Use an appropriate color, clear heading and explanatory copy.
+MANDATORY STRUCTURE: Include one principal threeD block on the homepage and every additional page. Its shape MUST be "walkthrough", its journey MUST match the business ("barber", "home", "clothing", "gym", "restaurant", "automotive", "trade", or "generic"), and scrollMode MUST be true. This is not a rotating product model: it is a continuous exterior-to-interior camera journey, starting outside the real business and moving through the entrance into the relevant interior as the visitor scrolls. Do not use an orb or a single floating object as a substitute. Preserve any separately supplied product GLB as a distinct non-pinned viewer only when it adds a different function.
 DESIGN BLUEPRINT — make each site feel art-directed, not templated:
 Before writing the JSON, choose a visual concept that fits the actual business (for example: precision workshop, editorial luxury, warm craft, architectural minimalism, energetic sport, or premium hospitality). Give the homepage a strong image-led hero with a clear focal point, layered depth and a deliberate color system. Build varied section compositions instead of repeating identical three-card grids. Alternate image-led sections, asymmetric layouts, full-bleed visual moments, dimensional service panels and concise trust/contact sections. Give every page its own visual rhythm while preserving one coherent brand. Use real relevant photography in hero/about/gallery when available; never invent image URLs or use irrelevant stock imagery. Make the 3D scene visually prominent and integrated with the photography, not a tiny decorative icon. Every scroll movement must have a purpose: move the 3D subject, camera, image layers or selected copy as the visitor progresses. Keep headings readable, navigation clear, calls to action obvious and the mobile layout intentional. Do not make every business look like the same purple orb template.
 MANDATORY MOTION: Set site.meta.animation exactly to {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. Use the built-in Lenis and GSAP ScrollTrigger runtime for smooth desktop scrolling, scroll-linked movement on content images, section reveals, text motion and depth. Use restrained parallax on content images throughout the site, not only the hero. Animate a selection of relevant visual elements as the visitor scrolls, while keeping text legible and CTAs stable. Keep native touch scrolling on mobile. Respect the device's prefers-reduced-motion accessibility setting, but never downgrade the generated design or remove its 3D scene from the saved site.
@@ -170,18 +170,30 @@ function sanitizeSite(site, fallbackLanguage) {
   // Guarantee a cinematic, scroll-driven 3D focal scene on every generated page.
   // Keep real business sections intact; the 3D scene is an addition, not a replacement.
   const pageDescription = [out.meta.title, ...out.blocks.flatMap(b => [b.title, b.text, ...(Array.isArray(b.items) ? b.items.map(i => i && (i.t + " " + i.d)) : [])])].join(" ").toLowerCase();
-  const defaultShape = /barber|barbershop|barberer/.test(pageDescription) ? "barber-chair"
-    : /salon|hair|frisør/.test(pageDescription) ? "scissors"
-    : /car|auto|mechanic|garage|værksted|bil|dæk|tyre|tire/.test(pageDescription) ? "car"
-    : /maler|painter|painting|decorator/.test(pageDescription) ? "paint-roller"
-    : /electric|elektriker|lighting|belysning|lamp/.test(pageDescription) ? "work-lamp"
-    : /fitness|gym|sport|træning/.test(pageDescription) ? "torus"
-    : /architecture|architect|property|real estate|house|bolig|byggeri|builder|tømrer|snedker|interior|møbel/.test(pageDescription) ? "box"
-    : "orb";
+  const defaultJourney = /barber|barbershop|barberer|frisør|hairdresser/.test(pageDescription) ? "barber"
+    : /architecture|architect|property|real estate|house|home|bolig|byggeri|builder|interior|møbel/.test(pageDescription) ? "home"
+    : /clothing|fashion|tøjbutik|modebutik|boutique|retail/.test(pageDescription) ? "clothing"
+    : /fitness|gym|sport|træning|yoga|pilates/.test(pageDescription) ? "gym"
+    : /restaurant|cafe|café|hotel|hospitality|food/.test(pageDescription) ? "restaurant"
+    : /car|auto|mechanic|garage|værksted|bil|dæk|tyre|tire/.test(pageDescription) ? "automotive"
+    : /maler|painter|painting|decorator|electric|elektriker|lighting|belysning|plumber|tømrer|snedker|contractor/.test(pageDescription) ? "trade"
+    : "generic";
+  const defaultShape = "walkthrough";
   let firstThreeD = false;
   out.blocks.forEach(block => {
     if (block.type === "threeD") {
-      block.scrollMode = !firstThreeD;
+      if (!firstThreeD) {
+        if (block.modelData || block.modelUrl) {
+          out.blocks.push({ ...block, id: "pw-model-" + Math.random().toString(36).slice(2, 9), title: (block.title || "3D model") + " · Interactive model", scrollMode: false });
+        }
+        block.shape = defaultShape;
+        block.journey = defaultJourney;
+        block.modelData = "";
+        block.modelUrl = "";
+        block.modelProvider = "";
+        block.modelLicense = "";
+        block.scrollMode = true;
+      } else block.scrollMode = false;
       firstThreeD = true;
     }
   });
@@ -192,7 +204,7 @@ function sanitizeSite(site, fallbackLanguage) {
     const isFrench = out.meta.language === "fr";
     const title = isEnglish ? "Experience the business in 3D" : isSpanish ? "Descubre el negocio en 3D" : isGerman ? "Erlebe das Unternehmen in 3D" : isFrench ? "Découvrez l’entreprise en 3D" : "Oplev virksomheden i 3D";
     const text = isEnglish ? "Explore the details in an immersive 3D scene that responds as you scroll." : isSpanish ? "Explora los detalles en una escena 3D inmersiva que responde al desplazamiento." : isGerman ? "Entdecke die Details in einer immersiven 3D-Szene, die auf Scrollen reagiert." : isFrench ? "Explorez les détails dans une scène 3D immersive qui réagit au défilement." : "Oplev detaljerne i en levende 3D-scene, der bevæger sig med din scrolling.";
-    const scene = { id: "pw-3d-" + Math.random().toString(36).slice(2, 9), type: "threeD", title, text, shape: defaultShape, color: out.meta.theme.accent || "#6D7CFF", scrollMode: true, modelData: "", modelUrl: "", modelProvider: "", modelLicense: "", modelFormat: "glb", modelName: "" };
+    const scene = { id: "pw-3d-" + Math.random().toString(36).slice(2, 9), type: "threeD", title, text, shape: defaultShape, journey: defaultJourney, color: out.meta.theme.accent || "#6D7CFF", scrollMode: true, modelData: "", modelUrl: "", modelProvider: "", modelLicense: "", modelFormat: "glb", modelName: "" };
     const heroIndex = out.blocks.findIndex(block => block.type === "hero");
     out.blocks.splice(heroIndex >= 0 ? heroIndex + 1 : 0, 0, scene);
   }
