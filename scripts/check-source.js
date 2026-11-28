@@ -66,7 +66,10 @@ const contracts = [
   ['Claude assists with the conversational response after Gemini generation', ai.includes('Gemini handles the actual website JSON') && ai.includes('api.anthropic.com/v1/messages') && ai.includes('conversationProvider = "anthropic"')],
   ['both AI credentials are read server-side only', ai.includes('process.env.GEMINI_API_KEY') && ai.includes('process.env.ANTHROPIC_API_KEY') && !app.includes('ANTHROPIC_API_KEY') && !app.includes('GEMINI_API_KEY')],
   ['one global smooth-scroll controller is used', app.split('new Lenis(').length === 2 && app.includes('lenis.on(\'scroll\',ScrollTrigger.update)')],
-  ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))]
+  ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))],
+  ['one shared walkthrough renderer supports all industry journeys', app.includes("const makeWalkthrough=()=>") && app.includes("camera.position.z=14-p*22") && app.includes("journey==='barber'") && app.includes("journey==='home'") && app.includes("journey==='clothing'") && app.includes("journey==='gym'") && app.includes("journey==='restaurant'") && app.includes("journey==='automotive'")],
+  ['walkthrough is the mandatory primary 3D scene in generation', ai.includes('shape MUST be "walkthrough"') && ai.includes('block.shape = defaultShape') && ai.includes('block.journey = defaultJourney')],
+  ['walkthrough camera path is scrubbed by the existing single Lenis scroll runtime', app.includes("camera.position.z=14-p*22") && app.includes("lenis.on('scroll',ScrollTrigger.update)") && app.split('new Lenis(').length === 2)
 ];
 
 let failed = false;
