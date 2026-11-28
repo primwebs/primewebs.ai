@@ -39,6 +39,8 @@ const contracts = [
   ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
   ['no automatic gallery by default', app.includes('const needsGallery=explicitImageRequest||!!(gallery&&')],
   ['automotive gets one dedicated garage scene', ai.includes('dedicated interactive garage3D experience')],
+  ['scroll-driven 3D renderer', app.includes('data-pw-scroll3d') && app.includes('scrollJourney')],
+  ['AI preserves scroll-driven 3D mode', ai.includes('scrollMode: b.scrollMode === true') && ai.includes('scrollMode:boolean')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 
