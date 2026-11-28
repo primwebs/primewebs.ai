@@ -1305,8 +1305,7 @@ function ensureIndustry3D(site,prompt,previousSite){
       block.text=mechanicEnglish?'Drag with your mouse to rotate. Scroll down to zoom in and scroll up to zoom out.':'Træk med musen for at dreje modellen. Scroll ned for at zoome ind og op for at zoome ud.';
       block.color='#3B82F6';
     });
-    const keep=new Set(scenes);
-    site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
+    // Preserve every additional 3D scene, including user-authored scenes.
   }
   if(painter||lighting){
     const shapes=painter?['paint-roller','paint-bucket']:['work-lamp','ceiling-lamp'];
@@ -1314,7 +1313,7 @@ function ensureIndustry3D(site,prompt,previousSite){
     while(scenes.length<2){const b={id:uid(),type:'threeD',shape:shapes[scenes.length],color:painter?'#D58A35':'#D6B45A',modelData:'',modelUrl:''};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,b);scenes.push(b)}
     const industryEnglish=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
     scenes.slice(0,2).forEach((b,i)=>{b.shape=shapes[i];b.modelData='';b.modelUrl='';b.modelAsset='';b.modelFormat='glb';b.title=painter?(industryEnglish?'Interactive paint roller':'Interaktiv malerrulle'): (industryEnglish?'Interactive work lamp':'Interaktiv arbejdslampe');b.text=painter?(industryEnglish?'Explore painting tools in interactive 3D.':'Udforsk professionelt malerværktøj i interaktiv 3D.'): (industryEnglish?'Explore professional lighting in interactive 3D.':'Udforsk professionel belysning i interaktiv 3D.');b.color=painter?'#D58A35':'#D6B45A'});
-    const keep=new Set(scenes.slice(0,2));site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
+    // Preserve every additional 3D scene, including user-authored scenes.
   }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
   const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
@@ -1490,8 +1489,7 @@ async function enrichIndustryModels(site,prompt){
 }
 async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   if(!site||!Array.isArray(site.blocks))return site;
-  const automotive=/autoshop|autoværksted|bilværksted|bilmekaniker|autoservice|auto.?service|auto.?shop|car.?service|car.?repair|auto.?repair|mechanic|automotive|tire shop|tyre shop/i.test(String(prompt||''));
-  if(automotive){const clean=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};site.blocks=site.blocks.filter(b=>b&&b.type!=='gallery').map(clean);if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:(page.blocks||[]).filter(b=>b&&b.type!=='gallery').map(clean)}:page);return site;}
+  // Industry-specific enrichment must never delete user/AI images or galleries.
   ensureIndustryImages(site,prompt);
   // On a brand-new website, replace AI-supplied/legacy remote stock images with
   // fresh industry-matched, attributed Openverse photos. Keep embedded user uploads.
@@ -1563,6 +1561,30 @@ async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   }catch(error){console.warn('Industry image search unavailable:',error&&error.message||error)}
   return site;
 }
+function enforceImmersiveInvariants(site) {
+  if(!site||typeof site!=='object')return site;
+  site.meta=site.meta&&typeof site.meta==='object'?site.meta:{};
+  site.meta.animation={...(site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
+  const ensurePage=(blocks,label)=>{
+    const list=Array.isArray(blocks)?blocks:[];
+    let first=list.find(b=>b&&b.type==='threeD');
+    if(!first){
+      const english=String(site.meta.language||'da').toLowerCase().startsWith('en');
+      first={id:uid(),type:'threeD',title:english?'Explore in 3D':'Oplev det i 3D',text:english?'A scroll-responsive 3D scene created for this business.':'En scrollstyret 3D-scene skabt til denne virksomhed.',shape:'orb',color:(site.meta.theme&&site.meta.theme.accent)||'#6D7CFF',scrollMode:true,modelData:'',modelFormat:'glb',modelName:''};
+      const heroIndex=list.findIndex(b=>b&&b.type==='hero');
+      list.splice(heroIndex>=0?heroIndex+1:0,0,first);
+    }
+    // The first 3D scene is the page's scroll-driven focal scene.
+    first.scrollMode=true;
+    return list;
+  };
+  site.blocks=ensurePage(site.blocks,'home');
+  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>{
+    if(!page||typeof page!=='object')return page;
+    return {...page,blocks:ensurePage(page.blocks,page.slug||page.title||'page')};
+  });
+  return site;
+}
 function keepImages(previousSite, nextSite) {
   if (!nextSite || !Array.isArray(nextSite.blocks)) return nextSite;
   const previous = new Map(((previousSite && previousSite.blocks) || [])
@@ -1596,6 +1618,7 @@ async function generate(){
   const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
   ensureIndustry3D(site,promptText);
   await enrichIndustryImages(site,promptText,true);await enrichIndustryModels(site,promptText);
+  enforceImmersiveInvariants(site);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
@@ -1618,6 +1641,7 @@ async function send(t){
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:reply})});
     } else {
       r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=await enrichIndustryImages(r.site,[p.name,t].join(' '));r.site=await enrichIndustryModels(r.site,[p.name,t].join(' '));
+      enforceImmersiveInvariants(r.site);
       const reply=String(r.reply||'Færdigt — jeg har opdateret hjemmesiden efter din besked. Kig i previewet, og fortæl mig, hvis du vil have flere ændringer.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;q.chat.push({r:'ai',t:reply});Credits.spend('edit')});
     }
