@@ -24,6 +24,7 @@ for (const file of files) {
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const adapter = fs.readFileSync(path.join(root, 'pw-supabase.js'), 'utf8');
 const ai = fs.readFileSync(path.join(root, 'api/ai.js'), 'utf8');
+const models = fs.readFileSync(path.join(root, 'api/models.js'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 const contracts = [
@@ -39,20 +40,36 @@ const contracts = [
   ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
   ['no automatic gallery by default', app.includes('const needsGallery=explicitImageRequest||!!(gallery&&')],
   ['automotive keeps its dedicated 3D garage renderer', app.includes('data-pw-garage') && app.includes('pwGarageExperienceVersion')],
+  ['automotive keeps immersive scroll animation enabled', app.includes("level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true") && !app.includes("level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false")],
+  ['automotive preserves existing 3D scenes and galleries', app.includes("const rest=blocks.filter(b=>b&&b.type!=='garage3D');") && !app.includes("site.blocks=site.blocks.filter(x=>x&&x.type!=='threeD'&&x.type!=='garage3D'&&x.type!=='gallery')")],
   ['scroll-driven 3D renderer', app.includes('data-pw-scroll3d') && app.includes('scrollJourney')],
   ['AI preserves scroll-driven 3D mode', ai.includes('scrollMode: b.scrollMode === true') && ai.includes('scrollMode:boolean')],
   ['Lenis smooth-scroll runtime with native fallback', app.includes('lenis@1.3.29') && app.includes('pw-native-scroll-fallback') && app.includes('syncTouch:false')],
   ['GSAP ScrollTrigger syncs scroll scenes', app.includes('gsap@3.15.0/ScrollTrigger') && app.includes('ScrollTrigger.update') && app.includes('pw-scroll3d')],
   ['scroll motion respects reduced-motion preference', app.includes("matchMedia('(prefers-reduced-motion: reduce)')") && app.includes('if(reduced||(!level&&!cinematic))return;')],
-  ['3D-first generator rule is mandatory', ai.includes('3D-FIRST DESIGN — NON-NEGOTIABLE PRODUCT RULE') && ai.includes('at least one real threeD block on the homepage') && ai.includes('Never generate a plain, flat, generic template website')],
-  ['sanitizer inserts a scroll-driven 3D scene when AI omits one', ai.includes('Guarantee a cinematic, scroll-driven 3D focal scene on every generated page') && ai.includes('block.scrollMode = !firstThreeD') && ai.includes('out.blocks.splice')],
+  ['3D-first generator rule is mandatory', ai.includes('3D-FIRST DESIGN — NON-NEGOTIABLE PRODUCT RULE') && ai.includes('shape MUST be "walkthrough"') && ai.includes('scrollMode MUST be true') && ai.includes('Do not use an orb or a single floating object as a substitute')],
+  ['sanitizer inserts a scroll-driven 3D scene when AI omits one', ai.includes('const defaultShape = "walkthrough"') && ai.includes('if (!firstThreeD)') && ai.includes('journey: defaultJourney') && ai.includes('out.blocks.splice')],
   ['immersive animation flags cannot be disabled by AI output', ai.includes('animation: { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true }')],
   ['renderer always applies immersive motion, including garage sites', app.includes("const animLevel='immersive';")],
   ['scroll parallax targets content images across all pages', app.includes("main#pw-home img:not([data-no-parallax]),.pw-page-view img:not([data-no-parallax])")],
   ['3D shape library includes painters and lighting trades', ai.includes('"paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"')],
-  ['industry-specific 3D model selection is mapped', ai.includes('/maler|painter|painting|decorator/') && ai.includes('/electric|elektriker|lighting|belysning|lamp/')],
+  ['industry-specific 3D model selection is mapped', ai.includes('const defaultJourney') && ai.includes('"barber"') && ai.includes('"home"') && ai.includes('"clothing"') && ai.includes('"gym"') && ai.includes('"restaurant"') && ai.includes('"automotive"') && ai.includes('"trade"')],
+  ['automotive enrichment never deletes galleries or image fields', !app.includes("site.blocks=site.blocks.filter(b=>b&&b.type!=='gallery')") && !app.includes("['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k])")],
+  ['industry enrichment preserves every additional 3D scene', !app.includes("site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b))") && !app.includes("site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b))")],
+  ['immersive invariant guard exists and is applied after generation and edits', app.includes('function enforceImmersiveInvariants(site)') && app.includes('enforceImmersiveInvariants(site);') && app.includes('enforceImmersiveInvariants(r.site);')],
+  ['every homepage and subpage retains a scroll-driven 3D focal scene', app.includes("first.scrollMode=true") && app.includes("site.pages=site.pages.map(page=>") && app.includes("type==='threeD'")],
   ['distinct visual blueprint prevents generic template repetition', ai.includes('DESIGN BLUEPRINT — make each site feel art-directed, not templated') && ai.includes('Do not make every business look like the same purple orb template')],
-  ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
+  ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))],
+  ['Gemini remains the default primary website provider', ai.includes('process.env.AI_PROVIDER || "auto"') && ai.includes('requestedProvider === "auto"') && ai.includes('(GEMINI_API_KEY ? "gemini" : "anthropic")')],
+  ['Claude is used as a real generation fallback when Gemini fails', ai.includes('if (activeProvider === "gemini")') && ai.includes('text = await callGemini()') && ai.includes('text = await callAnthropic()') && ai.includes('websiteProvider = "anthropic"')],
+  ['Claude retries malformed Gemini website output', ai.includes('Gemini returned invalid website JSON; retrying with Anthropic') && ai.includes('Hverken Gemini eller Claude returnerede en komplet hjemmeside.')],
+  ['Claude assists with the conversational response after Gemini generation', ai.includes('Gemini handles the actual website JSON') && ai.includes('api.anthropic.com/v1/messages') && ai.includes('conversationProvider = "anthropic"')],
+  ['both AI credentials are read server-side only', ai.includes('process.env.GEMINI_API_KEY') && ai.includes('process.env.ANTHROPIC_API_KEY') && !app.includes('ANTHROPIC_API_KEY') && !app.includes('GEMINI_API_KEY')],
+  ['one global smooth-scroll controller is used', app.split('new Lenis(').length === 2 && app.includes('lenis.on(\'scroll\',ScrollTrigger.update)')],
+  ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))],
+  ['one shared walkthrough renderer supports all industry journeys', app.includes("const makeWalkthrough=()=>") && app.includes("camera.position.z=14-p*22") && app.includes("journey==='barber'") && app.includes("journey==='home'") && app.includes("journey==='clothing'") && app.includes("journey==='gym'") && app.includes("journey==='restaurant'") && app.includes("journey==='automotive'")],
+  ['walkthrough is the mandatory primary 3D scene in generation', ai.includes('shape MUST be "walkthrough"') && ai.includes('block.shape = defaultShape') && ai.includes('block.journey = defaultJourney')],
+  ['walkthrough camera path is scrubbed by the existing single Lenis scroll runtime', app.includes("camera.position.z=14-p*22") && app.includes("lenis.on('scroll',ScrollTrigger.update)") && app.split('new Lenis(').length === 2]
 ];
 
 let failed = false;

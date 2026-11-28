@@ -84,10 +84,9 @@ const Projects={
       const creditNames={car:'Sport Sedan','v12-grand-coupe':'V12 Grand Coupe','realistic-muscle-coupe':'Muscle Coupe','v8-engine':'V8 Engine','car-lift':'Two Post Car Lift','tire-changer':'Tire Changer','rolling-tool-chest':'Rolling Tool Chest','garage-workbench':'Garage Workbench','engine-hoist':'Engine Hoist'};const models=assets.map(asset=>({asset,url:'https://primewebs.site/api/models?asset='+asset+'&download=1',name:creditNames[asset],credit:'\"'+creditNames[asset]+'\" by vinish.dev',creditUrl:'https://vinish.dev/free-3d-models/',license:'CC BY 4.0'}));
       const garage=blocks.find(b=>b&&b.type==='garage3D')||{id:'pw-garage-'+p.id,type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll down to move through a realistic workshop with three detailed cars, a V8 engine and professional service equipment.':'Scroll ned for at bevæge dig gennem et realistisk værksted med tre detaljerede biler, en V8-motor og professionelt værkstedsudstyr.',models};
       if(!Array.isArray(garage.models)||!garage.models.length)garage.models=models;
-      const cleanBlock=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};
-      const rest=blocks.filter(b=>b&&b.type!=='threeD'&&b.type!=='garage3D'&&b.type!=='gallery').map(cleanBlock);
+      const rest=blocks.filter(b=>b&&b.type!=='garage3D');
       p.site.meta=p.site.meta||{};p.site.meta.pwGarageExperienceVersion=2;
-      p.site.meta.animation={...(p.site.meta.animation||{}),level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false};
+      p.site.meta.animation={...(p.site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
       p.site.blocks=[garage,...rest];
       migrated=true;
     });
@@ -276,7 +275,7 @@ const B={
   cta:b=>`<section class="final-cta" style="text-align:center"><h2>${esc(b.title)}</h2><p>${esc(b.text)}</p><div class="actions" style="justify-content:center"><a class="btn" href="${b.actionHref||'#kontakt'}">${esc(b.cta||'Kontakt os nu')}</a><a class="btn secondary" href="${b.servicesHref||'#kontakt'}">Se ydelser</a></div></section>`,
   gallery:b=>{const im=(b.images||[]).filter(entry=>typeof entry==='string'?!!imgSrc(entry):!!(entry&&imgSrc(entry.url)));return im.length?`<section><h2>${esc(b.title)}</h2><div class="gal">${im.map((entry,n)=>{const u=typeof entry==='string'?entry:entry.url;return `<figure><img src="${esc(u)}" alt="${esc(b.title)} ${n+1}" loading="lazy"><figcaption>${entry&&entry.attribution?`<a href="${esc(entry.creditUrl||'#')}" target="_blank" rel="noopener">${esc(entry.attribution)}</a>`:''}</figcaption></figure>`}).join('')}</div></section>`:''},
   booking:b=>`<section class="booking-cta"><h2>${esc(b.title||'Book en tid')}</h2><p>${esc(b.text||'Vælg en tid, der passer dig.')}</p><a class="btn" href="#booking">${esc(b.cta||'Book en tid')}</a></section>`,
-  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine','paint-roller','paint-bucket','work-lamp','ceiling-lamp'].includes(b.shape)?b.shape:'orb',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/(?:models\.vinish\.dev|cdn\.3dassets\.dev)\//i.test(b.modelUrl)?b.modelUrl:(typeof b.modelUrl==='string'&&/^https:\/\/primewebs\.site\/api\/models\?asset=[a-z0-9-]+&download=1$/i.test(b.modelUrl)?b.modelUrl:(typeof b.modelUrl==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/primewebs-media\/[A-Za-z0-9._%/-]+$/i.test(b.modelUrl)?b.modelUrl:''))),format=b.modelFormat==='gltf'?'gltf':'glb',fallbackArt=shape==='car'?'<svg viewBox="0 0 640 300"><path d="M80 190l30-70q12-26 42-32l94-22q22-6 45 0l95 26q28 8 45 34l36 64v34H80z" stroke="currentColor" stroke-width="13" stroke-linejoin="round"/><path d="M185 92l-35 76h290l-40-58-93-25zM80 190h432" stroke="currentColor" stroke-width="10" fill="none"/><circle cx="180" cy="220" r="38" stroke="currentColor" stroke-width="13"/><circle cx="420" cy="220" r="38" stroke="currentColor" stroke-width="13"/></svg>':shape==='engine'?'<svg viewBox="0 0 500 360"><path d="M110 110h280v160H110zM150 70h200v40H150zM80 150h30v100H80zM390 150h35v100h-35z" stroke="currentColor" stroke-width="12" fill="none"/><path d="M150 110V55h45v55m35 0V55h45v55m35 0V55h45v55M155 270v35h190v-35" stroke="currentColor" stroke-width="12" fill="none"/><circle cx="250" cy="190" r="45" stroke="currentColor" stroke-width="12" fill="none"/></svg>':shape==='wheel'?'<svg viewBox="0 0 360 360"><circle cx="180" cy="180" r="140" stroke="currentColor" stroke-width="26" fill="none"/><circle cx="180" cy="180" r="88" stroke="currentColor" stroke-width="14" fill="none"/><circle cx="180" cy="180" r="28" stroke="currentColor" stroke-width="12" fill="none"/><path d="M180 40v112m0 56v112M40 180h112m56 0h112M81 81l79 79m40 40 79 79M279 81l-79 79m-40 40-79 79" stroke="currentColor" stroke-width="12"/></svg>':shape==='barber-chair'?'<svg viewBox="0 0 360 420"><path d="M105 80q0-35 35-35h80q35 0 35 35v110H105zM85 190h190v48H85zM100 238v45m160-45v45M180 285v50m-85 35h170" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round"/></svg>':shape==='paint-roller'?'<svg viewBox="0 0 420 360"><rect x="55" y="55" width="235" height="90" rx="24" stroke="currentColor" stroke-width="14" fill="none"/><path d="M290 100h55v130H210v75" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round"/></svg>':shape==='paint-bucket'?'<svg viewBox="0 0 360 360"><path d="M80 105h200l-20 205H100zM90 105q90-95 180 0M75 105h210" stroke="currentColor" stroke-width="14" fill="none" stroke-linejoin="round"/></svg>':(shape==='work-lamp'||shape==='ceiling-lamp')?'<svg viewBox="0 0 360 360"><path d="M180 35v90m0 0 85 70-55 25-30-95m0 0-80 90m80-90v125m-90 65h180" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M210 180h100l-35 65h-95z" stroke="currentColor" stroke-width="12" fill="none"/></svg>':'<svg viewBox="0 0 360 360"><path d="M65 180h230M180 65v230" stroke="currentColor" stroke-width="12" fill="none"/></svg>';const copy=`<div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div>`,scene=`<div class="pw-three-scene" data-pw-three data-shape="${shape}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" data-scroll-driven="${b.scrollMode===true?'true':'false'}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}"><div class="pw-three-fallback" aria-hidden="true">${fallbackArt}</div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div>`;return b.scrollMode===true?`<section class="pw-scroll3d" data-pw-scroll3d><div class="pw-scroll3d-sticky">${copy}${scene}</div></section>`:`<section class="pw-3d-section">${copy}${scene}</section>`},
+  threeD:b=>{const shape=['orb','torus','box','knot','barber-pole','shampoo-bottle','scissors','barber-chair','car','wheel','engine','paint-roller','paint-bucket','work-lamp','ceiling-lamp','walkthrough'].includes(b.shape)?b.shape:'orb',journey=['barber','home','clothing','gym','restaurant','automotive','trade','generic'].includes(b.journey)?b.journey:'generic',color=/^#[0-9a-fA-F]{6}$/.test(b.color||'')?b.color:'#6D7CFF',model=typeof b.modelData==='string'&&b.modelData.startsWith('data:')?b.modelData:(typeof b.modelUrl==='string'&&/^https:\/\/(?:models\.vinish\.dev|cdn\.3dassets\.dev)\//i.test(b.modelUrl)?b.modelUrl:(typeof b.modelUrl==='string'&&/^https:\/\/primewebs\.site\/api\/models\?asset=[a-z0-9-]+&download=1$/i.test(b.modelUrl)?b.modelUrl:(typeof b.modelUrl==='string'&&/^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/primewebs-media\/[A-Za-z0-9._%/-]+$/i.test(b.modelUrl)?b.modelUrl:''))),format=b.modelFormat==='gltf'?'gltf':'glb',fallbackArt=shape==='car'?'<svg viewBox="0 0 640 300"><path d="M80 190l30-70q12-26 42-32l94-22q22-6 45 0l95 26q28 8 45 34l36 64v34H80z" stroke="currentColor" stroke-width="13" stroke-linejoin="round"/><path d="M185 92l-35 76h290l-40-58-93-25zM80 190h432" stroke="currentColor" stroke-width="10" fill="none"/><circle cx="180" cy="220" r="38" stroke="currentColor" stroke-width="13"/><circle cx="420" cy="220" r="38" stroke="currentColor" stroke-width="13"/></svg>':shape==='engine'?'<svg viewBox="0 0 500 360"><path d="M110 110h280v160H110zM150 70h200v40H150zM80 150h30v100H80zM390 150h35v100h-35z" stroke="currentColor" stroke-width="12" fill="none"/><path d="M150 110V55h45v55m35 0V55h45v55m35 0V55h45v55M155 270v35h190v-35" stroke="currentColor" stroke-width="12" fill="none"/><circle cx="250" cy="190" r="45" stroke="currentColor" stroke-width="12" fill="none"/></svg>':shape==='wheel'?'<svg viewBox="0 0 360 360"><circle cx="180" cy="180" r="140" stroke="currentColor" stroke-width="26" fill="none"/><circle cx="180" cy="180" r="88" stroke="currentColor" stroke-width="14" fill="none"/><circle cx="180" cy="180" r="28" stroke="currentColor" stroke-width="12" fill="none"/><path d="M180 40v112m0 56v112M40 180h112m56 0h112M81 81l79 79m40 40 79 79M279 81l-79 79m-40 40-79 79" stroke="currentColor" stroke-width="12"/></svg>':shape==='barber-chair'?'<svg viewBox="0 0 360 420"><path d="M105 80q0-35 35-35h80q35 0 35 35v110H105zM85 190h190v48H85zM100 238v45m160-45v45M180 285v50m-85 35h170" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round"/></svg>':shape==='paint-roller'?'<svg viewBox="0 0 420 360"><rect x="55" y="55" width="235" height="90" rx="24" stroke="currentColor" stroke-width="14" fill="none"/><path d="M290 100h55v130H210v75" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round"/></svg>':shape==='paint-bucket'?'<svg viewBox="0 0 360 360"><path d="M80 105h200l-20 205H100zM90 105q90-95 180 0M75 105h210" stroke="currentColor" stroke-width="14" fill="none" stroke-linejoin="round"/></svg>':(shape==='work-lamp'||shape==='ceiling-lamp')?'<svg viewBox="0 0 360 360"><path d="M180 35v90m0 0 85 70-55 25-30-95m0 0-80 90m80-90v125m-90 65h180" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M210 180h100l-35 65h-95z" stroke="currentColor" stroke-width="12" fill="none"/></svg>':'<svg viewBox="0 0 360 360"><path d="M65 180h230M180 65v230" stroke="currentColor" stroke-width="12" fill="none"/></svg>';const copy=`<div class="pw-3d-copy"><span class="pw-3d-kicker">INTERACTIVE 3D</span><h2>${esc(b.title||'Oplev det i 3D')}</h2><p>${esc(b.text||'Et levende 3D-element, der giver hjemmesiden dybde.')}</p></div>`,scene=`<div class="pw-three-scene" data-pw-three data-shape="${shape}" data-journey="${journey}" data-color="${color}" data-model-src="${esc(model)}" data-model-format="${format}" data-scroll-driven="${b.scrollMode===true?'true':'false'}" role="group" aria-label="${esc(b.title||'Interaktiv 3D-illustration')}"><div class="pw-three-fallback" aria-hidden="true">${fallbackArt}</div><div class="pw-three-controls" aria-label="3D-kontroller"><button type="button" data-3d-zoom="-1" aria-label="Zoom ud">−</button><button type="button" data-3d-reset aria-label="Nulstil visning">Nulstil</button><button type="button" data-3d-zoom="1" aria-label="Zoom ind">+</button><button type="button" data-3d-auto aria-pressed="true">Auto rotation</button></div></div>`;return b.scrollMode===true?`<section class="pw-scroll3d" data-pw-scroll3d><div class="pw-scroll3d-sticky">${copy}${scene}</div></section>`:`<section class="pw-3d-section">${copy}${scene}</section>`},
   garage3D:b=>{const models=Array.isArray(b.models)?b.models:[],credits=models.map(m=>m&&m.credit?`<span>${esc(m.credit)} · CC BY 4.0</span>`:'').filter(Boolean).join(' · ');return `<section class="pw-garage-experience" data-pw-garage data-models="${esc(JSON.stringify(models))}"><div class="pw-garage-sticky"><div class="pw-garage-heading"><span>INTERACTIVE WORKSHOP</span><h2>${esc(b.title||'Træd ind i værkstedet')}</h2><p>${esc(b.text||'Scroll for at bevæge dig ind i garagen og udforske bilerne.')}</p></div><div class="pw-garage-loading">Indlæser 3D-garage…</div><div class="pw-garage-credit">3D credits: ${credits}</div><div class="pw-garage-controls"><button type="button" data-garage-lift>Løft bilen</button><button type="button" data-garage-wheel>Afmonter hjul</button><button type="button" data-garage-zoom="out" aria-label="Zoom ud">−</button><button type="button" data-garage-zoom="in" aria-label="Zoom ind">+</button><button type="button" data-garage-add>Tilføj bil</button><span>Scroll frem/tilbage · Træk for at kigge rundt · WASD for at flytte kameraet</span></div></div></section>`},
   contact:b=>`<section class="contact-section"><h2>${esc(b.title||'Kontakt os')}</h2><p>${esc(b.text||'Vi glæder os til at høre fra dig.')}</p><div class="actions">${b.phone?`<a class="btn" href="tel:${esc(String(b.phone).replace(/[^+\\d]/g,''))}">Ring til os · ${esc(b.phone)}</a>`:''}${b.whatsapp&&b.phone?`<a class="btn whatsapp" href="https://wa.me/${esc(String(b.whatsapp).replace(/\\D/g,''))}" target="_blank" rel="noopener">Skriv på WhatsApp</a>`:''}${b.email?`<a class="btn secondary" href="mailto:${esc(b.email)}">Send e-mail</a>`:''}${b.address?`<a class="btn secondary" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Find os på Google Maps</a>`:''}<a class="btn secondary" href="#top">Til toppen ↑</a></div><form id="pw-contact-form" class="contact-form"><h3>Send os en besked</h3><label>Dit navn<input name="name" autocomplete="name" required></label><label>Din e-mail<input name="email" type="email" autocomplete="email" required></label><label>Telefon (valgfrit)<input name="phone" type="tel" autocomplete="tel"></label><label>Hvad kan vi hjælpe med?<textarea name="message" rows="4" required></textarea></label><button class="btn" type="submit">Klargør besked</button><p id="pw-contact-note" class="form-note">Din e-mailapp åbnes med beskeden. Du skal selv trykke Send.</p></form></section>` ,
   reviews:b=>Array.isArray(b.items)&&b.items.length?`<section class="reviews-section"><h2>${esc(b.title||'Det siger vores kunder')}</h2><div class="g">${b.items.slice(0,8).map(x=>`<article class="c review">${Number(x.rating)>=1&&Number(x.rating)<=5?`<div aria-label="${Math.round(Number(x.rating))} ud af 5 stjerner" class="stars">${'★'.repeat(Math.round(Number(x.rating)))}</div>`:''}<p>“${esc(x.text)}”</p><strong>${esc(x.name)}</strong></article>`).join('')}</div></section>`:'' ,
@@ -507,7 +506,57 @@ hosts.forEach(host=>{
   const makePaintBucket=()=>{cyl(.62,.48,1.05,mats.red,0,-.38,0,48);cyl(.63,.63,.09,mats.chrome,0,.17,0,48);cyl(.51,.51,.05,mats.white,0,.2,0,48);torus(.62,.035,mats.chrome,0,.16,0);for(const x of [-.52,.52])cyl(.035,.035,.54,mats.chrome,x,.48,0,16,0,0,Math.PI/2)};
   const makeWorkLamp=()=>{cyl(.48,.48,.13,mats.dark,0,-1.02,0,40);cyl(.12,.12,.72,mats.chrome,0,-.58,0,24);cyl(.075,.075,.62,mats.chrome,0,-.14,0,24,0,0,.3);cyl(.28,.28,.28,mats.dark,.18,.22,0,32,0,0,Math.PI/2);const shade=new ConeGeometry(.42,.58,48,1,true);add(shade,mats.chrome,.18,.52,0,0,0,Math.PI);cyl(.24,.24,.035,mats.white,.18,.24,.01,40,Math.PI/2);};
   const makeCeilingLamp=()=>{cyl(.28,.28,.12,mats.chrome,0,.9,0,40);cyl(.045,.045,.75,mats.chrome,0,.48,0,24);const shade=new ConeGeometry(.82,.52,56,1,true);add(shade,mats.dark,0,.05,0,0,0,Math.PI);cyl(.48,.48,.04,mats.white,0,-.18,0,48)}
-  if(shape==='barber-chair')makeChair();
+  // One reusable, industry-adapted walk-through scene. The same renderer and
+  // scroll driver create an exterior-to-interior camera journey for every category.
+  const makeWalkthrough=()=>{
+   const floorMat=new MeshStandardMaterial({color:'#343B43',roughness:.88}),wallMat=new MeshStandardMaterial({color:'#D7D4CD',roughness:.92}),glassMat=new MeshPhysicalMaterial({color:'#8EC7E8',transparent:true,opacity:.24,roughness:.12,metalness:.12}),woodMat=new MeshStandardMaterial({color:'#79543B',roughness:.62}),lightMat=new MeshStandardMaterial({color:'#FFF0C7',emissive:'#FFD78A',emissiveIntensity:1.3}),fabricMat=new MeshStandardMaterial({color:host.dataset.color||'#9A7657',roughness:.82});
+   const W=(w,h,d,m,x,y,z,rx=0,ry=0,rz=0)=>box(w,h,d,m,x,y,z,rx,ry,rz);
+   // Approach path, pavement, storefront and an open central entrance.
+   W(15,.18,31,floorMat,0,-1.35,-3);
+   W(15,5,.35,wallMat,0,1.2,-10);
+   W(.3,5,18,wallMat,-7.35,1.2,-1);
+   W(.3,5,18,wallMat,7.35,1.2,-1);
+   W(15,.28,18,wallMat,0,3.65,-1);
+   W(15,5,.38,wallMat,0,1.2,7.1);
+   W(3.3,4.1,.12,glassMat,-4.75,1.35,6.88);
+   W(3.3,4.1,.12,glassMat,4.75,1.35,6.88);
+   W(2.05,4.35,.16,mats.dark,0,1.2,6.82);
+   W(1.72,4.05,.06,glassMat,0,1.25,6.7);
+   W(.08,4.2,.2,mats.chrome,0,1.2,6.58);
+   W(15,.22,1.1,woodMat,0,-1.18,7.8);
+   // Ceiling rails, warm spots and a continuous interior depth.
+   for(let z=4;z>=-9;z-=3){W(13,.08,.12,mats.chrome,0,3.22,z);for(const x of [-5,0,5]){cyl(.13,.18,.16,lightMat,x,3.08,z,20);}}
+   if(journey==='barber'){
+    for(const x of [-3.7,0,3.7]){W(1.5,.22,1.05,woodMat,x,-.12,-1.5);W(1.32,1.25,.24,mats.leather,x,.58,-1.95);W(1.42,.18,1.1,mats.leather,x,-.25,-1.5);W(1.5,2.15,.12,mats.chrome,x,1.05,-2.75);W(1.2,.65,.08,glassMat,x,1.15,-2.66);cyl(.12,.12,.7,mats.chrome,x,-.72,-1.5,20);}
+    W(2.1,1.2,.75,woodMat,0,-.65,-7.8);W(2.25,.12,.85,mats.chrome,0,.02,-7.8);
+    cyl(.23,.23,2.3,mats.white,-6.1,.15,6.8,32);for(let n=0;n<9;n++)torus(.235,.055,n%2?mats.red:mats.blue||mats.accent,-6.1,-.9+n*.26,6.8,Math.PI/2);
+   }else if(journey==='home'){
+    W(4.2,.18,3.2,woodMat,-2,-1.05,-1);W(4,.32,2.6,fabricMat,-2,-.78,-1);W(.18,1.4,2.5,woodMat,-4.05,-.15,-1);W(.18,1.4,2.5,woodMat,.05,-.15,-1);
+    W(2.2,.18,1.2,woodMat,3,-1.1,-2);W(1.5,.8,.9,mats.white,3,-.58,-2);
+    W(13,.12,.18,mats.chrome,0,3.15,-2);for(const x of [-5,0,5]){W(.08,2.6,.08,woodMat,x,.05,-8);W(2.5,.08,.08,woodMat,x,1.35,-8);}
+    W(3.2,.18,2.2,woodMat,-3,-1.05,-8);W(3,.35,2,fabricMat,-3,-.8,-8);
+   }else if(journey==='clothing'){
+    for(const z of [-1.5,-4.8,-8]){W(4,.12,.45,woodMat,0,1.8,z);W(.08,2.5,.08,mats.chrome,-1.9,.45,z);W(.08,2.5,.08,mats.chrome,1.9,.45,z);W(3.9,.08,.08,mats.chrome,0,2.5,z);for(let x=-1.5;x<=1.5;x+=.75){W(.12,.85,.08,fabricMat,x,1.85,z);W(.62,.65,.12,x%1.5===0?mats.accent:mats.white,x,1.15,z);}}
+    W(4,.18,1.2,woodMat,0,-1.05,-8.8);W(3.8,.7,1,mats.dark,0,-.6,-8.8);
+   }else if(journey==='gym'){
+    for(const x of [-4,0,4]){W(.3,1.4,.3,mats.dark,x,-.35,-2);W(2.4,.14,.7,mats.chrome,x,-.9,-2);for(const z of [-.8,.8])cyl(.48,.48,.25,mats.dark,x,-.25,-2+z,32,Math.PI/2);}
+    for(const x of [-4,4]){W(.18,2.6,.18,mats.chrome,x,.1,-6);for(const z of [-.55,.55])cyl(.48,.48,.22,mats.dark,x,1.25,-6+z,32,Math.PI/2);}
+    W(5,.18,1.3,woodMat,0,-1.05,-8.5);
+   }else if(journey==='restaurant'){
+    for(const z of [-1.8,-5.3,-8])for(const x of [-3.8,3.8]){cyl(.72,.72,.16,woodMat,x,-.42,z,32);cyl(.08,.08,.85,mats.dark,x,-.9,z,20);for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5])W(.12,.9,.12,fabricMat,x+Math.cos(a)*1.05,.02,z+Math.sin(a)*1.05);}
+    W(5,.2,1.1,woodMat,0,-.75,-9);W(5,.7,.95,mats.dark,0,-.3,-9);
+   }else if(journey==='automotive'){
+    for(const x of [-4,0,4]){W(2,.22,4,mats.dark,x,-1.12,-3);W(1.8,.8,3.6,fabricMat,x,-.6,-3);W(.18,3,.18,mats.chrome,x-1, .35,-4);W(.18,3,.18,mats.chrome,x+1,.35,-4);}
+    W(5,.2,1,woodMat,0,-1.1,-8);
+   }else{
+    for(const x of [-4,0,4]){W(2.5,.18,1.6,woodMat,x,-1.05,-3);W(2.3,.4,1.4,fabricMat,x,-.75,-3);}
+   }
+   // Signage and window mullions frame the outside approach.
+   W(5,.55,.2,mats.dark,0,3.15,7.32);
+   for(const x of [-3.4,3.4])W(.08,4,.08,mats.chrome,x,1.25,6.58);
+  };
+  if(shape==='walkthrough')makeWalkthrough();
+  else if(shape==='barber-chair')makeChair();
   else if(shape==='car')makeCar();
   else if(shape==='wheel')makeWheel();
   else if(shape==='engine')makeEngine();
@@ -533,7 +582,8 @@ hosts.forEach(host=>{
   ro=new ResizeObserver(resize);ro.observe(host);
   const clamp=()=>{camera.position.z=Math.max(3.2,Math.min(9,camera.position.z))};
   const reset=()=>{root.rotation.set(0,0,0);camera.position.set(0,.15,6.1)};
-  const draw=()=>{if(!visible||host.dataset.pwGlbLoaded==='true')return;raf=0;if(scrollJourney){root.rotation.y+=(scrollTarget*Math.PI*2-root.rotation.y)*.085;root.rotation.x+=(Math.sin(scrollTarget*Math.PI)*.35-root.rotation.x)*.085;camera.position.z+=(6.1-Math.sin(scrollTarget*Math.PI)*.75-camera.position.z)*.06;}else{root.rotation.y+=(scrollTarget*.72-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0038;if(!reduced&&auto)root.rotation.x+=(scrollTarget*.13+Math.sin(frame*.006)*.025-root.rotation.x)*.025;}frame++;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
+  const journeyScene=shape==='walkthrough';if(journeyScene){camera.fov=52;camera.position.set(0,2.2,14);camera.lookAt(0,.5,0);camera.updateProjectionMatrix();}
+  const draw=()=>{if(!visible||host.dataset.pwGlbLoaded==='true')return;raf=0;if(scrollJourney){if(journeyScene){const p=scrollTarget;camera.position.x=Math.sin(p*Math.PI*1.15)*1.05;camera.position.y=2.1-p*.45;camera.position.z=14-p*22;camera.lookAt(Math.sin(p*Math.PI)*.35,.45-p*.12,1-p*10);root.rotation.y+=(Math.sin(p*Math.PI)*.035-root.rotation.y)*.08;}else{root.rotation.y+=(scrollTarget*Math.PI*2-root.rotation.y)*.085;root.rotation.x+=(Math.sin(scrollTarget*Math.PI)*.35-root.rotation.x)*.085;camera.position.z+=(6.1-Math.sin(scrollTarget*Math.PI)*.75-camera.position.z)*.06;}}else{root.rotation.y+=(scrollTarget*.72-root.rotation.y)*.012;if(!reduced&&auto)root.rotation.y+=.0038;if(!reduced&&auto)root.rotation.x+=(scrollTarget*.13+Math.sin(frame*.006)*.025-root.rotation.x)*.025;}frame++;renderer.render(scene,camera);if(!reduced)raf=requestAnimationFrame(draw)};
   io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)draw();else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});io.observe(host);
   host.style.touchAction='pan-y';host.style.cursor='grab';
   host.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;auto=false;const autoButton=host.querySelector('[data-3d-auto]');if(autoButton){autoButton.setAttribute('aria-pressed','false');autoButton.textContent='Rotation paused'}host.style.cursor='grabbing';pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});host.setPointerCapture(e.pointerId);if(pointers.size===1){dragging=true;lastX=e.clientX;lastY=e.clientY}else{dragging=false;const p=[...pointers.values()];pinch=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}});
@@ -1306,8 +1356,7 @@ function ensureIndustry3D(site,prompt,previousSite){
       block.text=mechanicEnglish?'Drag with your mouse to rotate. Scroll down to zoom in and scroll up to zoom out.':'Træk med musen for at dreje modellen. Scroll ned for at zoome ind og op for at zoome ud.';
       block.color='#3B82F6';
     });
-    const keep=new Set(scenes);
-    site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
+    // Preserve every additional 3D scene, including user-authored scenes.
   }
   if(painter||lighting){
     const shapes=painter?['paint-roller','paint-bucket']:['work-lamp','ceiling-lamp'];
@@ -1315,7 +1364,7 @@ function ensureIndustry3D(site,prompt,previousSite){
     while(scenes.length<2){const b={id:uid(),type:'threeD',shape:shapes[scenes.length],color:painter?'#D58A35':'#D6B45A',modelData:'',modelUrl:''};const ci=site.blocks.findIndex(x=>x&&x.type==='contact');site.blocks.splice(ci<0?site.blocks.length:ci,0,b);scenes.push(b)}
     const industryEnglish=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
     scenes.slice(0,2).forEach((b,i)=>{b.shape=shapes[i];b.modelData='';b.modelUrl='';b.modelAsset='';b.modelFormat='glb';b.title=painter?(industryEnglish?'Interactive paint roller':'Interaktiv malerrulle'): (industryEnglish?'Interactive work lamp':'Interaktiv arbejdslampe');b.text=painter?(industryEnglish?'Explore painting tools in interactive 3D.':'Udforsk professionelt malerværktøj i interaktiv 3D.'): (industryEnglish?'Explore professional lighting in interactive 3D.':'Udforsk professionel belysning i interaktiv 3D.');b.color=painter?'#D58A35':'#D6B45A'});
-    const keep=new Set(scenes.slice(0,2));site.blocks=site.blocks.filter(b=>!b||b.type!=='threeD'||keep.has(b));
+    // Preserve every additional 3D scene, including user-authored scenes.
   }
   const have=new Set(site.blocks.filter(b=>b&&b.type==='threeD').map(b=>b.shape));
   const english=String(site.meta&&site.meta.language||'da').toLowerCase().startsWith('en');
@@ -1439,12 +1488,16 @@ async function enrichIndustryModels(site,prompt){
    'garage-workbench':'"Garage Workbench" by vinish.dev, CC BY 4.0',
    'engine-hoist':'"Engine Hoist" by vinish.dev, CC BY 4.0'
   };
-  const cleanBlock=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};
-  site.blocks=site.blocks.filter(x=>x&&x.type!=='threeD'&&x.type!=='garage3D'&&x.type!=='gallery').map(cleanBlock);
-  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:(page.blocks||[]).filter(x=>x&&x.type!=='threeD'&&x.type!=='gallery').map(cleanBlock)}:page);
-  const garage={id:uid(),type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll through the workshop, move the camera, add cars and operate the lift.':'Scroll gennem værkstedet, bevæg kameraet, tilføj biler og betjen liften.',models:[]};
-  site.blocks.unshift(garage);
-  site.meta=site.meta||{};site.meta.pwGarageExperienceVersion=2;site.meta.animation={...(site.meta.animation||{}),level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false};
+  // The garage is the single principal automotive 3D experience. Remove only the
+  // two auto-scene blocks generated by ensureIndustry3D; keep all authored scenes,
+  // photography, galleries and unrelated content untouched.
+  const garage=site.blocks.find(x=>x&&x.type==='garage3D')||{id:uid(),type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll through the workshop, move the camera, add cars and operate the lift.':'Scroll gennem værkstedet, bevæg kameraet, tilføj biler og betjen liften.',models:[]};
+  if(!site.blocks.includes(garage))site.blocks.unshift(garage);
+  site.blocks=site.blocks.filter(block=>!(block&&block.type==='threeD'&&(
+    (block.modelAsset==='car'&&/^(Interactive 3D car|Interaktiv 3D-bil)$/i.test(String(block.title||'')))||
+    (block.modelAsset==='v8-engine'&&/^(Detailed 3D engine|Detaljeret 3D-motor)$/i.test(String(block.title||'')))
+  )));
+  site.meta=site.meta||{};site.meta.pwGarageExperienceVersion=3;site.meta.animation={...(site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
   const loaded=await Promise.all(assets.map(async asset=>{
    try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset})});if(!r.ok)throw new Error('HTTP '+r.status);const m=await r.json();return m&&m.url?{asset,url:m.url,name:m.name||labels[asset],credit:m.credit||credits[asset],creditUrl:m.creditUrl||'https://vinish.dev/free-3d-models/',license:m.license||'CC BY 4.0'}:null}catch(e){console.warn('Garage model unavailable:',asset,e&&e.message||e);return null}
   }));
@@ -1493,8 +1546,7 @@ async function enrichIndustryModels(site,prompt){
 }
 async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   if(!site||!Array.isArray(site.blocks))return site;
-  const automotive=/autoshop|autoværksted|bilværksted|bilmekaniker|autoservice|auto.?service|auto.?shop|car.?service|car.?repair|auto.?repair|mechanic|automotive|tire shop|tyre shop/i.test(String(prompt||''));
-  if(automotive){const clean=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};site.blocks=site.blocks.filter(b=>b&&b.type!=='gallery').map(clean);if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:(page.blocks||[]).filter(b=>b&&b.type!=='gallery').map(clean)}:page);return site;}
+  // Industry-specific enrichment must never delete user/AI images or galleries.
   ensureIndustryImages(site,prompt);
   // On a brand-new website, replace AI-supplied/legacy remote stock images with
   // fresh industry-matched, attributed Openverse photos. Keep embedded user uploads.
@@ -1566,6 +1618,67 @@ async function enrichIndustryImages(site,prompt,replaceGeneratedImages=false) {
   }catch(error){console.warn('Industry image search unavailable:',error&&error.message||error)}
   return site;
 }
+function enforceImmersiveInvariants(site) {
+  if(!site||typeof site!=='object')return site;
+  site.meta=site.meta&&typeof site.meta==='object'?site.meta:{};
+  site.meta.animation={...(site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
+  const homeBlocks=Array.isArray(site.blocks)?site.blocks:[];
+  const homeTemplate=homeBlocks.find(b=>b&&b.type==='threeD')||null;
+  const homeGarage=homeBlocks.find(b=>b&&b.type==='garage3D')||null;
+  const context=[site.meta.title,site.meta.description,...homeBlocks.flatMap(b=>[b&&b.title,b&&b.text])].join(' ').toLowerCase();
+  const industryJourney=/barber|barbershop|frisør|hairdresser/.test(context)?'barber':
+    /bolig|ejendom|property|real estate|architect|arkitekt|house|home/.test(context)?'home':
+    /clothing|fashion|tøjbutik|modebutik|boutique|retail/.test(context)?'clothing':
+    /gym|fitness|yoga|pilates|sport|træning/.test(context)?'gym':
+    /restaurant|cafe|café|hotel|hospitality|food/.test(context)?'restaurant':
+    /autoværksted|automekaniker|bilværksted|mechanic|automotive|garage|car dealer/.test(context)?'automotive':
+    /maler|painting|painter|decorator|elektriker|electrician|plumber|tømrer|snedker|contractor/.test(context)?'trade':'generic';
+  const industryShape='walkthrough';
+  const ensurePage=(blocks,label,isHome)=>{
+    const list=Array.isArray(blocks)?blocks:[];
+    let first=list.find(b=>b&&b.type==='threeD');
+    const garage=list.find(b=>b&&b.type==='garage3D');
+    // A dedicated garage scene already is the principal Three.js experience.
+    // Do not stack a second generic canvas over the same scroll journey.
+    if(!first&&garage)return list;
+    if(!first){
+      if(homeTemplate){
+        first={...structuredClone(homeTemplate),id:uid(),scrollMode:true};
+      }else{
+        const english=String(site.meta.language||'da').toLowerCase().startsWith('en');
+        const automotive=industryShape==='car';
+        first={id:uid(),type:'threeD',title:automotive?(english?'Explore the vehicle in 3D':'Oplev bilen i 3D'):(english?'Explore in 3D':'Oplev det i 3D'),
+          text:automotive?(english?'Explore the vehicle from every angle.':'Udforsk bilen fra alle vinkler.'):(english?'A scroll-responsive 3D scene created for this business.':'En scrollstyret 3D-scene skabt til denne virksomhed.'),
+          shape:industryShape,journey:industryJourney,color:(site.meta.theme&&site.meta.theme.accent)||'#6D7CFF',scrollMode:true,modelData:'',modelFormat:'glb',
+          ...(automotive?{modelAsset:'car',modelName:'Sport Sedan'}:{})};
+      }
+      const heroIndex=list.findIndex(b=>b&&b.type==='hero');
+      list.splice(heroIndex>=0?heroIndex+1:0,0,first);
+    }
+    // The first 3D scene is always the single industry-specific exterior-to-interior journey.
+    // Keep any authored GLB as a separate, non-pinned product viewer rather than replacing the journey.
+    if(first.shape!=='walkthrough'){
+      if(first.modelData||first.modelUrl){
+        const modelCopy={...first,id:uid(),title:(first.title||'3D model')+' · Interactive model',scrollMode:false};
+        if(!list.some(b=>b&&b.type==='threeD'&&b.modelUrl===modelCopy.modelUrl&&b.modelData===modelCopy.modelData))list.push(modelCopy);
+      }
+      first.shape='walkthrough';
+      first.modelData='';
+      first.modelUrl='';
+      first.modelProvider='';
+      first.modelLicense='';
+    }
+    first.journey=industryJourney;
+    first.scrollMode=true;
+    return list;
+  };
+  site.blocks=ensurePage(site.blocks,'home',true);
+  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>{
+    if(!page||typeof page!=='object')return page;
+    return {...page,blocks:ensurePage(page.blocks,page.slug||page.title||'page',false)};
+  });
+  return site;
+}
 function keepImages(previousSite, nextSite) {
   if (!nextSite || !Array.isArray(nextSite.blocks)) return nextSite;
   const previous = new Map(((previousSite && previousSite.blocks) || [])
@@ -1599,6 +1712,7 @@ async function generate(){
   const promptText=[f.name,f.desc,f.ind,f.svc].filter(Boolean).join(' ');
   ensureIndustry3D(site,promptText);
   await enrichIndustryImages(site,promptText,true);await enrichIndustryModels(site,promptText);
+  enforceImmersiveInvariants(site);
   Credits.spend('generate');
   const now=Date.now(),p={v:1,id:newProjectId(),ownerId:Session.user().id,workspaceMode:Storage.get('pw.workMode','clients')==='own'?'own':'clients',name:f.name.trim(),status:'draft',domain:null,plan:'free',createdAt:now,updatedAt:now,site,history:[],future:[],chat:[{r:'u',t:f.desc.trim()},{r:'ai',t:(result.reply||'Din hjemmeside er klar. Skriv, hvad du vil ændre.')}]};
   if(result.reply)p.chat=[{r:'u',t:f.desc.trim()},{r:'ai',t:result.reply}];
@@ -1621,6 +1735,7 @@ async function send(t){
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.chat.push({r:'ai',t:reply})});
     } else {
       r.site=ensureIndustry3D(r.site,t,p.site);keepImages(p.site,r.site);r.site=await enrichIndustryImages(r.site,[p.name,t].join(' '));r.site=await enrichIndustryModels(r.site,[p.name,t].join(' '));
+      enforceImmersiveInvariants(r.site);
       const reply=String(r.reply||'Færdigt — jeg har opdateret hjemmesiden efter din besked. Kig i previewet, og fortæl mig, hvis du vil have flere ændringer.');
       upd(p.id,q=>{q.chat=Array.isArray(q.chat)?q.chat:[];q.history=[...(q.history||[]),q.site].slice(-30);q.future=[];q.site=r.site;q.chat.push({r:'ai',t:reply});Credits.spend('edit')});
     }
