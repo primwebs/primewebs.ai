@@ -41,6 +41,9 @@ const contracts = [
   ['automotive gets one dedicated garage scene', ai.includes('dedicated interactive garage3D experience')],
   ['scroll-driven 3D renderer', app.includes('data-pw-scroll3d') && app.includes('scrollJourney')],
   ['AI preserves scroll-driven 3D mode', ai.includes('scrollMode: b.scrollMode === true') && ai.includes('scrollMode:boolean')],
+  ['Lenis smooth-scroll runtime with native fallback', app.includes('lenis@1.3.29') && app.includes('pw-native-scroll-fallback') && app.includes('syncTouch:false')],
+  ['GSAP ScrollTrigger syncs scroll scenes', app.includes('gsap@3.15.0/ScrollTrigger') && app.includes('ScrollTrigger.update') && app.includes('pw-scroll3d')],
+  ['scroll motion respects reduced-motion preference', app.includes("matchMedia('(prefers-reduced-motion: reduce)')") && app.includes('if(reduced||(!level&&!cinematic))return;')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 
