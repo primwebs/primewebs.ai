@@ -1626,14 +1626,14 @@ function enforceImmersiveInvariants(site) {
   const homeTemplate=homeBlocks.find(b=>b&&b.type==='threeD')||null;
   const homeGarage=homeBlocks.find(b=>b&&b.type==='garage3D')||null;
   const context=[site.meta.title,site.meta.description,...homeBlocks.flatMap(b=>[b&&b.title,b&&b.text])].join(' ').toLowerCase();
-  const industryShape=/barber|barbershop|frisør|hairdresser/.test(context)?'barber-chair':
-    /beauty|salon|spa|skønhed/.test(context)?'shampoo-bottle':
-    /autoværksted|automekaniker|bilværksted|mechanic|automotive|garage/.test(context)?'car':
-    /maler|painting|painter|decorator/.test(context)?'paint-roller':
-    /elektriker|electrician|lighting|belysning/.test(context)?'work-lamp':
-    /gym|fitness|yoga|pilates/.test(context)?'torus':
-    /bolig|ejendom|property|real estate|architect|arkitekt/.test(context)?'box':
-    /clothing|fashion|tøjbutik|modebutik|boutique/.test(context)?'box':'orb';
+  const industryJourney=/barber|barbershop|frisør|hairdresser/.test(context)?'barber':
+    /bolig|ejendom|property|real estate|architect|arkitekt|house|home/.test(context)?'home':
+    /clothing|fashion|tøjbutik|modebutik|boutique|retail/.test(context)?'clothing':
+    /gym|fitness|yoga|pilates|sport|træning/.test(context)?'gym':
+    /restaurant|cafe|café|hotel|hospitality|food/.test(context)?'restaurant':
+    /autoværksted|automekaniker|bilværksted|mechanic|automotive|garage|car dealer/.test(context)?'automotive':
+    /maler|painting|painter|decorator|elektriker|electrician|plumber|tømrer|snedker|contractor/.test(context)?'trade':'generic';
+  const industryShape='walkthrough';
   const ensurePage=(blocks,label,isHome)=>{
     const list=Array.isArray(blocks)?blocks:[];
     let first=list.find(b=>b&&b.type==='threeD');
@@ -1655,7 +1655,20 @@ function enforceImmersiveInvariants(site) {
       const heroIndex=list.findIndex(b=>b&&b.type==='hero');
       list.splice(heroIndex>=0?heroIndex+1:0,0,first);
     }
-    // The first 3D scene is the page's one scroll-driven focal scene.
+    // The first 3D scene is always the single industry-specific exterior-to-interior journey.
+    // Keep any authored GLB as a separate, non-pinned product viewer rather than replacing the journey.
+    if(first.shape!=='walkthrough'){
+      if(first.modelData||first.modelUrl){
+        const modelCopy={...first,id:uid(),title:(first.title||'3D model')+' · Interactive model',scrollMode:false};
+        if(!list.some(b=>b&&b.type==='threeD'&&b.modelUrl===modelCopy.modelUrl&&b.modelData===modelCopy.modelData))list.push(modelCopy);
+      }
+      first.shape='walkthrough';
+      first.modelData='';
+      first.modelUrl='';
+      first.modelProvider='';
+      first.modelLicense='';
+    }
+    first.journey=industryJourney;
     first.scrollMode=true;
     return list;
   };
