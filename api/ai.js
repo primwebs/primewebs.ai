@@ -32,7 +32,7 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
-threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine|paint-roller|paint-bucket|work-lamp|ceiling-lamp",color:"#6D7CFF",scrollMode:true} (real interactive Three.js scene; the first scene on every page MUST use scrollMode:true and be the page’s principal pinned, scroll-driven visual moment)
+threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine|paint-roller|paint-bucket|work-lamp|ceiling-lamp",color:"#6D7CFF",scrollMode:boolean} (real interactive Three.js scene; the first scene on every page MUST set scrollMode:true and be the page’s principal pinned, scroll-driven visual moment; additional scenes may use false)
 pricing: {id,type:"pricing",title,items:[{t,d,price}]} (only use exact prices supplied by the user or existing site)
 team: {id,type:"team",title,items:[{t,d}]} (only use real names and roles supplied by the user or existing site)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
