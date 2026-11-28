@@ -80,12 +80,11 @@ const Projects={
       const automotive=/autoshop|auto.?service|auto.?repair|auto.?mechanic|autoværksted|automekaniker|bilværksted|bilmekaniker|car repair|automotive|tire shop|tyre shop/.test(words);
       if(!automotive||meta.pwGarageExperienceVersion>=2)return;
       const english=String(meta.language||'da').toLowerCase().startsWith('en');
-      const assets=['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'];
+      const assets=['car','v8-engine'];
       const creditNames={car:'Sport Sedan','v12-grand-coupe':'V12 Grand Coupe','realistic-muscle-coupe':'Muscle Coupe','v8-engine':'V8 Engine','car-lift':'Two Post Car Lift','tire-changer':'Tire Changer','rolling-tool-chest':'Rolling Tool Chest','garage-workbench':'Garage Workbench','engine-hoist':'Engine Hoist'};const models=assets.map(asset=>({asset,url:'https://primewebs.site/api/models?asset='+asset+'&download=1',name:creditNames[asset],credit:'\"'+creditNames[asset]+'\" by vinish.dev',creditUrl:'https://vinish.dev/free-3d-models/',license:'CC BY 4.0'}));
       const garage=blocks.find(b=>b&&b.type==='garage3D')||{id:'pw-garage-'+p.id,type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll down to move through a realistic workshop with three detailed cars, a V8 engine and professional service equipment.':'Scroll ned for at bevæge dig gennem et realistisk værksted med tre detaljerede biler, en V8-motor og professionelt værkstedsudstyr.',models};
       if(!Array.isArray(garage.models)||!garage.models.length)garage.models=models;
-      const cleanBlock=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};
-      const rest=blocks.filter(b=>b&&b.type!=='garage3D'&&b.type!=='gallery').map(cleanBlock);
+      const rest=blocks.filter(b=>b&&b.type!=='garage3D');
       p.site.meta=p.site.meta||{};p.site.meta.pwGarageExperienceVersion=2;
       p.site.meta.animation={...(p.site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
       p.site.blocks=[garage,...rest];
@@ -1439,12 +1438,10 @@ async function enrichIndustryModels(site,prompt){
    'garage-workbench':'"Garage Workbench" by vinish.dev, CC BY 4.0',
    'engine-hoist':'"Engine Hoist" by vinish.dev, CC BY 4.0'
   };
-  const cleanBlock=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};
-  site.blocks=site.blocks.filter(x=>x&&x.type!=='threeD'&&x.type!=='garage3D'&&x.type!=='gallery').map(cleanBlock);
-  if(Array.isArray(site.pages))site.pages=site.pages.map(page=>page&&typeof page==='object'?{...page,blocks:(page.blocks||[]).filter(x=>x&&x.type!=='threeD'&&x.type!=='gallery').map(cleanBlock)}:page);
-  const garage={id:uid(),type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll through the workshop, move the camera, add cars and operate the lift.':'Scroll gennem værkstedet, bevæg kameraet, tilføj biler og betjen liften.',models:[]};
-  site.blocks.unshift(garage);
-  site.meta=site.meta||{};site.meta.pwGarageExperienceVersion=2;site.meta.animation={...(site.meta.animation||{}),level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false};
+  // Keep the original 3D scenes, photography and galleries. The garage is an additional immersive chapter, not a replacement.
+  const garage=site.blocks.find(x=>x&&x.type==='garage3D')||{id:uid(),type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll through the workshop, move the camera, add cars and operate the lift.':'Scroll gennem værkstedet, bevæg kameraet, tilføj biler og betjen liften.',models:[]};
+  if(!site.blocks.includes(garage))site.blocks.unshift(garage);
+  site.meta=site.meta||{};site.meta.pwGarageExperienceVersion=2;site.meta.animation={...(site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
   const loaded=await Promise.all(assets.map(async asset=>{
    try{const r=await fetch('/api/models',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset})});if(!r.ok)throw new Error('HTTP '+r.status);const m=await r.json();return m&&m.url?{asset,url:m.url,name:m.name||labels[asset],credit:m.credit||credits[asset],creditUrl:m.creditUrl||'https://vinish.dev/free-3d-models/',license:m.license||'CC BY 4.0'}:null}catch(e){console.warn('Garage model unavailable:',asset,e&&e.message||e);return null}
   }));
