@@ -1649,7 +1649,7 @@ function enforceImmersiveInvariants(site) {
         const automotive=industryShape==='car';
         first={id:uid(),type:'threeD',title:automotive?(english?'Explore the vehicle in 3D':'Oplev bilen i 3D'):(english?'Explore in 3D':'Oplev det i 3D'),
           text:automotive?(english?'Explore the vehicle from every angle.':'Udforsk bilen fra alle vinkler.'):(english?'A scroll-responsive 3D scene created for this business.':'En scrollstyret 3D-scene skabt til denne virksomhed.'),
-          shape:industryShape,color:(site.meta.theme&&site.meta.theme.accent)||'#6D7CFF',scrollMode:true,modelData:'',modelFormat:'glb',
+          shape:industryShape,journey:industryJourney,color:(site.meta.theme&&site.meta.theme.accent)||'#6D7CFF',scrollMode:true,modelData:'',modelFormat:'glb',
           ...(automotive?{modelAsset:'car',modelName:'Sport Sedan'}:{})};
       }
       const heroIndex=list.findIndex(b=>b&&b.type==='hero');
