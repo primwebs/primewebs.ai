@@ -85,9 +85,9 @@ const Projects={
       const garage=blocks.find(b=>b&&b.type==='garage3D')||{id:'pw-garage-'+p.id,type:'garage3D',title:english?'Enter the workshop':'Træd ind i værkstedet',text:english?'Scroll down to move through a realistic workshop with three detailed cars, a V8 engine and professional service equipment.':'Scroll ned for at bevæge dig gennem et realistisk værksted med tre detaljerede biler, en V8-motor og professionelt værkstedsudstyr.',models};
       if(!Array.isArray(garage.models)||!garage.models.length)garage.models=models;
       const cleanBlock=b=>{const q={...b};['image','images','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete q[k]);if(Array.isArray(q.items))q.items=q.items.map(item=>{if(!item||typeof item!=='object')return item;const v={...item};['image','imageAttribution','imageCreditUrl','imageAlt'].forEach(k=>delete v[k]);return v});return q};
-      const rest=blocks.filter(b=>b&&b.type!=='threeD'&&b.type!=='garage3D'&&b.type!=='gallery').map(cleanBlock);
+      const rest=blocks.filter(b=>b&&b.type!=='garage3D'&&b.type!=='gallery').map(cleanBlock);
       p.site.meta=p.site.meta||{};p.site.meta.pwGarageExperienceVersion=2;
-      p.site.meta.animation={...(p.site.meta.animation||{}),level:'none',scroll:false,floatingImages:false,threeD:false,animatedText:false};
+      p.site.meta.animation={...(p.site.meta.animation||{}),level:'immersive',scroll:true,floatingImages:true,threeD:true,animatedText:true};
       p.site.blocks=[garage,...rest];
       migrated=true;
     });
