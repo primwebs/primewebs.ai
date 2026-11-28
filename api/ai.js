@@ -116,13 +116,8 @@ function sanitizeSite(site, fallbackLanguage) {
         mode: t.mode === "dark" ? "dark" : "light",
         radius: t.radius === "large" ? "large" : "medium"
       },
-      animation: {
-        level: ["none", "subtle", "advanced", "immersive"].includes(meta.animation && meta.animation.level) ? meta.animation.level : "immersive",
-        scroll: !meta.animation || meta.animation.scroll !== false,
-        floatingImages: !meta.animation || meta.animation.floatingImages !== false,
-        threeD: !meta.animation || meta.animation.threeD !== false,
-        animatedText: !meta.animation || meta.animation.animatedText !== false
-      }
+      // 3D-first is a platform invariant, not an optional generator preference.
+      animation: { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true }
     },
     blocks: []
   };
@@ -169,6 +164,34 @@ function sanitizeSite(site, fallbackLanguage) {
       out.blocks.push(o);
     }
   }
+  // Guarantee a cinematic, scroll-driven 3D focal scene on every generated page.
+  // Keep real business sections intact; the 3D scene is an addition, not a replacement.
+  const pageDescription = [out.meta.title, ...out.blocks.flatMap(b => [b.title, b.text, ...(Array.isArray(b.items) ? b.items.map(i => i && (i.t + " " + i.d)) : [])])].join(" ").toLowerCase();
+  const defaultShape = /barber|barbershop|barberer/.test(pageDescription) ? "barber-chair"
+    : /salon|hair|frisør|frisør/.test(pageDescription) ? "scissors"
+    : /car|auto|mechanic|garage|værksted|bil|dæk|tyre|tire/.test(pageDescription) ? "car"
+    : /fitness|gym|sport|træning/.test(pageDescription) ? "torus"
+    : /architecture|architect|property|real estate|house|bolig|byggeri|arkitekt/.test(pageDescription) ? "box"
+    : "orb";
+  let firstThreeD = false;
+  out.blocks.forEach(block => {
+    if (block.type === "threeD") {
+      block.scrollMode = !firstThreeD;
+      firstThreeD = true;
+    }
+  });
+  if (!firstThreeD) {
+    const isEnglish = out.meta.language === "en";
+    const isSpanish = out.meta.language === "es";
+    const isGerman = out.meta.language === "de";
+    const isFrench = out.meta.language === "fr";
+    const title = isEnglish ? "Experience the business in 3D" : isSpanish ? "Descubre el negocio en 3D" : isGerman ? "Erlebe das Unternehmen in 3D" : isFrench ? "Découvrez l’entreprise en 3D" : "Oplev virksomheden i 3D";
+    const text = isEnglish ? "Explore the details in an immersive 3D scene that responds as you scroll." : isSpanish ? "Explora los detalles en una escena 3D inmersiva que responde al desplazamiento." : isGerman ? "Entdecke die Details in einer immersiven 3D-Szene, die auf Scrollen reagiert." : isFrench ? "Explorez les détails dans une scène 3D immersive qui réagit au défilement." : "Oplev detaljerne i en levende 3D-scene, der bevæger sig med din scrolling.";
+    const scene = { id: "pw-3d-" + Math.random().toString(36).slice(2, 9), type: "threeD", title, text, shape: defaultShape, color: out.meta.theme.accent || "#6D7CFF", scrollMode: true, modelData: "", modelUrl: "", modelProvider: "", modelLicense: "", modelFormat: "glb", modelName: "" };
+    const heroIndex = out.blocks.findIndex(block => block.type === "hero");
+    out.blocks.splice(heroIndex >= 0 ? heroIndex + 1 : 0, 0, scene);
+  }
+  out.meta.animation = { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true };
   if (!out.blocks.length) throw new Error("AI'en returnerede ingen gyldige blokke.");
   // Preserve and sanitize independently navigable pages returned by the AI.
   out.pages = (Array.isArray(site.pages) ? site.pages : []).slice(0, 8).map((page, index) => {
