@@ -24,6 +24,7 @@ for (const file of files) {
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const adapter = fs.readFileSync(path.join(root, 'pw-supabase.js'), 'utf8');
 const ai = fs.readFileSync(path.join(root, 'api/ai.js'), 'utf8');
+const models = fs.readFileSync(path.join(root, 'api/models.js'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
 const contracts = [
@@ -64,7 +65,7 @@ const contracts = [
   ['Claude retries malformed Gemini website output', ai.includes('Gemini returned invalid website JSON; retrying with Anthropic') && ai.includes('Hverken Gemini eller Claude returnerede en komplet hjemmeside.')],
   ['Claude assists with the conversational response after Gemini generation', ai.includes('Gemini handles the actual website JSON') && ai.includes('api.anthropic.com/v1/messages') && ai.includes('conversationProvider = "anthropic"')],
   ['both AI credentials are read server-side only', ai.includes('process.env.GEMINI_API_KEY') && ai.includes('process.env.ANTHROPIC_API_KEY') && !app.includes('ANTHROPIC_API_KEY') && !app.includes('GEMINI_API_KEY')],
-  ['one global smooth-scroll controller is used', (app.match(/new Lenis\\(/g) || []).length === 1 && app.includes('lenis.on(\'scroll\',ScrollTrigger.update)')],
+  ['one global smooth-scroll controller is used', app.split('new Lenis(').length === 2 && app.includes('lenis.on(\'scroll\',ScrollTrigger.update)')],
   ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))]
 ];
 
