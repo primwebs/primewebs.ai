@@ -294,7 +294,7 @@ module.exports = async (req, res) => {
     let text = "";
     const callGemini = async () => {
       let lastError = "Gemini er midlertidigt utilgængelig.";
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (let attempt = 0; attempt < 1; attempt++) {
         try {
           const upstream = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(GEMINI_MODEL) + ":generateContent?key=" + encodeURIComponent(GEMINI_API_KEY), {
             method: "POST",
@@ -304,8 +304,8 @@ module.exports = async (req, res) => {
               contents: [{ role: "user", parts: [{ text: task }] }],
               generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 9000 }
             }),
-            // Bound each upstream attempt so Vercel never has to kill the whole request at 300s.
-            signal: AbortSignal.timeout(65000)
+            // Keep Gemini brief so a busy model cannot consume the function budget before Claude fallback.
+            signal: AbortSignal.timeout(12000)
           });
           const result = await upstream.json().catch(() => ({}));
           if (upstream.ok) return (result.candidates || []).flatMap(c => c.content && c.content.parts || []).map(p => p.text || "").join("\\n");
@@ -326,8 +326,8 @@ module.exports = async (req, res) => {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
         body: JSON.stringify({ model: ANTHROPIC_MODEL, max_tokens: 9000, system: SYSTEM, messages: [{ role: "user", content: task }] }),
-        // Keep the paid fallback bounded as well; the editor receives a controlled error instead of a Vercel timeout.
-        signal: AbortSignal.timeout(70000)
+        // Keep Claude fallback inside the remaining serverless request budget; surface a controlled error rather than a platform timeout.
+        signal: AbortSignal.timeout(42000)
       });
       const result = await upstream.json().catch(() => ({}));
       if (!upstream.ok) {
@@ -398,7 +398,7 @@ module.exports = async (req, res) => {
             system: "You are the friendly, highly capable conversational assistant inside PRIME WEBS AI. Gemini has already performed the website-generation or editing task. Reply naturally and specifically in the user's language (Danish, English or Spanish). Explain what actually happened using the supplied result; never claim a change, feature, integration or test that the result does not confirm. If the user asked a question rather than requesting a change, answer the question directly. Be concise, warm and human, not robotic. Return plain text only, with no JSON and no markdown fences.",
             messages: [{ role: "user", content: conversationTask }],
           }),
-          signal: AbortSignal.timeout(25000)
+          signal: AbortSignal.timeout(15000)
         });
         const result = await upstream.json().catch(() => ({}));
         if (upstream.ok) {
