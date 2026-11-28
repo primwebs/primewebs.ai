@@ -38,7 +38,20 @@ const contracts = [
   ['Storage migration tracked', fs.existsSync(path.join(root, 'supabase/migrations/20261126230521_create_primewebs_media_bucket.sql'))],
   ['valid Anthropic fallback model', ai.includes('claude-sonnet-5') && !ai.includes('claude-sonnet-5-5')],
   ['no automatic gallery by default', app.includes('const needsGallery=explicitImageRequest||!!(gallery&&')],
-  ['automotive gets one dedicated garage scene', ai.includes('dedicated interactive garage3D experience')],
+  ['automotive keeps its dedicated 3D garage renderer', app.includes('data-pw-garage') && app.includes('pwGarageExperienceVersion')],
+  ['scroll-driven 3D renderer', app.includes('data-pw-scroll3d') && app.includes('scrollJourney')],
+  ['AI preserves scroll-driven 3D mode', ai.includes('scrollMode: b.scrollMode === true') && ai.includes('scrollMode:boolean')],
+  ['Lenis smooth-scroll runtime with native fallback', app.includes('lenis@1.3.29') && app.includes('pw-native-scroll-fallback') && app.includes('syncTouch:false')],
+  ['GSAP ScrollTrigger syncs scroll scenes', app.includes('gsap@3.15.0/ScrollTrigger') && app.includes('ScrollTrigger.update') && app.includes('pw-scroll3d')],
+  ['scroll motion respects reduced-motion preference', app.includes("matchMedia('(prefers-reduced-motion: reduce)')") && app.includes('if(reduced||(!level&&!cinematic))return;')],
+  ['3D-first generator rule is mandatory', ai.includes('3D-FIRST DESIGN — NON-NEGOTIABLE PRODUCT RULE') && ai.includes('at least one real threeD block on the homepage') && ai.includes('Never generate a plain, flat, generic template website')],
+  ['sanitizer inserts a scroll-driven 3D scene when AI omits one', ai.includes('Guarantee a cinematic, scroll-driven 3D focal scene on every generated page') && ai.includes('block.scrollMode = !firstThreeD') && ai.includes('out.blocks.splice')],
+  ['immersive animation flags cannot be disabled by AI output', ai.includes('animation: { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true }')],
+  ['renderer always applies immersive motion, including garage sites', app.includes("const animLevel='immersive';")],
+  ['scroll parallax targets content images across all pages', app.includes("main#pw-home img:not([data-no-parallax]),.pw-page-view img:not([data-no-parallax])")],
+  ['3D shape library includes painters and lighting trades', ai.includes('"paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"')],
+  ['industry-specific 3D model selection is mapped', ai.includes('/maler|painter|painting|decorator/') && ai.includes('/electric|elektriker|lighting|belysning|lamp/')],
+  ['distinct visual blueprint prevents generic template repetition', ai.includes('DESIGN BLUEPRINT — make each site feel art-directed, not templated') && ai.includes('Do not make every business look like the same purple orb template')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 

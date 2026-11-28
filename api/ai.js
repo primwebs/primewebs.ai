@@ -10,7 +10,14 @@ const ANTHROPIC_API_KEY = String(process.env.ANTHROPIC_API_KEY || process.env.an
 
 const SYSTEM = `You are the production website-generation engine for PRIME WEBS AI.
 Return ONLY valid JSON, no markdown fences or commentary.
-3D DESIGN: The platform has an interactive Three.js renderer with touch and mouse rotation, zoom, reset and auto-rotation. Use it deliberately. For product-led, beauty, barber, architecture, technology, gaming, fitness and premium brand sites, consider at most one prominent threeD block when it improves the visitor experience. For automotive, mechanic, tire-shop and car-repair websites, do not create generic threeD blocks or image-based substitutes: the platform inserts a dedicated interactive garage3D experience after generation. Do not add a second animation or a decorative image gallery to those automotive sites. For text-led professional services, use 3D only when it adds value or is requested. Use no more than two 3D blocks. Supported shapes: orb, torus, box, knot, barber-pole, shampoo-bottle, scissors, barber-chair, car, wheel and engine. Match shape, color and placement to the business: barber-pole/scissors/chair for barbers; shampoo-bottle/scissors for salons; car/wheel/engine for automotive; torus/knot/orb for technology and premium abstract brands. Place the scene near the hero or related service, with purposeful title and explanatory copy. Do not claim a custom product model exists unless modelData is supplied; do not invent model URLs. Make the scene mobile-friendly, visually balanced and never obstruct text or CTAs. Respect reduced-motion preferences. The site meta object may include animation: {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. For suitable businesses, you may add one or two threeD blocks using shape orb, torus, box, knot, barber-pole, shampoo-bottle, scissors, barber-chair, car, wheel or engine and a valid hex color. Match the 3D object to the business: barber-pole or scissors for barbers, shampoo-bottle for salons, car, wheel or engine for mechanics and garages. Use real 3D only when it improves the design; avoid adding it to every section or to text-heavy/local-service sites by default. Unless the user explicitly requests less motion, use immersive as the default. Use scroll reveals and tasteful CSS depth sparingly. Avoid repeated floating images, excessive image tilts, multiple competing animations or decorative galleries. Never make motion interfere with reading, navigation, or mobile usability. Respect reduced-motion preferences in the rendered site.
+3D-FIRST DESIGN — NON-NEGOTIABLE PRODUCT RULE:
+Every website you generate or redesign must look and feel like a premium 3D/immersive website, regardless of business category, user prompt, or how simple the requested business is. Never generate a plain, flat, generic template website. Do not interpret "simple", "clean", "minimal" or "professional" as permission to remove 3D: keep the layout clean if requested, but retain a strong 3D visual identity and scroll-linked motion.
+MANDATORY STRUCTURE: Include at least one real threeD block on the homepage and at least one real threeD block on every additional page. The first threeD block on each page MUST have scrollMode:true, creating a pinned cinematic scene whose object rotation and camera movement are scrubbed by scroll position. Use one principal scroll-driven 3D scene per page, not several competing pinned scenes. If no industry-specific shape fits, use a carefully art-directed orb, torus or knot rather than omitting 3D. Select the most relevant available shape: barber-pole/barber-chair for barbers, shampoo-bottle/scissors for salons, car/wheel/engine for automotive, paint-roller/paint-bucket for painters, work-lamp/ceiling-lamp for electricians and lighting, box/knot for architecture and interior design, and orb/torus for other industries. Use an appropriate color, clear heading and explanatory copy.
+DESIGN BLUEPRINT — make each site feel art-directed, not templated:
+Before writing the JSON, choose a visual concept that fits the actual business (for example: precision workshop, editorial luxury, warm craft, architectural minimalism, energetic sport, or premium hospitality). Give the homepage a strong image-led hero with a clear focal point, layered depth and a deliberate color system. Build varied section compositions instead of repeating identical three-card grids. Alternate image-led sections, asymmetric layouts, full-bleed visual moments, dimensional service panels and concise trust/contact sections. Give every page its own visual rhythm while preserving one coherent brand. Use real relevant photography in hero/about/gallery when available; never invent image URLs or use irrelevant stock imagery. Make the 3D scene visually prominent and integrated with the photography, not a tiny decorative icon. Every scroll movement must have a purpose: move the 3D subject, camera, image layers or selected copy as the visitor progresses. Keep headings readable, navigation clear, calls to action obvious and the mobile layout intentional. Do not make every business look like the same purple orb template.
+MANDATORY MOTION: Set site.meta.animation exactly to {level:"immersive",scroll:true,floatingImages:true,threeD:true,animatedText:true}. Use the built-in Lenis and GSAP ScrollTrigger runtime for smooth desktop scrolling, scroll-linked movement on content images, section reveals, text motion and depth. Use restrained parallax on content images throughout the site, not only the hero. Animate a selection of relevant visual elements as the visitor scrolls, while keeping text legible and CTAs stable. Keep native touch scrolling on mobile. Respect the device's prefers-reduced-motion accessibility setting, but never downgrade the generated design or remove its 3D scene from the saved site.
+VISUAL QUALITY: Build a complete, distinctive, premium 3D art direction for the specific business. Use strong photography, layered depth, purposeful lighting, shadows, gradients, glass/solid surfaces, dimensional cards and well-spaced typography. Make imagery and 3D objects feel integrated into one coherent scene. Avoid generic white template layouts, repetitive card grids, decorative filler, and static hero-plus-text pages.
+FUNCTIONALITY: Preserve all useful website features and truthful business content: navigation, multi-page structure, booking, services, contact forms, WhatsApp, maps, pricing, FAQ, legal information and other requested business functions. Do not delete functional sections just to make the site look more 3D. Do not invent prices, reviews, certifications, addresses, model URLs or business facts. Keep mobile performance and accessibility usable.
 The JSON must have this shape:
 {"site":{"v":1,"meta":{"title":"...","language":"da|en","theme":{"accent":"#2540D9","background":"#...","backgroundStyle":"linear-gradient(...)","surface":"#...","text":"#...","font":"sans","mode":"light","radius":"large"}},"blocks":[...],"pages":[{"id":"...","title":"Booking","slug":"booking","blocks":[...]}]}, "reply":"short explanation in the user’s language"}
 Allowed block types:
@@ -25,7 +32,7 @@ steps: {id,type:"steps",title,items:[{t,d},...]} (3-5 steps)
 faq: {id,type:"faq",title,items:[{t,d},...]} (t is the question, d the answer; 4-6 items)
 cta: {id,type:"cta",title,text,cta}
 gallery: {id,type:"gallery",title,images:["img:..." or https URL]} (only keep existing images, never create any)\nbooking: {id,type:"booking",title,text,cta} (separate booking page link and booking form)
-threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine",color:"#6D7CFF"} (real interactive 3D scene; use sparingly and only when it suits the business)
+threeD: {id,type:"threeD",title,text,shape:"orb|torus|box|knot|barber-pole|shampoo-bottle|scissors|barber-chair|car|wheel|engine",color:"#6D7CFF",scrollMode:boolean} (real interactive Three.js scene; set scrollMode:true for one cinematic pinned scroll-driven 3D scene when it materially improves the business story, otherwise false)
 pricing: {id,type:"pricing",title,items:[{t,d,price}]} (only use exact prices supplied by the user or existing site)
 team: {id,type:"team",title,items:[{t,d}]} (only use real names and roles supplied by the user or existing site)
 hero and about may also have an "image" field: keep it exactly as given and never invent image URLs
@@ -111,13 +118,8 @@ function sanitizeSite(site, fallbackLanguage) {
         mode: t.mode === "dark" ? "dark" : "light",
         radius: t.radius === "large" ? "large" : "medium"
       },
-      animation: {
-        level: ["none", "subtle", "advanced", "immersive"].includes(meta.animation && meta.animation.level) ? meta.animation.level : "immersive",
-        scroll: !meta.animation || meta.animation.scroll !== false,
-        floatingImages: !meta.animation || meta.animation.floatingImages !== false,
-        threeD: !meta.animation || meta.animation.threeD !== false,
-        animatedText: !meta.animation || meta.animation.animatedText !== false
-      }
+      // 3D-first is a platform invariant, not an optional generator preference.
+      animation: { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true }
     },
     blocks: []
   };
@@ -149,10 +151,10 @@ function sanitizeSite(site, fallbackLanguage) {
       const address = str(b.address, 300).trim();
       if (address) out.blocks.push({ id, type: "map", title: str(b.title || "Find os", 160), address });
     } else if (b.type === "threeD") {
-      const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine"].includes(b.shape) ? b.shape : "orb";
+      const shape = ["orb", "torus", "box", "knot", "barber-pole", "shampoo-bottle", "scissors", "barber-chair", "car", "wheel", "engine", "paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"].includes(b.shape) ? b.shape : "orb";
       const color = /^#[0-9a-fA-F]{6}$/.test(b.color || "") ? b.color : "#6D7CFF";
       const modelData = typeof b.modelData === "string" && /^data:model\/(gltf-binary|gltf\+json);base64,/i.test(b.modelData) && b.modelData.length <= 2800000 ? b.modelData : ""; const modelUrl = typeof b.modelUrl === "string" && /^https:\/\/dl\.polyhaven\.org\//i.test(b.modelUrl) ? str(b.modelUrl, 1000) : "";
-      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
+      out.blocks.push({ id, type: "threeD", title: str(b.title || "Oplev det i 3D", 160), text: str(b.text || "", 500), shape, color, scrollMode: b.scrollMode === true, modelData, modelUrl, modelProvider: modelUrl ? "Poly Haven" : "", modelLicense: modelUrl ? "CC0" : "", modelFormat: b.modelFormat === "gltf" ? "gltf" : "glb", modelName: str(b.modelName || "", 120) });
     } else if (b.type === "booking") {
       out.blocks.push({ id, type: "booking", title: str(b.title || "Book en tid", 160), text: str(b.text || "Vælg en ydelse og ønsket tidspunkt.", 600), cta: str(b.cta || "Book en tid", 80) });
     } else if (b.type === "gallery") {
@@ -164,6 +166,36 @@ function sanitizeSite(site, fallbackLanguage) {
       out.blocks.push(o);
     }
   }
+  // Guarantee a cinematic, scroll-driven 3D focal scene on every generated page.
+  // Keep real business sections intact; the 3D scene is an addition, not a replacement.
+  const pageDescription = [out.meta.title, ...out.blocks.flatMap(b => [b.title, b.text, ...(Array.isArray(b.items) ? b.items.map(i => i && (i.t + " " + i.d)) : [])])].join(" ").toLowerCase();
+  const defaultShape = /barber|barbershop|barberer/.test(pageDescription) ? "barber-chair"
+    : /salon|hair|frisør/.test(pageDescription) ? "scissors"
+    : /car|auto|mechanic|garage|værksted|bil|dæk|tyre|tire/.test(pageDescription) ? "car"
+    : /maler|painter|painting|decorator/.test(pageDescription) ? "paint-roller"
+    : /electric|elektriker|lighting|belysning|lamp/.test(pageDescription) ? "work-lamp"
+    : /fitness|gym|sport|træning/.test(pageDescription) ? "torus"
+    : /architecture|architect|property|real estate|house|bolig|byggeri|builder|tømrer|snedker|interior|møbel/.test(pageDescription) ? "box"
+    : "orb";
+  let firstThreeD = false;
+  out.blocks.forEach(block => {
+    if (block.type === "threeD") {
+      block.scrollMode = !firstThreeD;
+      firstThreeD = true;
+    }
+  });
+  if (!firstThreeD) {
+    const isEnglish = out.meta.language === "en";
+    const isSpanish = out.meta.language === "es";
+    const isGerman = out.meta.language === "de";
+    const isFrench = out.meta.language === "fr";
+    const title = isEnglish ? "Experience the business in 3D" : isSpanish ? "Descubre el negocio en 3D" : isGerman ? "Erlebe das Unternehmen in 3D" : isFrench ? "Découvrez l’entreprise en 3D" : "Oplev virksomheden i 3D";
+    const text = isEnglish ? "Explore the details in an immersive 3D scene that responds as you scroll." : isSpanish ? "Explora los detalles en una escena 3D inmersiva que responde al desplazamiento." : isGerman ? "Entdecke die Details in einer immersiven 3D-Szene, die auf Scrollen reagiert." : isFrench ? "Explorez les détails dans une scène 3D immersive qui réagit au défilement." : "Oplev detaljerne i en levende 3D-scene, der bevæger sig med din scrolling.";
+    const scene = { id: "pw-3d-" + Math.random().toString(36).slice(2, 9), type: "threeD", title, text, shape: defaultShape, color: out.meta.theme.accent || "#6D7CFF", scrollMode: true, modelData: "", modelUrl: "", modelProvider: "", modelLicense: "", modelFormat: "glb", modelName: "" };
+    const heroIndex = out.blocks.findIndex(block => block.type === "hero");
+    out.blocks.splice(heroIndex >= 0 ? heroIndex + 1 : 0, 0, scene);
+  }
+  out.meta.animation = { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true };
   if (!out.blocks.length) throw new Error("AI'en returnerede ingen gyldige blokke.");
   // Preserve and sanitize independently navigable pages returned by the AI.
   out.pages = (Array.isArray(site.pages) ? site.pages : []).slice(0, 8).map((page, index) => {
