@@ -324,31 +324,50 @@ module.exports = async (req, res) => {
       return (result.content || []).filter(x => x.type === "text").map(x => x.text).join("\\n");
     };
 
+    let websiteProvider = activeProvider;
     if (activeProvider === "gemini") {
       try {
         text = await callGemini();
       } catch (geminiError) {
-        // Automatically fail over during provider overload/outages; never expose a raw 503 to the editor.
-        if (!ANTHROPIC_API_KEY || ![429, 500, 502, 503, 504].includes(geminiError.status)) throw geminiError;
-        try { text = await callAnthropic(); }
-        catch (fallbackError) {
-          throw new Error("Gemini er midlertidigt overbelastet, og reserveforbindelsen kunne heller ikke svare. Prøv igen om lidt. (" + String(fallbackError.message || "").slice(0, 220) + ")");
+        // Claude is the real generation fallback, not just a chat-only integration.
+        if (!ANTHROPIC_API_KEY) throw geminiError;
+        console.warn("Gemini website generation failed; switching to Anthropic:", geminiError && geminiError.message || "unknown error");
+        try {
+          text = await callAnthropic();
+          websiteProvider = "anthropic";
+        } catch (fallbackError) {
+          throw new Error("Gemini og Claude kunne ikke generere hjemmesiden. Gemini: " + String(geminiError.message || "").slice(0, 120) + ". Claude: " + String(fallbackError.message || "").slice(0, 160));
         }
       }
     } else if (activeProvider === "anthropic") {
       text = await callAnthropic();
     }
-    const parsed = extractJSON(text);
-    if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
-      throw new Error("AI'en returnerede en ufuldstændig hjemmeside.");
+
+    // A syntactically valid HTTP response can still contain truncated or invalid JSON.
+    // In that case, retry the actual website task once with the other configured provider.
+    let parsed;
+    try {
+      parsed = extractJSON(text);
+      if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
+        throw new Error("AI'en returnerede en ufuldstændig hjemmeside.");
+      }
+    } catch (primaryOutputError) {
+      if (websiteProvider !== "gemini" || !ANTHROPIC_API_KEY) throw primaryOutputError;
+      console.warn("Gemini returned invalid website JSON; retrying with Anthropic:", primaryOutputError && primaryOutputError.message || "invalid JSON");
+      text = await callAnthropic();
+      websiteProvider = "anthropic";
+      parsed = extractJSON(text);
+      if (!parsed.site || !Array.isArray(parsed.site.blocks) || !parsed.site.meta) {
+        throw new Error("Hverken Gemini eller Claude returnerede en komplet hjemmeside.");
+      }
     }
     const safeSite = sanitizeSite(parsed.site, action === "generate" ? body.language : (body.site && body.site.meta && body.site.meta.language));
     let reply = String(parsed.reply || (action === "generate" ? "Din hjemmeside er genereret. Fortæl mig, hvad du vil ændre." : "Ændringerne er udført.")).slice(0, 1000);
-    let conversationProvider = activeProvider;
+    let conversationProvider = websiteProvider;
     // Gemini handles the actual website JSON. Claude then acts as the conversational
     // partner: it receives the user's request and the real result, and writes the reply.
     // This is collaboration, not failover. Both API keys remain server-side.
-    if (activeProvider === "gemini" && ANTHROPIC_API_KEY) {
+    if (websiteProvider === "gemini" && ANTHROPIC_API_KEY) {
       try {
         const language = String((safeSite.meta && safeSite.meta.language) || "da");
         const conversationTask = [
@@ -383,7 +402,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       site: safeSite,
       reply,
-      providers: { website: activeProvider, conversation: conversationProvider }
+      providers: { website: websiteProvider, conversation: conversationProvider }
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Der opstod en fejl i AI-generatoren." });
