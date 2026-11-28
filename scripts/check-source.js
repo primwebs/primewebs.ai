@@ -58,7 +58,14 @@ const contracts = [
   ['immersive invariant guard exists and is applied after generation and edits', app.includes('function enforceImmersiveInvariants(site)') && app.includes('enforceImmersiveInvariants(site);') && app.includes('enforceImmersiveInvariants(r.site);')],
   ['every homepage and subpage retains a scroll-driven 3D focal scene', app.includes("first.scrollMode=true") && app.includes("site.pages=site.pages.map(page=>") && app.includes("type==='threeD'")],
   ['distinct visual blueprint prevents generic template repetition', ai.includes('DESIGN BLUEPRINT — make each site feel art-directed, not templated') && ai.includes('Do not make every business look like the same purple orb template')],
-  ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
+  ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))],
+  ['Gemini remains the default primary website provider', ai.includes('process.env.AI_PROVIDER || "auto"') && ai.includes('requestedProvider === "auto"') && ai.includes('(GEMINI_API_KEY ? "gemini" : "anthropic")')],
+  ['Claude is used as a real generation fallback when Gemini fails', ai.includes('if (activeProvider === "gemini")') && ai.includes('text = await callGemini()') && ai.includes('text = await callAnthropic()') && ai.includes('websiteProvider = "anthropic"')],
+  ['Claude retries malformed Gemini website output', ai.includes('Gemini returned invalid website JSON; retrying with Anthropic') && ai.includes('Hverken Gemini eller Claude returnerede en komplet hjemmeside.')],
+  ['Claude assists with the conversational response after Gemini generation', ai.includes('Gemini handles the actual website JSON') && ai.includes('api.anthropic.com/v1/messages') && ai.includes('conversationProvider = "anthropic"')],
+  ['both AI credentials are read server-side only', ai.includes('process.env.GEMINI_API_KEY') && ai.includes('process.env.ANTHROPIC_API_KEY') && !app.includes('ANTHROPIC_API_KEY') && !app.includes('GEMINI_API_KEY')],
+  ['one global smooth-scroll controller is used', (app.match(/new Lenis\\(/g) || []).length === 1 && app.includes('lenis.on(\'scroll\',ScrollTrigger.update)')],
+  ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))]
 ];
 
 let failed = false;
