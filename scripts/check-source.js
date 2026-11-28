@@ -49,6 +49,9 @@ const contracts = [
   ['immersive animation flags cannot be disabled by AI output', ai.includes('animation: { level: "immersive", scroll: true, floatingImages: true, threeD: true, animatedText: true }')],
   ['renderer always applies immersive motion, including garage sites', app.includes("const animLevel='immersive';")],
   ['scroll parallax targets content images across all pages', app.includes("main#pw-home img:not([data-no-parallax]),.pw-page-view img:not([data-no-parallax])")],
+  ['3D shape library includes painters and lighting trades', ai.includes('"paint-roller", "paint-bucket", "work-lamp", "ceiling-lamp"')],
+  ['industry-specific 3D model selection is mapped', ai.includes('/maler|painter|painting|decorator/') && ai.includes('/electric|elektriker|lighting|belysning|lamp/')],
+  ['distinct visual blueprint prevents generic template repetition', ai.includes('DESIGN BLUEPRINT — make each site feel art-directed, not templated') && ai.includes('Do not make every business look like the same purple orb template')],
   ['versioned production assets', ['app.js','pw-supabase.js','styles.css'].every(x => index.includes(x + '?v='))]
 ];
 
