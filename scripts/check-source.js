@@ -69,7 +69,7 @@ const contracts = [
   ['all automotive scene assets exist in the curated model catalogue', ['car','v12-grand-coupe','realistic-muscle-coupe','v8-engine','car-lift','tire-changer','rolling-tool-chest','garage-workbench','engine-hoist'].every(asset => models.includes('"'+asset+'"'))],
   ['one shared walkthrough renderer supports all industry journeys', app.includes("const makeWalkthrough=()=>") && app.includes("camera.position.z=14-p*22") && app.includes("journey==='barber'") && app.includes("journey==='home'") && app.includes("journey==='clothing'") && app.includes("journey==='gym'") && app.includes("journey==='restaurant'") && app.includes("journey==='automotive'")],
   ['walkthrough is the mandatory primary 3D scene in generation', ai.includes('shape MUST be "walkthrough"') && ai.includes('block.shape = defaultShape') && ai.includes('block.journey = defaultJourney')],
-  ['walkthrough camera path is scrubbed by the existing single Lenis scroll runtime', app.includes("camera.position.z=14-p*22") && app.includes("lenis.on('scroll',ScrollTrigger.update)") && app.split('new Lenis(').length === 2)
+  ['walkthrough camera path is scrubbed by the existing single Lenis scroll runtime', app.includes("camera.position.z=14-p*22") && app.includes("lenis.on('scroll',ScrollTrigger.update)") && app.split('new Lenis(').length === 2
 ];
 
 let failed = false;
